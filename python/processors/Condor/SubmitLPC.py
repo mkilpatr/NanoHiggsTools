@@ -211,7 +211,7 @@ def my_process(args):
                 line = line.replace("TARFILES", tarballname)
                 line = line.replace("TEMPDIR", tempdir)
                 line = line.replace("PROJECTNAME", ProjectName)
-		line = line.replace("MEMORY", args.memory)
+		line = line.replace("MEMORY", args.memory + " GB")
                 line = line.replace("ARGUMENTS", arg)
                 outfile.write(line)
 
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 	default = "../Stop0l_postproc.py",
 	help = 'Path to the process file')
     parser.add_argument('-m', '--memory',
-	default = "2 GB",
+	default = "2",
 	help = 'Amount of memory to request.')
 
     args = parser.parse_args()

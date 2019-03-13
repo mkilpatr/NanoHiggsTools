@@ -70,7 +70,8 @@ Use JetResDiagnostic.C to create the pngs from the previous command ^
 > python Stop0l_postproc_QCD.py
 
 For Condor:
-> python SubmitLPC.py -f ../Stop0l_postproc_QCD.py -c ../../../../../StopCfg/sampleSets_preProcess_2016_QCD.cfg -o /eos/uscms/store/user/{USER}/13TeV/qcdsmearing_nanoaod/
+Need 4 GB for the QCD smearing or else you run out of memory
+> python SubmitLPC.py -f ../Stop0l_postproc_QCD.py -c ../../../../../StopCfg/sampleSets_preProcess_2016_QCD.cfg -o /eos/uscms/store/user/{USER}/13TeV/qcdsmearing_nanoaod/ -m 4
 
 After QCD smearing you need to run the add weight part of the NTuples.
 You need to now create trees to run over and create the SF for the files. 
