@@ -19,18 +19,29 @@ class qcdSmearProducer(Module):
         self.xBinWidth = 0.01
         self.minWindow = 0.01
         self.maxWindow = 0.5
-        self.nSmears = 2
+        self.nSmears = 100
         self.nSmearJets = 2
         self.nBootstraps = 50
         self.doFlatSampling = True
         self.respInputName = "JetResByFlav"
         self.respFileName = "file:$CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/data/qcdJetRes/resTailOut_combined_filtered_CHEF_puWeight_weight_WoH_NORMALIZED_NANO.root"
+        self.respHistName = ["res_light_comp_1","res_light_comp_2","res_light_comp_3","res_light_comp_4","res_light_comp_5","res_light_comp_6","res_light_comp_7","res_light_comp_8","res_light_comp_9","res_light_comp_10","res_light_comp_11","res_light_comp_12","res_light_comp_13","res_b_comp_14","res_b_comp_15","res_b_comp_16","res_b_comp_17","res_b_comp_18","res_b_comp_19","res_b_comp_20","res_b_comp_21","res_b_comp_22","res_b_comp_23","res_b_comp_24","res_b_comp_25","res_b_comp_26"]
 
     def beginJob(self,histFile=None,histDirName=None):
         pass
 
     def endJob(self):
         pass 
+
+    def loadHisto(self,filename,hname):
+	tf = ROOT.TFile.Open(filename)
+	hist = []
+	for h1 in hname:
+		hist_ = tf.Get(h1)
+		hist_.SetDirectory(0)
+		hist.append(hist_)
+	tf.Close()
+	return hist
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree, outputFileSmear, outputTreeSmear):
 	self.out = wrappedOutputTree
@@ -46,16 +57,10 @@ class qcdSmearProducer(Module):
 	self.outsmear.branch("genWeight", "F")
 	self.outsmear.branch("nBootstrapWeight",        "I")
 	self.outsmear.branch("bootstrapWeight",         "I", lenVar="nBootstrapWeight")
-
-    def loadHisto(self,filename,hname):
-	tf = ROOT.TFile.Open(filename)
-	hist = tf.Get(hname)
-	hist.SetDirectory(None)
-	tf.Close()
-	return hist
+	self.targeth = self.loadHisto(self.respFileName,self.respHistName)
 
     def ptmapping(self, recojet, vecKind):
-	ptrange = [0, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500, 700, 1000, 1500]	
+	ptrange = [0, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500, 700, 1000, 4000]	
         pt_index = -1
 	if vecKind : 
 		jetpt = recojet.Pt()
@@ -65,16 +70,16 @@ class qcdSmearProducer(Module):
 		if jetpt < float(ptrange[i]): 
 			pt_index = i - 1
 			break
+		else:
+			pt_index = len(ptrange) - 1
 	
-	bname=["res_b_comp_14","res_b_comp_15","res_b_comp_16","res_b_comp_17","res_b_comp_18","res_b_comp_19","res_b_comp_20","res_b_comp_21","res_b_comp_22","res_b_comp_23","res_b_comp_24","res_b_comp_25","res_b_comp_26"]
-        lgtname=["res_light_comp_1","res_light_comp_2","res_light_comp_3","res_light_comp_4","res_light_comp_5","res_light_comp_6","res_light_comp_7","res_light_comp_8","res_light_comp_9","res_light_comp_10","res_light_comp_11","res_light_comp_12","res_light_comp_13"]
         if vecKind :
-		return lgtname[pt_index]
+		return pt_index
 	else:
 		if recojet.partonFlavour == 4 :
-			return bname[pt_index]
+			return (pt_index + len(self.respHistName)/2)
         	else :
-			return lgtname[pt_index]
+			return pt_index
 
     def jetResFunction(self, jets, genjets, vecKind):
 	if vecKind : res = jets.Pt()/genjets.pt
@@ -190,6 +195,9 @@ class qcdSmearProducer(Module):
         #begin smearing
         smearWeight = 1
 	SmearJets = []
+	if met.pt < 200: return True
+	#print met.pt
+
 	for iJ in xrange(len(genjets)) :
 		if iJ == self.nSmearJets: break
 		gJ = genjets[iJ]
@@ -221,17 +229,16 @@ class qcdSmearProducer(Module):
 		origRes_ = self.jetResFunction(recoJet, gJ, vecKind)
 		if origRes_ < 0 or origRes_ > 2 : continue
 		
-		respHistoName = self.ptmapping(recoJet, vecKind)
-		targeth = self.loadHisto(self.respFileName,respHistoName)
-		cdf = targeth.GetBinContent(int(origRes_/self.xBinWidth))
+		respHisto = self.ptmapping(recoJet, vecKind)
+		cdf = self.targeth[respHisto].GetBinContent(int(origRes_/self.xBinWidth))
 		#print "CDF", cdf
-		minProb, maxProb, minRes, maxRes = self.getScaledWindowAndProb(targeth,origRes_,self.minWindow,self.maxWindow)
+		minProb, maxProb, minRes, maxRes = self.getScaledWindowAndProb(self.targeth[respHisto],origRes_,self.minWindow,self.maxWindow)
 		if minProb - maxProb == 0 : continue
 
 		recoJetLVec = ROOT.TLorentzVector()	
 		if vecKind:  recoJetLVec = recoJet
 		else:        recoJetLVec.SetPtEtaPhiM(recoJet.pt, recoJet.eta, recoJet.phi, recoJet.mass)
-		SmearJets_buff = [gJ,recoJetLVec,rJI,targeth,minProb,maxProb,minRes,maxRes] 
+		SmearJets_buff = [gJ,recoJetLVec,rJI,self.targeth[respHisto],minProb,maxProb,minRes,maxRes] 
 		SmearJets.append(SmearJets_buff)
 
         if len(SmearJets) != 2: return True
