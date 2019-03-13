@@ -24,6 +24,7 @@ def main(args):
     ]
     
     #files=["/eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_80X_v2_NanAOD_MC/PostProcess_v1/QCD_HT100to200/QCD_HT100to200_0.root"]
+    #files=["root://cmseos.fnal.gov//store/user/lpcsusyhad/Stop_production/Summer16_80X_v2_NanAOD_MC//QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MC_RunIISummer16MiniAODv2-PUMoriond17_80X_v6-v1/190124_025835/0000/prod2016MC_NANO_1-104.root"]
     files = []
     lines = open(args.inputfile).readlines()
     for line in lines:
