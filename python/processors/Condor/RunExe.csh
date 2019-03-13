@@ -4,6 +4,7 @@ set SCRAM = DELSCR
 set CMSSW = DELDIR
 set EXE   = DELEXE
 set OUTPUT = OUTDIR
+set INPUTROOT = INROOT
 
 #============================================================================#
 #-----------------------------   Setup the env   ----------------------------#
@@ -38,6 +39,11 @@ endif
 #============================================================================#
 #--------------------------   To Run the Process   --------------------------#
 #============================================================================#
+
+# copy response file for smearing
+if INPUTROOT != "" then
+  xrdcp -f "root://cmseos.fnal.gov/${INPUTROOT}" "$CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/data/qcdJetRes/."
+endif
 
 #argv[1] is the hadd file name that will be copied over. Other arguments are for the postprocessor.
 echo $EXE $argv[2-]

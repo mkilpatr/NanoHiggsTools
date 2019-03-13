@@ -87,7 +87,7 @@ def Condor_Sub(condor_file):
     os.chdir(curdir)
 
 
-def SplitPro(key, file, lineperfile=20):
+def SplitPro(key, file, lineperfile=10):
     splitedfiles = []
     filelistdir = tempdir + '/' + "FileList"
     try:
@@ -192,6 +192,7 @@ def my_process(args):
                 line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
                 line = line.replace("DELEXE", args.runfile.split('/')[-1])
                 line = line.replace("OUTDIR", outdir)
+                if args.inputfile != "": line = line.replace("INROOT", args.inputfile)
                 # line = line.replace("OUTFILE", outputfile)
                 outfile.write(line)
 
@@ -239,6 +240,9 @@ if __name__ == "__main__":
 	help = 'Path to the process file')
     parser.add_argument('-m', '--memory',
 	default = "2",
+	help = 'Amount of memory to request.')
+    parser.add_argument('-i', '--inputfile',
+	default = "",
 	help = 'Amount of memory to request.')
 
     args = parser.parse_args()

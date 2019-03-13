@@ -19,13 +19,12 @@ class qcdSmearProducer(Module):
         self.xBinWidth = 0.01
         self.minWindow = 0.01
         self.maxWindow = 0.5
-        self.nSmears = 100
+        self.nSmears = 2
         self.nSmearJets = 2
         self.nBootstraps = 50
         self.doFlatSampling = True
         self.respInputName = "JetResByFlav"
-        #self.respFileName = "file:/eos/uscms/store/user/mkilpatr/13TeV/qcdsmearing_nanoaod/resTailOut_combined_filtered_CHEF_puWeight_weight_WoH_NORMALIZED_NANO.root"
-	self.respFileName = "root://cmseos.fnal.gov//store/user/mkilpatr/13TeV/qcdsmearing_nanoaod/resTailOut_combined_filtered_CHEF_puWeight_weight_WoH_NORMALIZED_NANO.root"
+        self.respFileName = "file:$CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/data/qcdJetRes/resTailOut_combined_filtered_CHEF_puWeight_weight_WoH_NORMALIZED_NANO.root"
 
     def beginJob(self,histFile=None,histDirName=None):
         pass
@@ -215,7 +214,6 @@ class qcdSmearProducer(Module):
 		if rJI < 0 :
 			rJI = len(jets)
 			n1=ROOT.TLorentzVector()
-			#newjet = [n1.SetPtEtaPhiM(9.5,gJ.eta,gJ.phi,gJ.mass),-1,0,9.5,0,gJ.pt]
 			n1.SetPtEtaPhiM(9.5,gJ.eta,gJ.phi,gJ.mass)
 			recoJet = n1
 			vecKind = True
@@ -233,7 +231,7 @@ class qcdSmearProducer(Module):
 		recoJetLVec = ROOT.TLorentzVector()	
 		if vecKind:  recoJetLVec = recoJet
 		else:        recoJetLVec.SetPtEtaPhiM(recoJet.pt, recoJet.eta, recoJet.phi, recoJet.mass)
-		SmearJets_buff = [gJ,recoJetLVec,targeth,minProb,maxProb,minRes,maxRes] 
+		SmearJets_buff = [gJ,recoJetLVec,rJI,targeth,minProb,maxProb,minRes,maxRes] 
 		SmearJets.append(SmearJets_buff)
 
         if len(SmearJets) != 2: return True
@@ -245,7 +243,6 @@ class qcdSmearProducer(Module):
 	SmearedJets = []
         for iS in xrange(self.nSmears) :
 		
-		recoJets = []
 		recoJets_pt = []
 		recoJets_eta = []
 		recoJets_phi = []
@@ -254,12 +251,12 @@ class qcdSmearProducer(Module):
 			info = SmearJets[iJ]
 			newResValue = 1
 			if self.doFlatSampling :
-				newResValue = ROOT.gRandom.Uniform(info[5], info[6]) 
+				newResValue = ROOT.gRandom.Uniform(info[6], info[7]) 
 			else :
-				newResProb = ROOT.gRandom.Uniform(info[3], info[4])   
-				newResValue=self.interpolateProbToRes(info[2], newResProb)
+				newResProb = ROOT.gRandom.Uniform(info[4], info[5])   
+				newResValue=self.interpolateProbToRes(info[3], newResProb)
 
-			minProb2, maxProb2, minRes2, maxRes2 = self.getContributionScaledWindowAndProb(info[2], newResValue, self.minWindow, self.maxWindow) 
+			minProb2, maxProb2, minRes2, maxRes2 = self.getContributionScaledWindowAndProb(info[3], newResValue, self.minWindow, self.maxWindow) 
 			contribProb = maxProb2 - minProb2
 			if contribProb == 0 : continue
 			canSmear = True
@@ -268,8 +265,8 @@ class qcdSmearProducer(Module):
 			if self.doFlatSampling:
 				deltaMinRes = newResValue - 0.001
 				deltaMaxRes = newResValue + 0.001
-				deltaMinProb, deltaMaxProb = self.getWindowProb(info[2], deltaMinRes, deltaMaxRes)
-				flatProb = (deltaMaxRes - deltaMinRes)/ (info[6] - info[5])
+				deltaMinProb, deltaMaxProb = self.getWindowProb(info[3], deltaMinRes, deltaMaxRes)
+				flatProb = (deltaMaxRes - deltaMinRes)/ (info[7] - info[6])
 				trueProb = deltaMaxProb - deltaMinProb
 				smearingCorr = trueProb / flatProb
 			else:
@@ -285,24 +282,27 @@ class qcdSmearProducer(Module):
 			else:   met = self.addTLorentzVector(met, recoJet)
 			newp4 = ROOT.TLorentzVector()
 			newp4.SetPtEtaPhiM(newResValue * info[0].pt,recoJet.Eta(),recoJet.Phi(),recoJet.M())
-			recoJets.append(newp4)
+			recoJets_pt.append(newp4.Pt())
+			recoJets_eta.append(newp4.Eta())
+			recoJets_phi.append(newp4.Phi())
+			recoJets_mass.append(newp4.M())
 			met -= newp4
 
 		for j in xrange(len(originalRecoJets)):
-			if j == SmearJets[0][1] or j == SmearJets[1][1] :
+			if j == SmearJets[0][2] or j == SmearJets[1][2] :
 				continue
 			else :
-				jet_buff = ROOT.TLorentzVector()
-				jet_buff.SetPtEtaPhiM(originalRecoJets[j].pt, originalRecoJets[j].eta, originalRecoJets[j].phi, originalRecoJets[j].mass)
-				recoJets.append(jet_buff)
+				recoJets_pt.append(originalRecoJets[j].pt)
+				recoJets_eta.append(originalRecoJets[j].eta)
+				recoJets_phi.append(originalRecoJets[j].phi)
+				recoJets_mass.append(originalRecoJets[j].mass)
 
 		if canSmear :
-			recoJets.sort(key = lambda j : j.Pt(), reverse = True)
-			for j in xrange(len(recoJets)) :
-				recoJets_pt.append(recoJets[j].Pt())
-				recoJets_eta.append(recoJets[j].Eta())
-				recoJets_phi.append(recoJets[j].Phi())
-				recoJets_mass.append(recoJets[j].M())
+			#print "recoJets_pt: ", recoJets_pt
+			combine = zip(recoJets_pt, recoJets_eta, recoJets_phi, recoJets_mass)
+			combine.sort(reverse = True)
+			#print "combine: ", combine
+			recoJets_pt, recoJets_eta, recoJets_phi, recoJets_mass = zip(*combine)
 			smearWeight /= float(self.nSmears)
 			weight *= smearWeight
 			self.outsmear.fillBranch("Jet_pt", recoJets_pt)
