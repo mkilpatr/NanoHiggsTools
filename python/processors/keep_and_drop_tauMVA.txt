@@ -3,4 +3,6 @@ drop *
 keep Pass_MET
 keep Pass_Baseline
 keep genWeight
+keep Stop0l_evtWeight
 keep nJet
+keep Jet_dPhiMET

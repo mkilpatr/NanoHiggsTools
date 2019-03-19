@@ -34,7 +34,7 @@ mods = [
 #files=["/eos/uscms/store/user/mkilpatr/13TeV/tauMVA/prod2017MC_NANO_Skim.root"]
 files=["root://cmseos.fnal.gov//store/user/mkilpatr/13TeV/tauMVA/TTbarSingleLepT_2017_0.root"]
 #files = []
-#lines = open("output.txt").readlines()
+#lines = open("samples_single.txt").readlines()
 #for line in lines:
 #    files.append(line.strip())
 p=PostProcessor(".",files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)

@@ -21,6 +21,17 @@ class TauMVAObjectsProducer(Module):
 	self.p_tauminus = 15
 	self.p_Z0       = 23
 	self.p_Wplus    = 24
+	self.p_gamma    = 22
+	self.pfhfhad = 1 
+	self.pfem = 2 
+	self.pfelectron = 11 
+	self.p_nu_e = 12
+	self.pfmuon = 13 
+	self.p_nu_mu = 14
+	self.p_nu_tau = 16
+	self.pfphoton = 22 
+	self.pfh0 = 130 
+	self.pfhplus = 211
 
     def beginJob(self):
         pass
@@ -29,77 +40,169 @@ class TauMVAObjectsProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	self.out.branch("Pfcand_pt",		"F")
-	self.out.branch("Pfcand_eta",		"F")
-	self.out.branch("Pfcand_phi",		"F")
-	self.out.branch("Pfcand_mass",		"F")
-	self.out.branch("Pfcand_dz",		"F")
-	self.out.branch("Pfcand_chiso0p1",		"F")
-	self.out.branch("Pfcand_chiso0p2",		"F")
-	self.out.branch("Pfcand_chiso0p3",		"F")
-	self.out.branch("Pfcand_chiso0p4",		"F")
-	self.out.branch("Pfcand_totiso0p1",		"F")
-	self.out.branch("Pfcand_totiso0p2",		"F")
-	self.out.branch("Pfcand_totiso0p3",		"F")
-	self.out.branch("Pfcand_totiso0p4",		"F")
-	self.out.branch("Pfcand_tackiso",		"F")
-	self.out.branch("Pfcand_nearphopt",		"F")
-	self.out.branch("Pfcand_nearphoeta",	"F")
-	self.out.branch("Pfcand_nearphophi",	"F")
-	self.out.branch("Pfcand_nearestTrkDR",	"F")
-	self.out.branch("Pfcand_contJetIndex",	"I")
-	self.out.branch("Pfcand_contjetdr",		"F")
-	self.out.branch("Pfcand_contjetcsv",	"F")
-	self.out.branch("isTau_MVA",		"O")
+	self.out.branch("nGenHadTaus", "I")
+	self.out.branch("nGenTaus", "I")
+	self.out.branch("nGenChHads", "I")
+	self.out.branch("nGenChHadsAcc", "I")
+	self.out.branch("pt", "F")
+	self.out.branch("mt", "F")
+	self.out.branch("misset", "F")
+	self.out.branch("abseta", "F")
+	self.out.branch("absdz", "F")
+	#self.out.branch("taumva", "F")
+	self.out.branch("chiso0p1", "F")
+	self.out.branch("chiso0p2", "F")
+	self.out.branch("chiso0p3", "F")
+	self.out.branch("chiso0p4", "F")
+	self.out.branch("totiso0p1", "F")
+	self.out.branch("totiso0p2", "F")
+	self.out.branch("totiso0p3", "F")
+	self.out.branch("totiso0p4", "F")
+	self.out.branch("neartrkdr", "F")
+	self.out.branch("contjetdr", "F")
+	self.out.branch("contjetcsv", "F")
+	self.out.branch("gentaumatch", "O")
+	self.out.branch("ptmatch", "F")
+	self.out.branch("etamatch", "F")
+
 
     def isA(self, particleID, p):
 	return abs(p) == particleID
 
-    def SelTau(self, genpart, pfc):
-	for g in genpart:
-		genPartMom = g.genPartIdxMother
-		if self.isA(self.p_tauminus, g.pdgId) and deltaR(g.eta, g.phi, pfc.eta, pfc.phi) < 0.2 and (self.isA(self.p_Z0, genPartMom) or self.isA(self.p_Wplus, genPartMom)):
-			return True
-	return False
+    def getNearPhotonIndex(self, pfc, pfcands):
+	minPhotonPt = 0.5
+	maxPhotonDR = 0.2
+	photonInd = -1
+	maxPhotonPT = 0.0
+	
+	for ic in xrange(len(pfcands)):
+		c = pfcands[ic]
+		if(c.nearphopt < minPhotonPt): continue
+		dr = deltaR(c.eta, c.phi, pfc.nearphoeta, pfc.nearphophi)
+		if(dr > maxPhotonDR): continue;
+		if(c.nearphopt > maxPhotonPT):
+			maxPhotonPT = c.pt;
+			photonInd = ic;
+	
+	return photonInd;
+
+    def transverseMass(self, visible, invisible):
+	cosDPhi   = np.cos( deltaPhi(visible.Phi(), invisible.phi) );
+	return np.sqrt( 2 * visible.Pt() * invisible.pt * (1 - cosDPhi) );
+        
+    def computeMT(self, pfc, met, pfcands):
+	photonInd = self.getNearPhotonIndex(pfc, pfcands);
+	candP4 = ROOT.TLorentzVector()
+	candP4.SetPtEtaPhiM(pfc.pt, pfc.eta, pfc.phi, pfc.mass)
+	if(photonInd > -1): 
+		pfcand_buff = ROOT.TLorentzVector()
+		pfcand_buff.SetPtEtaPhiM(pfcands[photonInd].pt, pfcands[photonInd].eta, pfcands[photonInd].phi, pfcands[photonInd].mass)
+		candP4+=pfcand_buff;
+	return self.transverseMass(candP4, met);
 
     def analyze(self, event):
         ## Getting objects
+	met	  = Object(event, "MET")
 	jets	  = Collection(event, "Jet")
-	genpart   = Collection(event, "GenPart")
+	genPart   = Collection(event, "GenVisTau")
 	pfcand    = Collection(event, "PFcand")
 	eventNum  = event.event
 
-	for iP in xrange(len(pfcand)):
-		pfc = pfcand[iP]
-		#if(abs(pfc.eta) > 2.4 or pfc.nearestTrkDR > 2.38): continue
-	
-		jetmatch = (pfc.contJetIndex > -1) and (jets[pfc.contJetIndex].pt >= 20.0) and (abs(jets[pfc.contJetIndex].eta) < 2.4)
-		jetdr = deltaR(jets[pfc.contJetIndex].eta, jets[pfc.contJetIndex].phi, pfc.eta, pfc.phi) if jetmatch else -1.0
-		jetcsv = jets[pfc.contJetIndex].btagDeepB if jetmatch else -1.0
-		self.out.fillBranch("Pfcand_pt",		pfc.pt)
-		self.out.fillBranch("Pfcand_eta",		pfc.eta)
-		self.out.fillBranch("Pfcand_phi",		pfc.phi)
-		self.out.fillBranch("Pfcand_mass",		pfc.mass)
-		self.out.fillBranch("Pfcand_dz",		pfc.dz)
-		self.out.fillBranch("Pfcand_chiso0p1",	pfc.chiso0p1)
-		self.out.fillBranch("Pfcand_chiso0p2",	pfc.chiso0p2)
-		self.out.fillBranch("Pfcand_chiso0p3",	pfc.chiso0p3)
-		self.out.fillBranch("Pfcand_chiso0p4",	pfc.chiso0p4)
-		self.out.fillBranch("Pfcand_totiso0p1",	pfc.totiso0p1)
-		self.out.fillBranch("Pfcand_totiso0p2",	pfc.totiso0p2)
-		self.out.fillBranch("Pfcand_totiso0p3",	pfc.totiso0p3)
-		self.out.fillBranch("Pfcand_totiso0p4",	pfc.totiso0p4)
-		self.out.fillBranch("Pfcand_tackiso",	pfc.trackiso)
-		self.out.fillBranch("Pfcand_nearphopt",	pfc.nearphopt)
-		self.out.fillBranch("Pfcand_nearphoeta",	pfc.nearphoeta)
-		self.out.fillBranch("Pfcand_nearphophi",	pfc.nearphophi)
-		self.out.fillBranch("Pfcand_nearestTrkDR",	pfc.nearestTrkDR)
-		self.out.fillBranch("Pfcand_contJetIndex",	pfc.contJetIndex)
-		self.out.fillBranch("Pfcand_contjetdr",	jetdr)
-		self.out.fillBranch("Pfcand_contjetcsv",	jetcsv)
-		self.out.fillBranch("isTau_MVA",		self.SelTau(genpart, pfc))
-		self.out.fill()
-
+        pfchargedhads = []
+        pfphotons = []
+      
+        #for c in pfcand :
+	#	if c.pdgId == self.pfhplus:  pfchargedhads.append(c)
+	#	if c.pdgId == self.pfphoton: pfphotons.append(c)
+      
+        taudecayprods = [];
+	nGenHadTaus = 0
+	nGenTaus = 0
+	nGenChHadsAcc = 0
+        for p in genPart :
+		if(self.isA(self.p_Z0, p.genPartIdxMother) or self.isA(self.p_Wplus, p.genPartIdxMother)):
+			nGenTaus += 1
+			if p.status != 15:
+				taudecayprods.append(p)
+				nGenChHadsAcc += 1
+			nGenHadTaus += 1
+      
+        nGenChHads = len(taudecayprods)
+      
+        misset = met.pt
+      
+	for pfc in pfcand:
+      
+		match = False
+		tmpDr = 0.05
+		kpt = 0.01
+		ptmatch = -1.0
+		etamatch = -10
+		
+		
+		for genchhad in taudecayprods:
+			dpt = 0.0
+			if(genchhad.pt>0.5): dpt = abs(1.0 - pfc.pt/genchhad.pt);
+			if((deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) +  kpt*dpt) < tmpDr and dpt < 0.4):
+			  tmpDr = deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) + kpt*dpt
+			  match = True
+			  ptmatch = genchhad.pt
+			  etamatch = genchhad.eta
+		
+		if(pfc.pt > 10.0 and abs(pfc.eta) < 2.4):
+		
+			pt = min(pfc.pt,float(300.0))
+			mt = self.computeMT(pfc, met, pfcand)
+			
+			abseta       = abs(pfc.eta)
+			absdz        = abs(pfc.dz)
+			#taumva       = pfc.taudisc;
+			chiso0p1     = min(pfc.chiso0p1,float(700.0))
+			chiso0p2     = min(pfc.chiso0p2,float(700.0))
+			chiso0p3     = min(pfc.chiso0p3,float(700.0))
+			chiso0p4     = min(pfc.chiso0p4,float(700.0))
+			totiso0p1    = min(pfc.totiso0p1,float(700.0))
+			totiso0p2    = min(pfc.totiso0p2,float(700.0))
+			totiso0p3    = min(pfc.totiso0p3,float(700.0))
+			totiso0p4    = min(pfc.totiso0p4,float(700.0))
+			neartrkdr    = pfc.nearestTrkDR
+			jetmatch     = (pfc.contJetIndex > -1) and (jets[pfc.contJetIndex].pt >= 20.0) and (abs(jets[pfc.contJetIndex].eta) < 2.4)
+			jetdr        = deltaR(jets[pfc.contJetIndex].eta, jets[pfc.contJetIndex].phi, pfc.eta, pfc.phi) if jetmatch else -1.0
+			jetcsv       = jets[pfc.contJetIndex].btagDeepB if jetmatch else -1.0
+			
+			contjetdr  = min(float(0.4), jetdr)
+			if(contjetdr < 0.0): contjetdr = 0.0
+			contjetcsv =  jetcsv
+			if(contjetcsv < 0.0): contjetcsv = 0.0
+			if(match and nGenHadTaus > 0): gentaumatch = True
+			else:                          gentaumatch = False
+			
+			self.out.fillBranch("pt",		pt)
+			self.out.fillBranch("abseta",		abseta)
+			self.out.fillBranch("absdz",		absdz)
+			self.out.fillBranch("chiso0p1",		chiso0p1)
+			self.out.fillBranch("chiso0p2",		chiso0p2)
+			self.out.fillBranch("chiso0p3",		chiso0p3)
+			self.out.fillBranch("chiso0p4",		chiso0p4)
+			self.out.fillBranch("totiso0p1",	totiso0p1)
+			self.out.fillBranch("totiso0p2",	totiso0p2)
+			self.out.fillBranch("totiso0p3",	totiso0p3)
+			self.out.fillBranch("totiso0p4",	totiso0p4)
+			self.out.fillBranch("neartrkdr",	neartrkdr)
+			self.out.fillBranch("contjetdr",	contjetdr)
+			self.out.fillBranch("contjetcsv",	contjetcsv)
+			self.out.fillBranch("nGenHadTaus", 	nGenHadTaus)
+			self.out.fillBranch("nGenTaus", 	nGenTaus)
+			self.out.fillBranch("nGenChHads", 	nGenChHads)
+			self.out.fillBranch("nGenChHadsAcc", 	nGenChHadsAcc)
+			self.out.fillBranch("mt", 		mt)
+			self.out.fillBranch("misset", 		misset)
+			#self.out.fillBranch("taumva", "F")
+			self.out.fillBranch("gentaumatch", 	gentaumatch)
+			self.out.fillBranch("ptmatch", 		ptmatch)
+			self.out.fillBranch("etamatch", 	etamatch)
+			self.out.fill()
+		
 	return True
 
 

@@ -21,6 +21,7 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_JetID",         "O")
         self.out.branch("Pass_EventFilter",   "O")
         self.out.branch("Pass_LeptonVeto",    "O")
+        self.out.branch("Pass_EleMuVeto",     "O")
         self.out.branch("Pass_NJets20",       "O")
         self.out.branch("Pass_MET",           "O")
         self.out.branch("Pass_HT",            "O")
@@ -34,11 +35,12 @@ class Stop0lBaselineProducer(Module):
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
-    def PassLeptonVeto(self, eles, muons, isks):
+    def PassLeptonVeto(self, eles, muons, isks, mva = False):
         countEle = sum([e.Stop0l for e in eles])
         countMu  = sum([m.Stop0l for m in muons])
         countIsk = sum([i.Stop0l for i in isks])
-        return (countEle + countMu + countIsk == 0)
+        if mva: return (countEle + countMu  == 0)
+        else: return (countEle + countMu + countIsk == 0)
 
 
     def PassEventFilter(self, flags):
@@ -119,6 +121,7 @@ class Stop0lBaselineProducer(Module):
         PassJetID       = self.PassJetID(jets)
         PassEventFilter = self.PassEventFilter(flags) and PassJetID
         PassLeptonVeto  = self.PassLeptonVeto(electrons, muons, isotracks)
+        PassEleMuVeto   = self.PassLeptonVeto(electrons, muons, isotracks, True)
         PassNjets       = self.PassNjets(jets)
         PassMET         = met.pt >= 250
         PassHT          = stop0l.HT >= 300
@@ -134,6 +137,7 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_JetID",         PassJetID)
         self.out.fillBranch("Pass_EventFilter",   PassEventFilter)
         self.out.fillBranch("Pass_LeptonVeto",    PassLeptonVeto)
+        self.out.fillBranch("Pass_EleMuVeto",     PassEleMuVeto)
         self.out.fillBranch("Pass_NJets20",       PassNjets)
         self.out.fillBranch("Pass_MET",           PassMET)
         self.out.fillBranch("Pass_HT",            PassHT)

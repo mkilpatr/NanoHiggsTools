@@ -18,9 +18,9 @@ from collections import defaultdict
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess_v1'
 argument = "--inputFiles=%s.$(Process).list "
-sendfiles = ["../keep_and_drop.txt"]
+#sendfiles = ["../keep_and_drop.txt"]
 # needed to create correct format of tau MVA training
-#sendfiles = ["../keep_and_drop_tauMVA.txt"]
+sendfiles = ["../keep_and_drop_tauMVA.txt"]
 # needed to create correct format of jet response root file
 #sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_res.txt"]
 # needed to drop correct branches for each smear root file
@@ -38,7 +38,7 @@ def tar_cmssw():
             return
 
     def exclude(tarinfo):
-        if tarinfo.size > 100*1024*1024:
+        if tarinfo.size > 200*1024*1024:
             tarinfo = None
             return tarinfo
         exclude_patterns = ['/.git/', '/tmp/', '/jobs.*/', '/logs/', '/.SCRAM/', '.pyc']
