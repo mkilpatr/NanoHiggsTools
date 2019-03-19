@@ -51,7 +51,7 @@ An example of all of these files is located in my area: /uscms_data/d3/mkilpatr/
 > python Stop0l_postproc_res.py
 
 For Condor:
-> python SubmitLPC.py -f ../Stop0l_postproc_res.py -c ../../../../../StopCfg/sampleSets_postProcess_2016_QCD.cfg -o /eos/uscms/store/user/{USER}/13TeV/qcdsmearing_nanoaod
+> python SubmitLPC.py -f ../Stop0l_postproc_res.py -c ../../../../../StopCfg/sampleSets_postProcess_2016_QCD.cfg -o /store/user/{USER}/13TeV/qcdsmearing_nanoaod
 
 hadd the output files together with the name "jetResSkim_combined_filtered_CHEF_NANO.root"
 
@@ -70,8 +70,7 @@ Use JetResDiagnostic.C to create the pngs from the previous command ^
 > python Stop0l_postproc_QCD.py
 
 For Condor:
-Need 4 GB for the QCD smearing or else you run out of memory
-> python SubmitLPC.py -f ../Stop0l_postproc_QCD.py -c ../../../../../StopCfg/sampleSets_preProcess_2016_QCD.cfg -o /eos/uscms/store/user/{USER}/13TeV/qcdsmearing_nanoaod/ -m 4
+> python SubmitLPC.py -f ../Stop0l_postproc_QCD.py -c ../../../../../StopCfg/sampleSets_preProcess_2016_QCD.cfg -o /store/user/mkilpatr/13TeV/qcdsmearing_nanoaod/ -i /store/user/mkilpatr/13TeV/qcdsmearing_nanoaod/resTailOut_combined_filtered_CHEF_puWeight_weight_WoH_NORMALIZED_NANO.root -m 4
 
 After QCD smearing you need to run the add weight part of the NTuples.
 You need to now create trees to run over and create the SF for the files. 
