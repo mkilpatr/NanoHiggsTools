@@ -12,6 +12,7 @@ from PhysicsTools.NanoSUSYTools.modules.eleMiniCutIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
+from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
 
 DataDepInputs = {
     "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root"
@@ -39,6 +40,7 @@ mods = [
     DeepTopProducer("2017"),
     Stop0lBaselineProducer("2017", isData=isdata, isFastSim=isfastsim),
     #UpdateGenWeight(isdata, args.crossSection, args.nEvents)
+    LLObjectsProducer(),
 ]
 if "2017" == "2018":
     mods.append(UpdateJetID("2017"))

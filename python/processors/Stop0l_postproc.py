@@ -15,6 +15,7 @@ from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 from PhysicsTools.NanoSUSYTools.modules.TauMVAObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.tauMVAProducer import *
+from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
 
 DataDepInputs = {
     "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root"
@@ -43,7 +44,8 @@ def main(args):
         DeepTopProducer(args.era),
         Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
         UpdateGenWeight(isdata, args.crossSection, args.nEvents),
-	tauMVAProducer(),
+	LLObjectsProducer(),
+	#tauMVAProducer(),
 	#TauMVAObjectsProducer(),
     ]
     if args.era == "2018":
@@ -64,8 +66,9 @@ def main(args):
         files.append(line.strip())
 
 
-    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau", modules=mods,provenance=False)
-    #p=PostProcessor(args.outputfile,files,cut="MET_pt > 100 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
+    #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau", modules=mods,provenance=False)
+    p=PostProcessor(args.outputfile,files,cut="MET_pt > 200 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
+    #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
     p.run()
 
 if __name__ == "__main__":

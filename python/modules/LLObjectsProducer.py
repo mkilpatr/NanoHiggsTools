@@ -13,9 +13,6 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, clo
 class LLObjectsProducer(Module):
     def __init__(self):
         self.metBranchName = "MET"
-	self.p_tauminus = 15
-	self.p_Z0       = 23
-	self.p_Wplus    = 24
 
     def beginJob(self):
         pass
@@ -24,75 +21,34 @@ class LLObjectsProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	self.out.branch("Stop0l_MtEleMET", "F",  lenVar="nElectron")
-	self.out.branch("Stop0l_MtMuonMET", "F", lenVar="nMuon")
-	self.out.branch("Stop0l_nElectron","I")
-	self.out.branch("Stop0l_nMuon",    "I")
+	self.out.branch("Stop0l_MtLepMET", "F",  lenVar="Pass_LeptonVeto")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
-    def SelEle(self, ele):
-	#print "ele pt: %d, ele eta: %d", ele.pt, ele.eta
-        if math.fabs(ele.eta) > 2.5 or ele.pt < 5:
-            return False
-        ## Veto ID electron
-        if ele.cutBasedNoIso < 1:
-            return False
-        ## MiniIso < 0.1
-        if ele.miniPFRelIso_all > 0.1:
-            return False
-        return True
-
-    def SelMuon(self, mu):
-        ## NanoAOD store loose ID Muon by default
-        if math.fabs(mu.eta) > 2.4 or mu.pt < 5:
-            return False
-        ## MiniIso < 0.1
-        if mu.miniPFRelIso_all > 0.2:
-            return False
-        return True
-
-    def SelMtlepMET(self, ele, muon, met):
-	mtele = []
-	mtmuon = []
+    def SelMtlepMET(self, ele, muon, isks, met):
+	mt = []
 	for l in ele:
-		mtele.append(math.sqrt( 2 * met.pt * l.pt * (1 - math.cos(met.phi-l.phi))))
+		if l.Stop0l: mt.append(math.sqrt( 2 * met.pt * l.pt * (1 - math.cos(met.phi-l.phi))))
 	for l in muon:
-		mtmuon.append(math.sqrt( 2 * met.pt * l.pt * (1 - math.cos(met.phi-l.phi))))
-	return mtele, mtmuon
-
-    def isA(self, particleID, p):
-	return abs(p) == particleID
-
-    def SelTau(self, genpart, pfc):
-	for g in genpart:
-		genPartMom = g.genPartIdxMother
-		if self.isA(self.p_tauminus, g.pdgId) and deltaR(g.eta, g.phi, pfc.eta, pfc.phi) < 0.2:# and (self.isA(self.p_Z0, genPartMom) or self.isA(self.p_Wplus, genPartMom)):
-			return True
-	return False
+		if l.Stop0l: mt.append(math.sqrt( 2 * met.pt * l.pt * (1 - math.cos(met.phi-l.phi))))
+	for l in isks:
+		if l.Stop0l: mt.append(math.sqrt( 2 * met.pt * l.pt * (1 - math.cos(met.phi-l.phi))))
+	return mt
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
-	jets	  = Collection(event, "Jet")
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
-        met       = Object(event, self.metBranchName)
-	genpart   = Collection(event, "GenPart")
+        isotracks = Collection(event, "IsoTrack")
+	met       = Object(event, self.metBranchName)
 
         ## Selecting objects
-        self.Electron_Stop0l = map(self.SelEle, electrons)
-        self.Muon_Stop0l     = map(self.SelMuon, muons)
-
-        ## Jet variables
-	MtEleMET, MtMuonMET = self.SelMtlepMET(electrons, muons, met)
+	mt = self.SelMtlepMET(electrons, muons, isotracks, met)
 	
         ### Store output
-	self.out.fillBranch("Stop0l_MtEleMET",  MtEleMET)
-	self.out.fillBranch("Stop0l_MtMuonMET", MtMuonMET)
-	self.out.fillBranch("Stop0l_nElectron",sum(self.Electron_Stop0l))
-	self.out.fillBranch("Stop0l_nMuon",    sum(self.Muon_Stop0l))
+	self.out.fillBranch("Stop0l_MtLepMET",  mt)
 	return True
 
 

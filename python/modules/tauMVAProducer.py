@@ -2,6 +2,8 @@
 import os, sys
 import ROOT
 import math
+import numpy as np
+from array import array
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from importlib import import_module
 from os import system, environ
@@ -140,7 +142,7 @@ class tauMVAProducer(Module):
       
         misset = met.pt
 
-	mt = []
+	mt_ = []
 	gentaumatch_ = [] 
 	for pfc in pfcand:
       
@@ -164,7 +166,8 @@ class tauMVAProducer(Module):
 		if(pfc.pt > 10.0 and abs(pfc.eta) < 2.4):
 		
 			pt = min(pfc.pt,float(300.0))
-			mt.append(self.computeMT(pfc, met, pfcand))
+			mt = self.computeMT(pfc, met, pfcand)
+			mt_.append(mt)
 			
 			abseta       = abs(pfc.eta)
 			absdz        = abs(pfc.dz)
@@ -190,11 +193,6 @@ class tauMVAProducer(Module):
 			else:                          gentaumatch = False
 			gentaumatch_.append(gentaumatch)		
 	
-			pfcIdx = pfc.contJetIndex
-			jetmatch = pfcIdx > -1 and jet[pfcIdx].pt > 30.0 and math.fabs(jet[pfcIdx].eta) < 2.4;
-			contjetdr = deltaR(pfc, jet[pfcIdx]) if jetmatch else -1.0;
-			contjetcsv = jet[pfcIdx].btagDeepB if jetmatch else -1.0;
-			contjetdr = min(float(0.4), contjetdr)
 			mva = {self.bdt_vars[0]: pt, 
 			       self.bdt_vars[1]: abseta,
 			       self.bdt_vars[2]: chiso0p1, 
@@ -205,12 +203,12 @@ class tauMVAProducer(Module):
 			       self.bdt_vars[7]: totiso0p2, 
 			       self.bdt_vars[8]: totiso0p3, 
 			       self.bdt_vars[9]: totiso0p4, 
-			       self.bdt_vars[10]: pfc.neartrkdr, 
+			       self.bdt_vars[10]: neartrkdr, 
 			       self.bdt_vars[11]: contjetdr, 
 			       self.bdt_vars[12]: contjetcsv}
 			mva_.append(self.xgb.eval(mva))
-			if gentaumatch==1 && nGenLeptons==0 && nGenTaus==nGenHadTaus && nGenHadTaus==1 && njets>3 && misset>150 && mt<100 && pt>10 && ptmatch > 6. && absdz<0.2: GoodTaus = True
-			if gentaumatch==0 && nGenLeptons==0 && nGenTaus==0 && njets>3 && misset>150 && mt<100 && pt>10 && absdz<0.2: FakeTaus = True
+			if gentaumatch==1 and nGenHadTaus>0  and len(jets)>3 and misset>150 and mt<100 and pt>10 and ptmatch > 6. and absdz<0.2: GoodTaus = True
+			if gentaumatch==0 and nGenHadTaus==0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and absdz<0.2: FakeTaus = True
 			GoodTaus_.append(GoodTaus)
 			FakeTaus_.append(FakeTaus)
 	#self.TauMVA_Stop0l = map(self.SelTauMVA, mva_)
@@ -220,7 +218,7 @@ class tauMVAProducer(Module):
 	self.out.fillBranch("nGenTaus", 	nGenTaus)
 	self.out.fillBranch("nGenChHads", 	nGenChHads)
 	self.out.fillBranch("nGenChHadsAcc", 	nGenChHadsAcc)
-	self.out.fillBranch("mt", 		mt)
+	self.out.fillBranch("mt", 		mt_)
 	self.out.fillBranch("misset", 		misset)
 	self.out.fillBranch("gentaumatch", 	gentaumatch_)
 	self.out.fillBranch("taumva", mva_)
