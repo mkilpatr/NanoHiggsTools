@@ -38,7 +38,7 @@ def tar_cmssw():
             return
 
     def exclude(tarinfo):
-        if tarinfo.size > 100*1024*1024:
+        if tarinfo.size > 200*1024*1024:
             tarinfo = None
             return tarinfo
         exclude_patterns = ['/.git/', '/tmp/', '/jobs.*/', '/logs/', '/.SCRAM/', '.pyc']

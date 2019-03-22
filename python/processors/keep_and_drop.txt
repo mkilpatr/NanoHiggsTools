@@ -11,8 +11,6 @@
 #drop Jet_*Mult 
 #drop Jet_*EF
 # Drop added by Matt
-drop *Stop0l*
-drop Jet_dPhiMET
 drop HLT*
 drop Flag_*
 drop SB_*

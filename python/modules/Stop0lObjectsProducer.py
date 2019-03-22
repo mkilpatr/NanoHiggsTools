@@ -158,6 +158,10 @@ class Stop0lObjectsProducer(Module):
 	    Bjetpt.append(bj.pt)
 	    if len(btagidx) == 1: Bjetpt.append(0.0)
             Mtb = min(Mtb, math.sqrt( 2 * met.pt * bj.pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-bj.phi)))))
+	
+	if len(btagidx) == 0:
+		Bjetpt.append(0.0)
+		Bjetpt.append(0.0)
 
         if Mtb == float('inf'):
             Mtb = 0
@@ -204,7 +208,7 @@ class Stop0lObjectsProducer(Module):
         np.fabs(Jet_dPhi, out=Jet_dPhi)
         ## TODO: Need to improve speed
         HT = self.CalHT(jets)
-        Mtb, Ptb, Bjetpt = self.CalMTbPTb(jets, met)
+        Mtb, Ptb, bJetPt = self.CalMTbPTb(jets, met)
 
         ### Store output
         if self.era == "2017":
