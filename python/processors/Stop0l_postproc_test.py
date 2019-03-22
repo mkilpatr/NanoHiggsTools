@@ -22,9 +22,9 @@ mods = [
     #DeepTopProducer("2017"),
     #Stop0lBaselineProducer("2017", isData=False, isFastSim=False),
     #UpdateGenWeight(args.crossSection, args.nEvents),
-    #LLObjectsProducer(),
+    LLObjectsProducer("2017"),
     #TauMVAObjectsProducer(),
-    tauMVAProducer(),
+    #tauMVAProducer(),
 ]
 
 #files=["/uscms/home/mkilpatr/nobackup/CMSSW_9_4_10/src/AnalysisMethods/macros/run/plots_19_01_30_smear/prod2017MC_NANO_Skim_original.root"]

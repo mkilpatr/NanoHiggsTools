@@ -39,7 +39,8 @@ class LLObjectsProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	self.out.branch("Stop0l_MtLepMET", "F",  lenVar="Pass_LeptonVeto")
+	self.out.branch("nStop0l_MtLepMET", "I")
+	self.out.branch("Stop0l_MtLepMET", "F",  lenVar="nStop0l_MtLepMET")
 	self.out.branch("Jet_btagStop0l_pt1", "F")
 	self.out.branch("Jet_btagStop0l_pt2", "F")
 
@@ -49,11 +50,12 @@ class LLObjectsProducer(Module):
     def SelMtlepMET(self, ele, muon, isks, met):
 	mt = []
 	for l in ele:
-		if l.Stop0l: mt.append(math.sqrt( 2 * met.pt * l.pt * (1 - math.cos(met.phi-l.phi))))
+		if l.Stop0l: mt.append(math.sqrt( 2 * l.pt * met.pt * (1 - np.cos(deltaPhi(l.phi,met.phi)))))
 	for l in muon:
-		if l.Stop0l: mt.append(math.sqrt( 2 * met.pt * l.pt * (1 - math.cos(met.phi-l.phi))))
+		if l.Stop0l: mt.append(math.sqrt( 2 * l.pt * met.pt * (1 - np.cos(deltaPhi(l.phi,met.phi)))))
 	for l in isks:
-		if l.Stop0l: mt.append(math.sqrt( 2 * met.pt * l.pt * (1 - math.cos(met.phi-l.phi))))
+		if l.Stop0l: mt.append(math.sqrt( 2 * l.pt * met.pt * (1 - np.cos(deltaPhi(l.phi,met.phi)))))
+	#print mt
 	return mt
 
     def SelJets(self, jet):
@@ -99,10 +101,11 @@ class LLObjectsProducer(Module):
 	self.Jet_Stop0l      = map(self.SelJets, jets)
 	local_BJet_Stop0l    = map(self.SelBtagJets, jets)
 	self.BJet_Stop0l     = [a and b for a, b in zip(self.Jet_Stop0l, local_BJet_Stop0l )]
-	mt = self.SelMtlepMET(electrons, muons, isotracks, met)
-	bJetPt = self.CalMTbPTb(jets, met)
+	bJetPt 		     = self.CalMTbPTb(jets, met)
+	mt 		     = self.SelMtlepMET(electrons, muons, isotracks, met)
 	
         ### Store output
+	self.out.fillBranch("nStop0l_MtLepMET", len(mt))
 	self.out.fillBranch("Stop0l_MtLepMET",  mt)
 	self.out.fillBranch("Jet_btagStop0l_pt1", bJetPt[0])
 	self.out.fillBranch("Jet_btagStop0l_pt2", bJetPt[1])
