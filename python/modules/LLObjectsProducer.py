@@ -43,9 +43,17 @@ class LLObjectsProducer(Module):
 	self.out.branch("Stop0l_MtLepMET", "F",  lenVar="nStop0l_MtLepMET")
 	self.out.branch("Jet_btagStop0l_pt1", "F")
 	self.out.branch("Jet_btagStop0l_pt2", "F")
+	self.out.branch("nLeptonVeto",    "I")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
+
+    def PassLeptonVeto(self, eles, muons, isks, mva = False):
+        countEle = sum([e.Stop0l for e in eles])
+        countMu  = sum([m.Stop0l for m in muons])
+        countIsk = sum([i.Stop0l for i in isks])
+        if mva: return countEle + countMu
+        else: return countEle + countMu + countIsk
 
     def SelMtlepMET(self, ele, muon, isks, met):
 	mt = []
@@ -103,12 +111,14 @@ class LLObjectsProducer(Module):
 	self.BJet_Stop0l     = [a and b for a, b in zip(self.Jet_Stop0l, local_BJet_Stop0l )]
 	bJetPt 		     = self.CalMTbPTb(jets, met)
 	mt 		     = self.SelMtlepMET(electrons, muons, isotracks, met)
+	PassLeptonVeto       = self.PassLeptonVeto(electrons, muons, isotracks)
 	
         ### Store output
 	self.out.fillBranch("nStop0l_MtLepMET", len(mt))
 	self.out.fillBranch("Stop0l_MtLepMET",  mt)
 	self.out.fillBranch("Jet_btagStop0l_pt1", bJetPt[0])
 	self.out.fillBranch("Jet_btagStop0l_pt2", bJetPt[1])
+	self.out.fillBranch("nLeptonVeto",    PassLeptonVeto)
 	return True
 
 
