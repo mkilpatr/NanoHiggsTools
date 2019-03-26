@@ -10,28 +10,6 @@
 #drop Jet_btagDeepFlavB
 #drop Jet_*Mult 
 #drop Jet_*EF
-# Drop added by Matt
-#drop HLT*
-#drop Flag_*
-#drop SB_*
-#drop *cleanmask
-#drop Photon_*
-#drop PV_*
-#drop Pileup_*
-#drop *LHE*
-#drop *GenVisTau*
-#drop Generator_*
-#drop *GenPart*
-#drop Electron_d*
-#drop Electron_vid*
-#drop Electron_jetIdx
-#drop Electron_pdgId
-#drop Electron_pho*
-#drop Electron_pfRel*
-#drop Muon_pfRel*
-#drop Muon_d*
-#drop Muon_is*
-#drop *SubJet*
-#drop *genPartId*
-#drop *genPartFlav*
-#drop *fiducialGen*
+## With PDFUncertiantyProducer, we will only store the systematic
+drop LHEPdfWeight
+drop nLHEPdfWeight
