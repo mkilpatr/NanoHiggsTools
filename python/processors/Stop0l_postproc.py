@@ -44,7 +44,7 @@ def main(args):
         DeepTopProducer(args.era),
         Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
         UpdateGenWeight(isdata, args.crossSection, args.nEvents),
-	LLObjectsProducer(),
+	#LLObjectsProducer(),
 	#tauMVAProducer(),
 	#TauMVAObjectsProducer(),
     ]
@@ -67,8 +67,8 @@ def main(args):
 
 
     #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau", modules=mods,provenance=False)
-    p=PostProcessor(args.outputfile,files,cut="MET_pt > 200 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
-    #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
+    #p=PostProcessor(args.outputfile,files,cut="MET_pt > 200 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
+    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
     p.run()
 
 if __name__ == "__main__":

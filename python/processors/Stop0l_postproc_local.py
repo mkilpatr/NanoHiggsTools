@@ -36,20 +36,17 @@ isfastsim = False
 
 mods = [
     eleMiniCutID(),
-    Stop0lObjectsProducer("2017"),
-    DeepTopProducer("2017"),
-    Stop0lBaselineProducer("2017", isData=isdata, isFastSim=isfastsim),
+    Stop0lObjectsProducer("2016"),
+    DeepTopProducer("2016"),
+    Stop0lBaselineProducer("2016", isData=isdata, isFastSim=isfastsim),
     #UpdateGenWeight(isdata, args.crossSection, args.nEvents)
-    LLObjectsProducer("2017"),
+    LLObjectsProducer("2016"),
 ]
-if "2017" == "2018":
-    mods.append(UpdateJetID("2017"))
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ For MC ~~~~~
 if not isdata:
-    pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs["2017"]["pileup"])
+    pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs["2016"]["pileup"])
     mods += [
-        lepSFProducer("2017"),
+        lepSFProducer("2016"),
         puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False)
     ]
 
@@ -59,7 +56,8 @@ if not isdata:
 #files=["root://cmseos.fnal.gov//store/user/benwu/Stop18/NtupleSyncMiniAOD/NanoSUSY/2018Xmas/prod2017MC_NANO.root"]
 #files=["/eos/uscms/store/user/mkilpatr/13TeV/tauMVA/prod2017MC_NANO_Skim.root"]
 #files=["/eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PreProcessed_15Jan2019/TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8/2017_MC_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_v14-v1/190111_191501/0000/prod2017MC_NANO_1.root"]
-files=["/eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PostProcessed_15Jan2019_v1/TTbar_HT-600to800_2017/TTbar_HT-600to800_2017_0.root"]
+#files=["/eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PostProcessed_15Jan2019_v1/TTbar_HT-600to800_2017/TTbar_HT-600to800_2017_0.root"]
+files=["/eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2-ext1/190225_171125/0000/prod2016MC_NANO_1-1.root"]
 #p=PostProcessor(".",files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_QCD.txt", outputbranchselsmear="keep_and_drop_tauMVA.txt",modules=mods,provenance=False)
 #p=PostProcessor(".",files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau",modules=mods,provenance=False)
 p=PostProcessor(".",files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
