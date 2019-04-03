@@ -13,7 +13,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, closest
 from PhysicsTools.NanoSUSYTools.modules.xgbHelper import XGBHelper
 
-class tauMVAProducer(Module):
+class tauMVA(Module):
     def __init__(self):
 	self.writeHistFile=True
 	#still trying to find appropriate cut, but the this is the best training model
@@ -30,7 +30,7 @@ class tauMVAProducer(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
         self.out.branch("taumva", 		"F", lenVar="nPFcand")
-	self.out.fillBranch("TauMVA_Stop0l",    "I")
+	self.out.branch("TauMVA_Stop0l",        "I")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -89,7 +89,7 @@ class tauMVAProducer(Module):
 	self.TauMVA_Stop0l = map(self.SelTauMVA, mva_)
 
 	#print "mva output: ", mva_
-        self.out.fillBranch("taumva", 		mva)
+        self.out.fillBranch("taumva", 		mva_)
 	self.out.fillBranch("TauMVA_Stop0l", sum(self.TauMVA_Stop0l))
 		
 	return True

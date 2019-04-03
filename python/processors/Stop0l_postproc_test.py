@@ -15,6 +15,7 @@ from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
 from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.TauMVAObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.tauMVAProducer import *
+from PhysicsTools.NanoSUSYTools.modules.tauMVA import *
 
 mods = [
     #eleMiniCutID(),
@@ -24,7 +25,7 @@ mods = [
     #UpdateGenWeight(args.crossSection, args.nEvents),
     #LLObjectsProducer("2017"),
     #TauMVAObjectsProducer(),
-    tauMVAProducer(),
+    tauMVA(),
 ]
 
 #files=["/uscms/home/mkilpatr/nobackup/CMSSW_9_4_10/src/AnalysisMethods/macros/run/plots_19_01_30_smear/prod2017MC_NANO_Skim_original.root"]
