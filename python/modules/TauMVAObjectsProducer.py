@@ -40,10 +40,6 @@ class TauMVAObjectsProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	self.out.branch("nGenHadTaus", "I")
-	self.out.branch("nGenTaus", "I")
-	self.out.branch("nGenChHads", "I")
-	self.out.branch("nGenChHadsAcc", "I")
 	self.out.branch("pt", "F")
 	self.out.branch("mt", "F")
 	self.out.branch("misset", "F")
@@ -108,15 +104,9 @@ class TauMVAObjectsProducer(Module):
 	pfcand    = Collection(event, "PFcand")
 	eventNum  = event.event
 
-        pfchargedhads = []
-        pfphotons = []
-        taudecayprods = [];
-	nGenHadTaus = len(genPart)
-	nGenTaus = len(genPart)
-	nGenChHadsAcc = len(genPart)
-        nGenChHads = len(genPart)
         misset = met.pt
-      
+	nGenHadTaus = len(genPart)
+ 
 	for pfc in pfcand:
       
 		match = False
@@ -176,13 +166,8 @@ class TauMVAObjectsProducer(Module):
 			self.out.fillBranch("neartrkdr",	neartrkdr)
 			self.out.fillBranch("contjetdr",	contjetdr)
 			self.out.fillBranch("contjetcsv",	contjetcsv)
-			self.out.fillBranch("nGenHadTaus", 	nGenHadTaus)
-			self.out.fillBranch("nGenTaus", 	nGenTaus)
-			self.out.fillBranch("nGenChHads", 	nGenChHads)
-			self.out.fillBranch("nGenChHadsAcc", 	nGenChHadsAcc)
 			self.out.fillBranch("mt", 		mt)
 			self.out.fillBranch("misset", 		misset)
-			#self.out.fillBranch("taumva", "F")
 			self.out.fillBranch("gentaumatch", 	gentaumatch)
 			self.out.fillBranch("ptmatch", 		ptmatch)
 			self.out.fillBranch("etamatch", 	etamatch)

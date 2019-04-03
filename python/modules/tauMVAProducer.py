@@ -70,7 +70,6 @@ class tauMVAProducer(Module):
 	self.out.branch("nGoodTaus", 		"I")
 	self.out.branch("FakeTaus", 		"O", lenVar="nPFcand")
 	self.out.branch("nFakeTaus", 		"I")
-	#self.out.branch("TauMVA_Stop0l", 	"I", lenVar="nPFcand")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -126,17 +125,13 @@ class tauMVAProducer(Module):
         pfchargedhads = []
         pfphotons = []
 	mva = {}
-	mva_eta3 = []
-	mva_eta03 = []
-	mva_eta003 = []
-	mva_eta0003 = []
-	mva_eta00003 = []
+	mva_eta3_ = []
+	mva_eta03_ = []
+	mva_eta003_ = []
+	mva_eta0003_ = []
+	mva_eta00003_ = []
 	GoodTaus_ = []
 	FakeTaus_ = []
-      
-        #for c in pfcand :
-	#	if c.pdgId == self.pfhplus:  pfchargedhads.append(c)
-	#	if c.pdgId == self.pfphoton: pfphotons.append(c)
       
         taudecayprods = [];
 	nGenHadTaus = 0
@@ -165,6 +160,12 @@ class tauMVAProducer(Module):
 		etamatch = -10
 		GoodTaus = False
 		FakeTaus = False
+		mva_eta3 = 0.0
+		mva_eta03 = 0.0
+		mva_eta003 = 0.0
+		mva_eta0003 = 0.0
+		mva_eta00003 = 0.0
+		mt = 0.0
 		
 		for genchhad in taudecayprods:
 			dpt = 0.0
@@ -179,11 +180,9 @@ class tauMVAProducer(Module):
 		
 			pt = min(pfc.pt,float(300.0))
 			mt = self.computeMT(pfc, met, pfcand)
-			mt_.append(mt)
 			
 			abseta       = abs(pfc.eta)
 			absdz        = abs(pfc.dz)
-			#taumva       = pfc.taudisc;
 			chiso0p1     = min(pfc.chiso0p1,float(700.0))
 			chiso0p2     = min(pfc.chiso0p2,float(700.0))
 			chiso0p3     = min(pfc.chiso0p3,float(700.0))
@@ -218,16 +217,22 @@ class tauMVAProducer(Module):
 			       self.bdt_vars[10]: neartrkdr, 
 			       self.bdt_vars[11]: contjetdr, 
 			       self.bdt_vars[12]: contjetcsv}
-			mva_eta3.append(self.xgb_eta3.eval(mva))
-			mva_eta03.append(self.xgb_eta03.eval(mva))
-			mva_eta003.append(self.xgb_eta003.eval(mva))
-			mva_eta0003.append(self.xgb_eta0003.eval(mva))
-			mva_eta00003.append(self.xgb_eta00003.eval(mva))
+			mva_eta3	 = self.xgb_eta3.eval(mva)
+			mva_eta03	 = self.xgb_eta03.eval(mva)
+			mva_eta003	 = self.xgb_eta003.eval(mva)
+			mva_eta0003	 = self.xgb_eta0003.eval(mva)
+			mva_eta00003	 = self.xgb_eta00003.eval(mva)
 			if gentaumatch==1 and nGenHadTaus>0  and len(jets)>3 and misset>150 and mt<100 and pt>10 and ptmatch > 6. and absdz<0.2: GoodTaus = True
 			if gentaumatch==0 and nGenHadTaus==0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and absdz<0.2: FakeTaus = True
-			GoodTaus_.append(GoodTaus)
-			FakeTaus_.append(FakeTaus)
-	#self.TauMVA_Stop0l = map(self.SelTauMVA, mva_)
+		mt_.append(mt)
+		mva_eta3_.append(mva_eta3)
+		mva_eta03_.append(mva_eta03)
+		mva_eta003_.append(mva_eta003)
+		mva_eta0003_.append(mva_eta0003)
+		mva_eta00003_.append(mva_eta00003)
+		GoodTaus_.append(GoodTaus)
+		FakeTaus_.append(FakeTaus)
+			
 
 	#print "mva output: ", mva_
 	self.out.fillBranch("nGenHadTaus", 	nGenHadTaus)
@@ -237,15 +242,14 @@ class tauMVAProducer(Module):
 	self.out.fillBranch("mt", 		mt_)
 	self.out.fillBranch("misset", 		misset)
 	self.out.fillBranch("gentaumatch", 	gentaumatch_)
-        self.out.fillBranch("taumva_eta3", 	mva_eta3)
-        self.out.fillBranch("taumva_eta03", 	mva_eta03)
-        self.out.fillBranch("taumva_eta003", 	mva_eta003)
-        self.out.fillBranch("taumva_eta0003", 	mva_eta0003)
-        self.out.fillBranch("taumva_eta00003", 	mva_eta00003)
+        self.out.fillBranch("taumva_eta3", 	mva_eta3_)
+        self.out.fillBranch("taumva_eta03", 	mva_eta03_)
+        self.out.fillBranch("taumva_eta003", 	mva_eta003_)
+        self.out.fillBranch("taumva_eta0003", 	mva_eta0003_)
+        self.out.fillBranch("taumva_eta00003", 	mva_eta00003_)
 	self.out.fillBranch("GoodTaus", GoodTaus_)
 	self.out.fillBranch("nGoodTaus", sum(GoodTaus_))
 	self.out.fillBranch("FakeTaus", FakeTaus_)
 	self.out.fillBranch("nFakeTaus", sum(FakeTaus_))
-	#self.out.fillBranch("TauMVA_Stop0l", sum(self.TauMVA_Stop0l))
 		
 	return True
