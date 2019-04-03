@@ -32,10 +32,17 @@ class tauMVAProducer(Module):
 	self.pfh0 = 130 
 	self.pfhplus = 211
 	self.tauMVADisc = 0.855342
-	self.bdt_file = environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/qcdJetRes/tauMVA-xgb.model"
+	self.bdt_file_eta3 	= environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/tauMVA/tauMVA-xgb_nvar13_eta0_300000_maxdepth10.model"
+	self.bdt_file_eta03 	= environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/tauMVA/tauMVA-xgb_nvar13_eta0_030000_maxdepth10.model"
+	self.bdt_file_eta003 	= environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/tauMVA/tauMVA-xgb_nvar13_eta0_003000_maxdepth10.model"
+	self.bdt_file_eta0003 	= environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/tauMVA/tauMVA-xgb_nvar13_eta0_000300_maxdepth10.model"
+	self.bdt_file_eta00003 	= environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/tauMVA/tauMVA-xgb_nvar13_eta0_000030_maxdepth10.model"
 	self.bdt_vars = ['pt', 'abseta', 'chiso0p1', 'chiso0p2', 'chiso0p3', 'chiso0p4', 'totiso0p1', 'totiso0p2', 'totiso0p3', 'totiso0p4', 'neartrkdr', 'contjetdr', 'contjetcsv']
-
-	self.xgb = XGBHelper(self.bdt_file, self.bdt_vars)
+	self.xgb_eta3 		= XGBHelper(self.bdt_file_eta3, self.bdt_vars)
+	self.xgb_eta03 		= XGBHelper(self.bdt_file_eta03, self.bdt_vars)
+	self.xgb_eta003 	= XGBHelper(self.bdt_file_eta003, self.bdt_vars)
+	self.xgb_eta0003 	= XGBHelper(self.bdt_file_eta0003, self.bdt_vars)
+	self.xgb_eta00003 	= XGBHelper(self.bdt_file_eta00003, self.bdt_vars)
 
     def beginJob(self,histFile=None,histDirName=None):
    	pass
@@ -54,7 +61,11 @@ class tauMVAProducer(Module):
 	self.out.branch("abseta", 		"F", lenVar="nPFcand")
 	self.out.branch("absdz", 		"F", lenVar="nPFcand")
 	self.out.branch("gentaumatch", 		"O", lenVar="nPFcand")
-        self.out.branch("taumva", 		"F", lenVar="nPFcand")
+        self.out.branch("taumva_eta3", 		"F", lenVar="nPFcand")
+        self.out.branch("taumva_eta03", 	"F", lenVar="nPFcand")
+        self.out.branch("taumva_eta003", 	"F", lenVar="nPFcand")
+        self.out.branch("taumva_eta0003", 	"F", lenVar="nPFcand")
+        self.out.branch("taumva_eta00003", 	"F", lenVar="nPFcand")
 	self.out.branch("GoodTaus", 		"O", lenVar="nPFcand")
 	self.out.branch("nGoodTaus", 		"I")
 	self.out.branch("FakeTaus", 		"O", lenVar="nPFcand")
@@ -69,9 +80,6 @@ class tauMVAProducer(Module):
 		return True
 	else:
 		return False
-
-    def isA(self, particleID, p):
-        return abs(p) == particleID
 
     def isA(self, particleID, p):
 	return abs(p) == particleID
@@ -118,7 +126,11 @@ class tauMVAProducer(Module):
         pfchargedhads = []
         pfphotons = []
 	mva = {}
-	mva_ = []
+	mva_eta3 = []
+	mva_eta03 = []
+	mva_eta003 = []
+	mva_eta0003 = []
+	mva_eta00003 = []
 	GoodTaus_ = []
 	FakeTaus_ = []
       
@@ -206,7 +218,11 @@ class tauMVAProducer(Module):
 			       self.bdt_vars[10]: neartrkdr, 
 			       self.bdt_vars[11]: contjetdr, 
 			       self.bdt_vars[12]: contjetcsv}
-			mva_.append(self.xgb.eval(mva))
+			mva_eta3.append(self.xgb_eta3.eval(mva))
+			mva_eta03.append(self.xgb_eta03.eval(mva))
+			mva_eta003.append(self.xgb_eta003.eval(mva))
+			mva_eta0003.append(self.xgb_eta0003.eval(mva))
+			mva_eta00003.append(self.xgb_eta00003.eval(mva))
 			if gentaumatch==1 and nGenHadTaus>0  and len(jets)>3 and misset>150 and mt<100 and pt>10 and ptmatch > 6. and absdz<0.2: GoodTaus = True
 			if gentaumatch==0 and nGenHadTaus==0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and absdz<0.2: FakeTaus = True
 			GoodTaus_.append(GoodTaus)
@@ -221,7 +237,11 @@ class tauMVAProducer(Module):
 	self.out.fillBranch("mt", 		mt_)
 	self.out.fillBranch("misset", 		misset)
 	self.out.fillBranch("gentaumatch", 	gentaumatch_)
-	self.out.fillBranch("taumva", mva_)
+        self.out.fillBranch("taumva_eta3", 	mva_eta3)
+        self.out.fillBranch("taumva_eta03", 	mva_eta03)
+        self.out.fillBranch("taumva_eta003", 	mva_eta003)
+        self.out.fillBranch("taumva_eta0003", 	mva_eta0003)
+        self.out.fillBranch("taumva_eta00003", 	mva_eta00003)
 	self.out.fillBranch("GoodTaus", GoodTaus_)
 	self.out.fillBranch("nGoodTaus", sum(GoodTaus_))
 	self.out.fillBranch("FakeTaus", FakeTaus_)

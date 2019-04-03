@@ -18,13 +18,9 @@ from collections import defaultdict
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess_v1'
 argument = "--inputFiles=%s.$(Process).list "
-sendfiles = ["../keep_and_drop.txt"]
+#sendfiles = ["../keep_and_drop.txt"]
 # needed to create correct format of tau MVA training
-#sendfiles = ["../keep_and_drop_tauMVA.txt"]
-# needed to create correct format of jet response root file
-#sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_res.txt"]
-# needed to drop correct branches for each smear root file
-#sendfiles = ["../keep_and_drop_QCD.txt", "../keep_and_drop_smear.txt"]
+sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt", "../keep_and_drop_smear.txt"]
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")

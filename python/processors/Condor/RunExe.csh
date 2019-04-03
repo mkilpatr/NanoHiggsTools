@@ -54,6 +54,7 @@ if ($? == 0) then
   ls
   echo "Hadd file will be named: " $argv[1]
   python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py $argv[1] `ls *_Skim.root`
+  #python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py $argv[1] `ls *.root`
   ## Remove skim files once they are merged
   if ($? == 0) then
     foreach outfile (`ls *_Skim.root`)

@@ -9,12 +9,14 @@ from PhysicsTools.NanoSUSYTools.modules.eleMiniCutIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
-from PhysicsTools.NanoSUSYTools.modules.updateGenWeight import *
+from PhysicsTools.NanoSUSYTools.modules.updateEvtWeight import *
 from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
-from PhysicsTools.NanoSUSYTools.modules.TauMVAObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.tauMVAProducer import *
+from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import *
+from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
+from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import jecUncertProducer
 
 DataDepInputs = {
     "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root"
@@ -28,48 +30,50 @@ DataDepInputs = {
 def main(args):
     isdata = False
     isfastsim = False
-    #if "False" in args.isData:
-    #    isdata = False
-    #else:
-    #    isdata = True
-    #if "False" in args.isFastSim:
-    #    isfastsim = False
-    #else:
-    #    isfastsim = True
+    if "False" in args.isData:
+        isdata = False
+    else:
+        isdata = True
+    if "False" in args.isFastSim:
+        isfastsim = False
+    else:
+        isfastsim = True
 
     mods = [
         eleMiniCutID(),
         Stop0lObjectsProducer(args.era),
         DeepTopProducer(args.era),
         Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-        UpdateGenWeight(isdata, args.crossSection, args.nEvents),
+        UpdateEvtWeight(isdata, args.crossSection, args.nEvents),
 	tauMVAProducer(),
-	#this is the file used to create the flat tree for training
-	#TauMVAObjectsProducer(),
     ]
     if args.era == "2018":
         mods.append(UpdateJetID(args.era))
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ For MC ~~~~~
+    #~~~~~ For MC ~~~~~
     if not isdata:
         pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[args.era]["pileup"])
         mods += [
-            lepSFProducer(args.era),
-            puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False)
+            # jecUncertProducer(DataDepInputs[args.era]["JECU"]),
+            #PDFUncertiantyProducer(isdata),
+            # lepSFProducer(args.era),
+            puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
+            # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
+            # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
+            GenPartFilter(statusFlags = [0x2100, 0x2080]),
         ]
 
-
     #files = ["/eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2-ext1/190225_171125/0000/prod2016MC_NANO_1-1.root"]
-    files = ["/eos/uscms//store/group/lpcsusyhad/Stop_production/Autumn18_102X_v1/PreProcessed_22March2019//ZJetsToNuNu_HT-100To200_13TeV-madgraph/2018_Data_RunIIAutumn18MiniAOD-102X_v15-v1/190325_045752/0000/prod2018MC_NANO_1-1.root"]
-    #files = []
-    #lines = open(args.inputfile).readlines()
-    #for line in lines:
-    #    files.append(line.strip())
+    #files = ["/eos/uscms/store/group/lpcsusyhad/Stop_production/Autumn18_102X_v1/PreProcessed_22March2019//ZJetsToNuNu_HT-100To200_13TeV-madgraph/2018_Data_RunIIAutumn18MiniAOD-102X_v15-v1/190325_045752/0000/prod2018MC_NANO_1-1.root"]
+    files = []
+    lines = open(args.inputfile).readlines()
+    for line in lines:
+        files.append(line.strip())
 
 
-    #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau", modules=mods,provenance=False)
+    p=PostProcessor(args.outputfile,files,cut="MET_pt > 100 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False)
     #p=PostProcessor(args.outputfile,files,cut="MET_pt > 100 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
-    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
+    #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
     p.run()
 
 if __name__ == "__main__":

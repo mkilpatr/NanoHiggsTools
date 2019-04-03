@@ -110,25 +110,11 @@ class TauMVAObjectsProducer(Module):
 
         pfchargedhads = []
         pfphotons = []
-      
-        #for c in pfcand :
-	#	if c.pdgId == self.pfhplus:  pfchargedhads.append(c)
-	#	if c.pdgId == self.pfphoton: pfphotons.append(c)
-      
         taudecayprods = [];
-	nGenHadTaus = 0
-	nGenTaus = 0
-	nGenChHadsAcc = 0
-        for p in genPart :
-		if(self.isA(self.p_Z0, p.genPartIdxMother) or self.isA(self.p_Wplus, p.genPartIdxMother)):
-			nGenTaus += 1
-			if p.status != 15:
-				taudecayprods.append(p)
-				nGenChHadsAcc += 1
-			nGenHadTaus += 1
-      
-        nGenChHads = len(taudecayprods)
-      
+	nGenHadTaus = len(genPart)
+	nGenTaus = len(genPart)
+	nGenChHadsAcc = len(genPart)
+        nGenChHads = len(genPart)
         misset = met.pt
       
 	for pfc in pfcand:
@@ -140,7 +126,7 @@ class TauMVAObjectsProducer(Module):
 		etamatch = -10
 		
 		
-		for genchhad in taudecayprods:
+		for genchhad in genPart:
 			dpt = 0.0
 			if(genchhad.pt>0.5): dpt = abs(1.0 - pfc.pt/genchhad.pt);
 			if((deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) +  kpt*dpt) < tmpDr and dpt < 0.4):
@@ -156,7 +142,6 @@ class TauMVAObjectsProducer(Module):
 			
 			abseta       = abs(pfc.eta)
 			absdz        = abs(pfc.dz)
-			#taumva       = pfc.taudisc;
 			chiso0p1     = min(pfc.chiso0p1,float(700.0))
 			chiso0p2     = min(pfc.chiso0p2,float(700.0))
 			chiso0p3     = min(pfc.chiso0p3,float(700.0))

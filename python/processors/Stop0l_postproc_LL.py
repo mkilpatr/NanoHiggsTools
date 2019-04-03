@@ -31,17 +31,22 @@ def main(args):
         isfastsim = True
 
     mods = [
+	Stop0lObjectsProducer(args.era),
+	Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
 	LLObjectsProducer(args.era),
     ]
 
     files = []
-    lines = open(args.inputfile).readlines()
-    for line in lines:
-        files.append(line.strip())
-
+    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+        #This is just a single test input file
+        files.append(args.inputfile[5:])
+    else:
+        #this is a file list
+        with open(args.inputfile) as f:
+            files = [line.strip() for line in f]
 
     #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau", modules=mods,provenance=False)
-    p=PostProcessor(args.outputfile,files,cut="MET_pt > 200 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
+    p=PostProcessor(args.outputfile,files,cut="MET_pt > 200 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False)
     #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
     p.run()
 
