@@ -39,12 +39,16 @@ class LLObjectsProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	self.out.branch("nStop0l_MtLepMET", "I")
-	self.out.branch("Stop0l_MtLepMET", "F",  lenVar="nStop0l_MtLepMET")
-	self.out.branch("Jet_btagStop0l_pt1", "F")
-	self.out.branch("Jet_btagStop0l_pt2", "F")
-	self.out.branch("nLeptonVeto",    "I")
-	self.out.branch("Pass_Trigger",   "O")
+	self.out.branch("nStop0l_MtLepMET", 	"I")
+	self.out.branch("Stop0l_MtLepMET", 	"F", lenVar="nStop0l_MtLepMET")
+	self.out.branch("Jet_btagStop0l_pt1", 	"F")
+	self.out.branch("Jet_btagStop0l_pt2", 	"F")
+	self.out.branch("nLeptonVeto",    	"I")
+	self.out.branch("Pass_Trigger",   	"O")
+	self.out.branch("nTopCand",		"I")
+	self.out.branch("Stop0l_dphit1met", 	"F")
+	self.out.branch("Stop0l_dphit2met", 	"F")
+	self.out.branch("Stop0l_dphit12met", 	"F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -97,6 +101,18 @@ class LLObjectsProducer(Module):
 
         return Bjetpt
 
+    def CalcDphiTopMET(self, stop0l, met):
+	#1 boosted top , 2 boosted W  and 3 resolved
+	dphitmet = []
+	
+	print "Num HOT: ", len(stop0l.HOTtype)
+	for i in xrange(len(stop0l.HOTtype)):
+		dphitmet.append(deltaPhi(stop0l[i].HOTphi, met.phi))
+		if len(dphitmet) == 2: break
+
+	dphit12met = min(dphitmet[0], dphitmet[1])
+	return dphitmet, dphit12met
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
@@ -106,6 +122,7 @@ class LLObjectsProducer(Module):
 	jets      = Collection(event, "Jet")
 	met       = Object(event, self.metBranchName)
 	hlt       = Object(event, "HLT")
+	stop0l    = Object(event, "Stop0l")
 
         ## Selecting objects
 	self.Jet_Stop0l      = map(self.SelJets, jets)
@@ -114,32 +131,33 @@ class LLObjectsProducer(Module):
 	bJetPt 		     = self.CalMTbPTb(jets, met)
 	mt 		     = self.SelMtlepMET(electrons, muons, isotracks, met)
 	PassLeptonVeto       = self.PassLeptonVeto(electrons, muons, isotracks)
+	dPhiTopMet, dPhiTop12Met = self.CalcDphiTopMET(stop0l, met)
 
-	sigAccept_met = (
-	self.mygetattr(hlt, 'PFMET100_PFMHT100_IDTight', False)
-	or self.mygetattr(hlt, 'PFMET110_PFMHT110_IDTight', False)
-	or self.mygetattr(hlt, 'PFMET120_PFMHT120_IDTight', False)
-	or self.mygetattr(hlt, 'PFMET130_PFMHT130_IDTight', False)
-	or self.mygetattr(hlt, 'PFMET140_PFMHT140_IDTight', False)
-	or self.mygetattr(hlt, 'PFMETNoMu100_PFMHTNoMu100_IDTight', False)
-	or self.mygetattr(hlt, 'PFMETNoMu110_PFMHTNoMu110_IDTight', False)
-	or self.mygetattr(hlt, 'PFMETNoMu120_PFMHTNoMu120_IDTight', False)
-	or self.mygetattr(hlt, 'PFMETNoMu130_PFMHTNoMu130_IDTight', False)
-	or self.mygetattr(hlt, 'PFMETNoMu140_PFMHTNoMu140_IDTight', False)
-	or self.mygetattr(hlt, 'PFMET100_PFMHT100_IDTight_PFHT60', False)
-	or self.mygetattr(hlt, 'PFMET110_PFMHT110_IDTight_PFHT60', False)
-	or self.mygetattr(hlt, 'PFMET120_PFMHT120_IDTight_PFHT60', False)
-	or self.mygetattr(hlt, 'PFMET130_PFMHT130_IDTight_PFHT60', False)
-	or self.mygetattr(hlt, 'PFMET140_PFMHT140_IDTight_PFHT60', False)
-	or self.mygetattr(hlt, 'PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60', False)
-	or self.mygetattr(hlt, 'PFMETNoMu110_PFMHTNoMu110_IDTight_PFHT60', False)
-	or self.mygetattr(hlt, 'PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60', False)
-	or self.mygetattr(hlt, 'PFMETNoMu130_PFMHTNoMu130_IDTight_PFHT60', False)
-	or self.mygetattr(hlt, 'PFMETNoMu140_PFMHTNoMu140_IDTight_PFHT60', False)
-	#or self.mygetattr(hlt, 'PFMET120_PFMHT120_IDTight_HFCleaned', False)
-	#or self.mygetattr(hlt, 'PFMET120_PFMHT120_IDTight_PFHT60_HFCleaned', False)
-	#or self.mygetattr(hlt, 'PFMETNoMu120_PFMHTNoMu120_IDTight_HFCleaned', False)
-	)
+	#sigAccept_met = (
+	#self.mygetattr(hlt, 'PFMET100_PFMHT100_IDTight', False)
+	#or self.mygetattr(hlt, 'PFMET110_PFMHT110_IDTight', False)
+	#or self.mygetattr(hlt, 'PFMET120_PFMHT120_IDTight', False)
+	#or self.mygetattr(hlt, 'PFMET130_PFMHT130_IDTight', False)
+	#or self.mygetattr(hlt, 'PFMET140_PFMHT140_IDTight', False)
+	#or self.mygetattr(hlt, 'PFMETNoMu100_PFMHTNoMu100_IDTight', False)
+	#or self.mygetattr(hlt, 'PFMETNoMu110_PFMHTNoMu110_IDTight', False)
+	#or self.mygetattr(hlt, 'PFMETNoMu120_PFMHTNoMu120_IDTight', False)
+	#or self.mygetattr(hlt, 'PFMETNoMu130_PFMHTNoMu130_IDTight', False)
+	#or self.mygetattr(hlt, 'PFMETNoMu140_PFMHTNoMu140_IDTight', False)
+	#or self.mygetattr(hlt, 'PFMET100_PFMHT100_IDTight_PFHT60', False)
+	#or self.mygetattr(hlt, 'PFMET110_PFMHT110_IDTight_PFHT60', False)
+	#or self.mygetattr(hlt, 'PFMET120_PFMHT120_IDTight_PFHT60', False)
+	#or self.mygetattr(hlt, 'PFMET130_PFMHT130_IDTight_PFHT60', False)
+	#or self.mygetattr(hlt, 'PFMET140_PFMHT140_IDTight_PFHT60', False)
+	#or self.mygetattr(hlt, 'PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60', False)
+	#or self.mygetattr(hlt, 'PFMETNoMu110_PFMHTNoMu110_IDTight_PFHT60', False)
+	#or self.mygetattr(hlt, 'PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60', False)
+	#or self.mygetattr(hlt, 'PFMETNoMu130_PFMHTNoMu130_IDTight_PFHT60', False)
+	#or self.mygetattr(hlt, 'PFMETNoMu140_PFMHTNoMu140_IDTight_PFHT60', False)
+	##or self.mygetattr(hlt, 'PFMET120_PFMHT120_IDTight_HFCleaned', False)
+	##or self.mygetattr(hlt, 'PFMET120_PFMHT120_IDTight_PFHT60_HFCleaned', False)
+	##or self.mygetattr(hlt, 'PFMETNoMu120_PFMHTNoMu120_IDTight_HFCleaned', False)
+	#)
 	
         ### Store output
 	self.out.fillBranch("nStop0l_MtLepMET", len(mt))
@@ -148,6 +166,9 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Jet_btagStop0l_pt2", bJetPt[1])
 	self.out.fillBranch("nLeptonVeto",    PassLeptonVeto)
 	self.out.fillBranch("Pass_Trigger", sigAccept_met)
+	self.out.fillBranch("Stop0l_dphit1met", dPhiTopMet[0])
+	self.out.fillBranch("Stop0l_dphit2met", dPhiTopMet[1])
+	self.out.fillBranch("Stop0l_dphit12met",dPhiTop12Met)
 	return True
 
 

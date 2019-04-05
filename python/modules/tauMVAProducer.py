@@ -14,8 +14,9 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, clo
 from PhysicsTools.NanoSUSYTools.modules.xgbHelper import XGBHelper
 
 class tauMVAProducer(Module):
-    def __init__(self):
+    def __init__(self, isfastsim):
 	self.writeHistFile=True
+	self.isfastsim = isfastsim
         self.metBranchName = "MET"
 	self.p_tauminus = 15
 	self.p_Z0       = 23
@@ -55,20 +56,20 @@ class tauMVAProducer(Module):
 	self.out.branch("nGenTaus", 		"I")
 	self.out.branch("nGenChHads", 		"I")
 	self.out.branch("nGenChHadsAcc", 	"I")
-	self.out.branch("pt", 			"F", lenVar="nPFcand")
-	self.out.branch("mt", 			"F", lenVar="nPFcand")
+	self.out.branch("pt", 			"F", lenVar="PFcand")
+	self.out.branch("mt", 			"F", lenVar="PFcand")
 	self.out.branch("misset", 		"F")
-	self.out.branch("abseta", 		"F", lenVar="nPFcand")
-	self.out.branch("absdz", 		"F", lenVar="nPFcand")
-	self.out.branch("gentaumatch", 		"O", lenVar="nPFcand")
-        self.out.branch("taumva_eta3", 		"F", lenVar="nPFcand")
-        self.out.branch("taumva_eta03", 	"F", lenVar="nPFcand")
-        self.out.branch("taumva_eta003", 	"F", lenVar="nPFcand")
-        self.out.branch("taumva_eta0003", 	"F", lenVar="nPFcand")
-        self.out.branch("taumva_eta00003", 	"F", lenVar="nPFcand")
-	self.out.branch("GoodTaus", 		"O", lenVar="nPFcand")
+	self.out.branch("abseta", 		"F", lenVar="PFcand")
+	self.out.branch("absdz", 		"F", lenVar="PFcand")
+	self.out.branch("gentaumatch", 		"O", lenVar="PFcand")
+        self.out.branch("taumva_eta3", 		"F", lenVar="PFcand")
+        self.out.branch("taumva_eta03", 	"F", lenVar="PFcand")
+        self.out.branch("taumva_eta003", 	"F", lenVar="PFcand")
+        self.out.branch("taumva_eta0003", 	"F", lenVar="PFcand")
+        self.out.branch("taumva_eta00003", 	"F", lenVar="PFcand")
+	self.out.branch("GoodTaus", 		"O", lenVar="PFcand")
 	self.out.branch("nGoodTaus", 		"I")
-	self.out.branch("FakeTaus", 		"O", lenVar="nPFcand")
+	self.out.branch("FakeTaus", 		"O", lenVar="PFcand")
 	self.out.branch("nFakeTaus", 		"I")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
@@ -93,26 +94,26 @@ class tauMVAProducer(Module):
 		c = pfcands[ic]
 		if(c.nearphopt < minPhotonPt): continue
 		dr = deltaR(c.eta, c.phi, pfc.nearphoeta, pfc.nearphophi)
-		if(dr > maxPhotonDR): continue;
+		if(dr > maxPhotonDR): continue
 		if(c.nearphopt > maxPhotonPT):
-			maxPhotonPT = c.pt;
-			photonInd = ic;
+			maxPhotonPT = c.pt
+			photonInd = ic
 	
-	return photonInd;
+	return photonInd
 
     def transverseMass(self, visible, invisible):
-	cosDPhi   = np.cos( deltaPhi(visible.Phi(), invisible.phi) );
-	return np.sqrt( 2 * visible.Pt() * invisible.pt * (1 - cosDPhi) );
+	cosDPhi   = np.cos( deltaPhi(visible.Phi(), invisible.phi) )
+	return np.sqrt( 2 * visible.Pt() * invisible.pt * (1 - cosDPhi) )
         
     def computeMT(self, pfc, met, pfcands):
-	photonInd = self.getNearPhotonIndex(pfc, pfcands);
+	photonInd = self.getNearPhotonIndex(pfc, pfcands)
 	candP4 = ROOT.TLorentzVector()
 	candP4.SetPtEtaPhiM(pfc.pt, pfc.eta, pfc.phi, pfc.mass)
 	if(photonInd > -1): 
 		pfcand_buff = ROOT.TLorentzVector()
 		pfcand_buff.SetPtEtaPhiM(pfcands[photonInd].pt, pfcands[photonInd].eta, pfcands[photonInd].phi, pfcands[photonInd].mass)
-		candP4+=pfcand_buff;
-	return self.transverseMass(candP4, met);
+		candP4+=pfcand_buff
+	return self.transverseMass(candP4, met)
 
     def analyze(self, event):
         ## Getting objects
@@ -133,7 +134,7 @@ class tauMVAProducer(Module):
 	GoodTaus_ = []
 	FakeTaus_ = []
       
-        taudecayprods = [];
+        taudecayprods = []
 	nGenHadTaus = 0
 	nGenTaus = 0
 	nGenChHadsAcc = 0
@@ -169,12 +170,13 @@ class tauMVAProducer(Module):
 		
 		for genchhad in taudecayprods:
 			dpt = 0.0
-			if(genchhad.pt>0.5): dpt = abs(1.0 - pfc.pt/genchhad.pt);
+			if(genchhad.pt>0.5): 
+				dpt = abs(1.0 - pfc.pt/genchhad.pt)
 			if((deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) +  kpt*dpt) < tmpDr and dpt < 0.4):
-			  tmpDr = deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) + kpt*dpt
-			  match = True
-			  ptmatch = genchhad.pt
-			  etamatch = genchhad.eta
+				tmpDr = deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) + kpt*dpt
+				match = True
+				ptmatch = genchhad.pt
+				etamatch = genchhad.eta
 		
 		if(pfc.pt > 10.0 and abs(pfc.eta) < 2.4):
 		
@@ -224,6 +226,8 @@ class tauMVAProducer(Module):
 			mva_eta00003	 = self.xgb_eta00003.eval(mva)
 			if gentaumatch==1 and nGenHadTaus>0  and len(jets)>3 and misset>150 and mt<100 and pt>10 and ptmatch > 6. and absdz<0.2: GoodTaus = True
 			if gentaumatch==0 and nGenHadTaus==0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and absdz<0.2: FakeTaus = True
+
+		#print "fastsim: %d, FakeTaus: %d, GoodTaus: %d" %(self.isfastsim, FakeTaus, GoodTaus)
 		mt_.append(mt)
 		mva_eta3_.append(mva_eta3)
 		mva_eta03_.append(mva_eta03)
@@ -232,7 +236,6 @@ class tauMVAProducer(Module):
 		mva_eta00003_.append(mva_eta00003)
 		GoodTaus_.append(GoodTaus)
 		FakeTaus_.append(FakeTaus)
-			
 
 	#print "mva output: ", mva_
 	self.out.fillBranch("nGenHadTaus", 	nGenHadTaus)
