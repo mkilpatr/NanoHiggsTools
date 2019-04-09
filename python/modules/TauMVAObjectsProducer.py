@@ -100,13 +100,39 @@ class TauMVAObjectsProducer(Module):
         ## Getting objects
 	met	  = Object(event, "MET")
 	jets	  = Collection(event, "Jet")
-	genPart   = Collection(event, "GenVisTau")
+	genPart   = Collection(event, "GenPart")
 	pfcand    = Collection(event, "PFcand")
 	eventNum  = event.event
 
-        misset = met.pt
-	nGenHadTaus = len(genPart)
- 
+	taudecayprods = []
+	nGenTaus = 0
+	nGenHadTaus = 0
+	nGenLeptons = 0
+	nGenChHads = 0
+	nGenChHadsAcc = 0
+	nProng = 0
+	for p in genPart:
+	        if p.statusFlags | 4:
+			#print "staitusFlag =", p.statusFlags
+	                nGenTaus+=1
+	                lepdecay = False
+	                if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
+	                        lepdecay = True
+	                        continue
+	                if (not self.isA(self.p_nu_e, p.pdgId)) and (not self.isA(self.p_nu_mu, p.pdgId)):
+	                        if (self.isA(self.pfhplus, p.pdgId) or self.isA(321, p.pdgId)) and nProng==0:
+	                                nProng+=1
+	                                taudecayprods.append(p)
+	                                if p.pt > 10.0 and abs(p.eta) < 2.4: nGenChHadsAcc+=1
+	                if not lepdecay:
+	                  nGenHadTaus+=1
+	                if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
+	                  nGenLeptons+=1
+
+	
+	misset = met.pt
+	nGenChHads = len(taudecayprods)
+
 	for pfc in pfcand:
       
 		match = False
@@ -116,7 +142,7 @@ class TauMVAObjectsProducer(Module):
 		etamatch = -10
 		
 		
-		for genchhad in genPart:
+		for genchhad in taudecayprods:
 			dpt = 0.0
 			if(genchhad.pt>0.5): dpt = abs(1.0 - pfc.pt/genchhad.pt);
 			if((deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) +  kpt*dpt) < tmpDr and dpt < 0.4):

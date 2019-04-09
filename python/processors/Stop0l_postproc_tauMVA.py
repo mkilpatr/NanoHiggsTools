@@ -45,11 +45,11 @@ def main(args):
         exit(0)
 
     mods = [
-        #eleMiniCutID(),
-        #Stop0lObjectsProducer(args.era),
-        #DeepTopProducer(args.era),
-        #Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-        #UpdateEvtWeight(isdata, args.crossSection, args.nEvents),
+        eleMiniCutID(),
+        Stop0lObjectsProducer(args.era),
+        DeepTopProducer(args.era),
+        Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
+        UpdateEvtWeight(isdata, args.crossSection, args.nEvents),
 	tauMVAProducer(isfastsim),
     ]
     if args.era == "2018":
@@ -79,7 +79,7 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    p=PostProcessor(args.outputfile,files,cut="MET_pt > 100 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
+    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
     #p=PostProcessor(args.outputfile,files,cut="MET_pt > 100 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
     #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
     p.run()

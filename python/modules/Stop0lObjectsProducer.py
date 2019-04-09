@@ -53,9 +53,6 @@ class Stop0lObjectsProducer(Module):
         self.out.branch("Stop0l_nJets",    "I")
         self.out.branch("Stop0l_nbtags",   "I")
         self.out.branch("Stop0l_nSoftb",   "I")
-	#added by Matt
-	self.out.branch("Jet_btagStop0l_pt1", "F")
-	self.out.branch("Jet_btagStop0l_pt2", "F")
         # Copying METFixEE2017 to MET for 2017 Data/MC
         if self.era == "2017":
             self.out.branch("MET_phi",                  "F")
@@ -143,7 +140,6 @@ class Stop0lObjectsProducer(Module):
     def CalMTbPTb(self, jets, met):
         Mtb = float('inf')  #Max value
         Ptb = 0
-	Bjetpt = []
 
         # Getting bjet, ordered by pt
         bjets = [ j for i,j in enumerate(jets) if self.BJet_Stop0l[i]]
@@ -155,17 +151,11 @@ class Stop0lObjectsProducer(Module):
 
         for i in range(min(len(btagidx), 2)):
             bj = bjets[btagidx[i]]
-	    Bjetpt.append(bj.pt)
-	    if len(btagidx) == 1: Bjetpt.append(0.0)
             Mtb = min(Mtb, math.sqrt( 2 * met.pt * bj.pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-bj.phi)))))
-	
-	if len(btagidx) == 0:
-		Bjetpt.append(0.0)
-		Bjetpt.append(0.0)
 
         if Mtb == float('inf'):
             Mtb = 0
-        return Mtb, Ptb, Bjetpt
+        return Mtb, Ptb
 
     def CopyMETFixEE2017(self, METFixEE):
         self.out.fillBranch("MET_phi", METFixEE.phi)
@@ -208,7 +198,7 @@ class Stop0lObjectsProducer(Module):
         np.fabs(Jet_dPhi, out=Jet_dPhi)
         ## TODO: Need to improve speed
         HT = self.CalHT(jets)
-        Mtb, Ptb, bJetPt = self.CalMTbPTb(jets, met)
+        Mtb, Ptb = self.CalMTbPTb(jets, met)
 
         ### Store output
         if self.era == "2017":
@@ -227,8 +217,6 @@ class Stop0lObjectsProducer(Module):
         self.out.fillBranch("Stop0l_nJets",    sum(self.Jet_Stop0l))
         self.out.fillBranch("Stop0l_nbtags",   sum(self.BJet_Stop0l))
         self.out.fillBranch("Stop0l_nSoftb",   sum(self.SB_Stop0l))
-	self.out.fillBranch("Jet_btagStop0l_pt1", bJetPt[0])
-	self.out.fillBranch("Jet_btagStop0l_pt2", bJetPt[1])
         self.out.fillBranch("Stop0l_METSig",   met.pt / math.sqrt(HT) if HT > 0 else 0)
         return True
 

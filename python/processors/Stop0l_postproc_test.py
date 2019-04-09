@@ -25,7 +25,8 @@ mods = [
     #UpdateGenWeight(args.crossSection, args.nEvents),
     #LLObjectsProducer("2017"),
     #TauMVAObjectsProducer(),
-    tauMVA(),
+    tauMVAProducer(False),
+    #tauMVA(),
 ]
 
 #files=["/uscms/home/mkilpatr/nobackup/CMSSW_9_4_10/src/AnalysisMethods/macros/run/plots_19_01_30_smear/prod2017MC_NANO_Skim_original.root"]
@@ -33,11 +34,12 @@ mods = [
 #files=["/uscms_data/d3/lpcsusyhad/benwu/Moriond2019/TestNanoAOD/CMSSW_10_4_X_2018-12-11-2300/src/prod2017MC_NANO.root"]
 #files=["root://cmseos.fnal.gov//store/user/benwu/Stop18/NtupleSyncMiniAOD/NanoSUSY/2018Xmas/prod2017MC_NANO.root"]
 #files=["/eos/uscms/store/user/mkilpatr/13TeV/tauMVA/prod2017MC_NANO_Skim.root"]
-files=["root://cmseos.fnal.gov//store/user/mkilpatr/13TeV/tauMVA_2016/TTbarSingleLepT_2016_0.root"]
-files = []
-lines = open("tauMVA_2016.txt").readlines()
-for line in lines:
-    files.append(line.strip())
+files=["root://cmseos.fnal.gov//store/user/mkilpatr/13TeV/tauMVA_2017/TTbarSingleLepT_2017_1.root"]
+#files=["root://cmseos.fnal.gov//store/user/mkilpatr/13TeV/tauMVA_2016/TTbarSingleLepT_2016_0.root"]
+#files = []
+#lines = open("tauMVA_2016.txt").readlines()
+#for line in lines:
+#    files.append(line.strip())
 p=PostProcessor(".",files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
 #p=PostProcessor(".",files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_QCD.txt", outputbranchselsmear="keep_and_drop_tauMVA.txt",modules=mods,provenance=False)
 #p=PostProcessor(".",files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau",modules=mods,provenance=False)

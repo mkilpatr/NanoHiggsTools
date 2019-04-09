@@ -40,10 +40,10 @@ endif
 #--------------------------   To Run the Process   --------------------------#
 #============================================================================#
 
-## copy response file for smearing
-#if INPUTROOT != "" then
-#  xrdcp -f "root://cmseos.fnal.gov/${INPUTROOT}" "$CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/data/qcdJetRes/."
-#endif
+# copy response file for smearing
+if INPUTROOT != "" then
+  xrdcp -f "root://cmseos.fnal.gov/${INPUTROOT}" "$CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/data/qcdJetRes/."
+endif
 
 #argv[1] is the hadd file name that will be copied over. Other arguments are for the postprocessor.
 echo $EXE $argv[2-]
@@ -54,7 +54,6 @@ if ($? == 0) then
   ls
   echo "Hadd file will be named: " $argv[1]
   python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py $argv[1] `ls *_Skim.root`
-  #python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py $argv[1] `ls *.root`
   ## Remove skim files once they are merged
   if ($? == 0) then
     foreach outfile (`ls *_Skim.root`)
