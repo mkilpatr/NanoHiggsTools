@@ -62,9 +62,9 @@ def main(args):
         pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[args.era]["pileup"])
         mods += [
             # jecUncertProducer(DataDepInputs[args.era]["JECU"]),
-            PDFUncertiantyProducer(isdata),
+            #PDFUncertiantyProducer(isdata),
             # lepSFProducer(args.era),
-            puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
+            #puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080]),

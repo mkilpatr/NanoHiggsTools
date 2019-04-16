@@ -3,6 +3,8 @@ import os, sys
 import ROOT
 import math
 import numpy as np
+import xgboost as xgb
+import logging
 from array import array
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from importlib import import_module
@@ -11,12 +13,21 @@ from os import system, environ
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, closest
-from PhysicsTools.NanoSUSYTools.modules.xgbHelper import XGBHelper
+
+class XGBHelper:
+    def __init__(self, model_file, var_list):
+        self.bst = xgb.Booster(params={'nthread': 1}, model_file=model_file)
+        self.var_list = var_list
+        logging.info('Load XGBoost model %s, input variables:\n  %s' % (model_file, str(var_list)))
+
+    def eval(self, inputs):
+        dmat = xgb.DMatrix(np.array([[inputs[k] for k in self.var_list]]), feature_names=self.var_list)
+        return self.bst.predict(dmat)[0]
 
 class tauMVAProducer(Module):
-    def __init__(self, isfastsim):
+    def __init__(self, isTauMVA):
 	self.writeHistFile=True
-	self.isfastsim = isfastsim
+	self.isTauMVA = isTauMVA 
         self.metBranchName = "MET"
 	self.p_tauminus = 15
 	self.p_Z0       = 23
@@ -32,7 +43,7 @@ class tauMVAProducer(Module):
 	self.pfphoton = 22 
 	self.pfh0 = 130 
 	self.pfhplus = 211
-	self.tauMVADisc = 0.71
+	self.tauMVADisc = 0.68
 	self.bdt_file_eta3 	= environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/tauMVA/tauMVA-xgb_nvar13_eta0_300000_maxdepth10.model"
 	self.bdt_file_eta03 	= environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/tauMVA/tauMVA-xgb_nvar13_eta0_030000_maxdepth10.model"
 	self.bdt_file_eta003 	= environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/tauMVA/tauMVA-xgb_nvar13_eta0_003000_maxdepth10.model"
@@ -137,22 +148,23 @@ class tauMVAProducer(Module):
       
 	taudecayprods = []
 	nGenTaus = 0
+	nGenTaus_1 = 0
+	nGenTaus_2 = 0
+	nGenTaus_3 = 0
+	nGenTaus_4 = 0
 	nGenHadTaus = 0
 	nGenLeptons = 0
 	nGenChHads = 0
 	nGenChHadsAcc = 0
-	nProng = 0
 	for p in genPart:
-	        if p.statusFlags | 4:
-	                #print "staitusFlag =", p.statusFlags
-	                nGenTaus+=1
+	        if p.statusFlags & 4:
+			nGenTaus+=1
 	                lepdecay = False
 	                if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
 	                        lepdecay = True
 	                        continue
 	                if (not self.isA(self.p_nu_e, p.pdgId)) and (not self.isA(self.p_nu_mu, p.pdgId)):
-	                        if (self.isA(self.pfhplus, p.pdgId) or self.isA(321, p.pdgId)) and nProng==0:
-	                                nProng+=1
+				if (self.isA(self.pfhplus, p.pdgId) or self.isA(321, p.pdgId)):
 	                                taudecayprods.append(p)
 	                                if p.pt > 10.0 and abs(p.eta) < 2.4: nGenChHadsAcc+=1
 	                if not lepdecay:
@@ -160,7 +172,7 @@ class tauMVAProducer(Module):
 	                if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
 	                  nGenLeptons+=1
 	
-	
+
 	misset = met.pt
 	nGenChHads = len(taudecayprods)
 
@@ -175,6 +187,7 @@ class tauMVAProducer(Module):
 		etamatch = -10
 		GoodTaus = False
 		FakeTaus = False
+		gentaumatch = False
 		mva_eta3 = -10.0
 		mva_eta03 = -10.0
 		mva_eta003 = -10.0
@@ -217,32 +230,34 @@ class tauMVAProducer(Module):
 			contjetcsv =  jetcsv
 			if(contjetcsv < 0.0): contjetcsv = 0.0
 			if(match and nGenHadTaus > 0): gentaumatch = True
-			else:                          gentaumatch = False
 			gentaumatch_.append(gentaumatch)		
 	
-			if gentaumatch==1 and nGenLeptons==0 and nGenTaus==nGenHadTaus and nGenHadTaus>=1 and len(jets)>3 and misset>150 and mt<100 and pt>10 and ptmatch > 6. and absdz<0.2: GoodTaus = True
-			if gentaumatch==0 and nGenLeptons==0 and nGenTaus==0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and absdz<0.2: FakeTaus = True
-			if FakeTaus == False or GoodTaus == False: continue
-			mva = {self.bdt_vars[0]: pt, 
-			       self.bdt_vars[1]: abseta,
-			       self.bdt_vars[2]: chiso0p1, 
-			       self.bdt_vars[3]: chiso0p2, 
-			       self.bdt_vars[4]: chiso0p3, 
-			       self.bdt_vars[5]: chiso0p4, 
-			       self.bdt_vars[6]: totiso0p1, 
-			       self.bdt_vars[7]: totiso0p2, 
-			       self.bdt_vars[8]: totiso0p3, 
-			       self.bdt_vars[9]: totiso0p4, 
-			       self.bdt_vars[10]: neartrkdr, 
-			       self.bdt_vars[11]: contjetdr, 
-			       self.bdt_vars[12]: contjetcsv}
-			mva_eta3	 = self.xgb_eta3.eval(mva)
-			mva_eta03	 = self.xgb_eta03.eval(mva)
-			mva_eta003	 = self.xgb_eta003.eval(mva)
-			mva_eta0003	 = self.xgb_eta0003.eval(mva)
-			mva_eta00003	 = self.xgb_eta00003.eval(mva)
+			#if gentaumatch==True and nGenLeptons==0 and nGenTaus==nGenHadTaus and nGenHadTaus > 0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and ptmatch > 6. and absdz<0.2: 
+			#	GoodTaus = True
+			if gentaumatch==False and nGenLeptons==0 and nGenTaus==0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and absdz<0.2: 
+				FakeTaus = True
+			#print "Tau info: ", (gentaumatch, nGenLeptons, nGenTaus, len(jets), misset, mt, pt, absdz)
+			if FakeTaus == True or GoodTaus == True:
+				mva = {self.bdt_vars[0]: pt, 
+				       self.bdt_vars[1]: abseta,
+				       self.bdt_vars[2]: chiso0p1, 
+				       self.bdt_vars[3]: chiso0p2, 
+				       self.bdt_vars[4]: chiso0p3, 
+				       self.bdt_vars[5]: chiso0p4, 
+				       self.bdt_vars[6]: totiso0p1, 
+				       self.bdt_vars[7]: totiso0p2, 
+				       self.bdt_vars[8]: totiso0p3, 
+				       self.bdt_vars[9]: totiso0p4, 
+				       self.bdt_vars[10]: neartrkdr, 
+				       self.bdt_vars[11]: contjetdr, 
+				       self.bdt_vars[12]: contjetcsv}
+				mva_eta3	 = self.xgb_eta3.eval(mva)
+				mva_eta03	 = self.xgb_eta03.eval(mva)
+				mva_eta003	 = self.xgb_eta003.eval(mva)
+				mva_eta0003	 = self.xgb_eta0003.eval(mva)
+				mva_eta00003	 = self.xgb_eta00003.eval(mva)
 
-		#print "fastsim: %d, FakeTaus: %d, GoodTaus: %d" %(self.isfastsim, FakeTaus, GoodTaus)
+		#print "fastsim: %d, FakeTaus: %d, GoodTaus: %d" %(self.isTauMVA, FakeTaus, GoodTaus)
 		mt_.append(mt)
 		mva_eta3_.append(mva_eta3)
 		mva_eta03_.append(mva_eta03)

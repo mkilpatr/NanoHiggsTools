@@ -36,12 +36,13 @@ def main(args):
         exit(0)
 
     mods = [
-	Stop0lObjectsProducer(args.era),
-	Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
+	#Stop0lObjectsProducer(args.era),
+	#Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
 	LLObjectsProducer(args.era),
     ]
 
-    files=["/eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PostProcessed_15Jan2019_v1/TTbar_HT-600to800_2017/TTbar_HT-600to800_2017_0.root"]
+    #files=["/eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PostProcessed_15Jan2019_v1/TTbar_HT-600to800_2017/TTbar_HT-600to800_2017_0.root"]
+    files=["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PostProcessed_22Feb2019_v2p2/TTbarDiLep_2016/TTbarDiLep_2016_10.root"]
     #files = []
     #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
     #    #This is just a single test input file

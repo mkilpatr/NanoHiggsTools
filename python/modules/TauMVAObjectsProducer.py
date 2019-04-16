@@ -110,9 +110,8 @@ class TauMVAObjectsProducer(Module):
 	nGenLeptons = 0
 	nGenChHads = 0
 	nGenChHadsAcc = 0
-	nProng = 0
 	for p in genPart:
-	        if p.statusFlags | 4:
+	        if p.statusFlags & 4:
 			#print "staitusFlag =", p.statusFlags
 	                nGenTaus+=1
 	                lepdecay = False
@@ -120,8 +119,7 @@ class TauMVAObjectsProducer(Module):
 	                        lepdecay = True
 	                        continue
 	                if (not self.isA(self.p_nu_e, p.pdgId)) and (not self.isA(self.p_nu_mu, p.pdgId)):
-	                        if (self.isA(self.pfhplus, p.pdgId) or self.isA(321, p.pdgId)) and nProng==0:
-	                                nProng+=1
+	                        if (self.isA(self.pfhplus, p.pdgId) or self.isA(321, p.pdgId)):
 	                                taudecayprods.append(p)
 	                                if p.pt > 10.0 and abs(p.eta) < 2.4: nGenChHadsAcc+=1
 	                if not lepdecay:

@@ -65,6 +65,7 @@ def ConfigList(config, era):
             "Outpath__" : "%s" % (stripped_entry[1]) + "/" + ShortProjectName + "/" + stripped_entry[0]+"/",
             "isData" : "Data" in stripped_entry[0],
             "isFastSim" : "fastsim" in stripped_entry[0],
+	    "TauMVA" : "SMS" in stripped_entry[0],
             "era" : era, #era from args
         }
         if process[stripped_entry[0]]["isData"]:

@@ -44,11 +44,11 @@ class LLObjectsProducer(Module):
 	self.out.branch("Jet_btagStop0l_pt1", 	"F")
 	self.out.branch("Jet_btagStop0l_pt2", 	"F")
 	self.out.branch("nLeptonVeto",    	"I")
-	self.out.branch("Pass_Trigger",   	"O")
-	self.out.branch("nTopCand",		"I")
-	self.out.branch("Stop0l_dphit1met", 	"F")
-	self.out.branch("Stop0l_dphit2met", 	"F")
-	self.out.branch("Stop0l_dphit12met", 	"F")
+	#self.out.branch("Pass_Trigger",   	"O")
+	#self.out.branch("nTopCand",		"I")
+	#self.out.branch("Stop0l_dphit1met", 	"F")
+	#self.out.branch("Stop0l_dphit2met", 	"F")
+	#self.out.branch("Stop0l_dphit12met", 	"F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -101,17 +101,17 @@ class LLObjectsProducer(Module):
 
         return Bjetpt
 
-    def CalcDphiTopMET(self, stop0l, met):
-	#1 boosted top , 2 boosted W  and 3 resolved
-	dphitmet = []
-	
-	print "Num HOT: ", len(stop0l.HOTtype)
-	for i in xrange(len(stop0l.HOTtype)):
-		dphitmet.append(deltaPhi(stop0l[i].HOTphi, met.phi))
-		if len(dphitmet) == 2: break
-
-	dphit12met = min(dphitmet[0], dphitmet[1])
-	return dphitmet, dphit12met
+#    def CalcDphiTopMET(self, stop0l, met):
+#	#1 boosted top , 2 boosted W  and 3 resolved
+#	dphitmet = []
+#	
+#	print "Num HOT: ", len(stop0l.HOTtype)
+#	for i in xrange(len(stop0l.HOTtype)):
+#		dphitmet.append(deltaPhi(stop0l[i].HOTphi, met.phi))
+#		if len(dphitmet) == 2: break
+#
+#	dphit12met = min(dphitmet[0], dphitmet[1])
+#	return dphitmet, dphit12met
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -131,7 +131,7 @@ class LLObjectsProducer(Module):
 	bJetPt 		     = self.CalMTbPTb(jets, met)
 	mt 		     = self.SelMtlepMET(electrons, muons, isotracks, met)
 	PassLeptonVeto       = self.PassLeptonVeto(electrons, muons, isotracks)
-	dPhiTopMet, dPhiTop12Met = self.CalcDphiTopMET(stop0l, met)
+	#dPhiTopMet, dPhiTop12Met = self.CalcDphiTopMET(stop0l, met)
 
 	#sigAccept_met = (
 	#self.mygetattr(hlt, 'PFMET100_PFMHT100_IDTight', False)
@@ -165,10 +165,10 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Jet_btagStop0l_pt1", bJetPt[0])
 	self.out.fillBranch("Jet_btagStop0l_pt2", bJetPt[1])
 	self.out.fillBranch("nLeptonVeto",    PassLeptonVeto)
-	self.out.fillBranch("Pass_Trigger", sigAccept_met)
-	self.out.fillBranch("Stop0l_dphit1met", dPhiTopMet[0])
-	self.out.fillBranch("Stop0l_dphit2met", dPhiTopMet[1])
-	self.out.fillBranch("Stop0l_dphit12met",dPhiTop12Met)
+	#self.out.fillBranch("Pass_Trigger", sigAccept_met)
+	#self.out.fillBranch("Stop0l_dphit1met", dPhiTopMet[0])
+	#self.out.fillBranch("Stop0l_dphit2met", dPhiTopMet[1])
+	#self.out.fillBranch("Stop0l_dphit12met",dPhiTop12Met)
 	return True
 
 
