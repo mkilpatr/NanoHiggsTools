@@ -39,7 +39,8 @@ DataDepInputs = {
 def main(args):
     isdata = args.isData
     isfastsim = args.isFastSim
-    #istaumva = args.sampleName.startswith("SMS_")
+    isfakemva = True
+    #isfakemva = args.sampleName.startswith("SMS_")
     print(isdata, isfastsim)
 
     if isdata and isfastsim:
@@ -57,7 +58,7 @@ def main(args):
 	#tauMVA(),
         Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
         UpdateEvtWeight(isdata, args.crossSection, args.nEvents),
-	tauMVAProducer(),
+	tauMVAProducer(isfakemva),
     ]
     if args.era == "2018":
         mods.append(UpdateJetID(args.era))
