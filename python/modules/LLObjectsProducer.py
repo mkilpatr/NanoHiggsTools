@@ -44,6 +44,11 @@ class LLObjectsProducer(Module):
 	self.out.branch("Jet_btagStop0l_pt1", 	"F")
 	self.out.branch("Jet_btagStop0l_pt2", 	"F")
 	self.out.branch("nLeptonVeto",    	"I")
+	self.out.branch("nJetPass",		"I") 
+	self.out.branch("JetPass_pt",		"F", lenVar="nJetPass") 
+	self.out.branch("JetPass_eta",		"F", lenVar="nJetPass") 
+	self.out.branch("JetPass_phi", 		"F", lenVar="nJetPass")
+	self.out.branch("JetPass_mass", 	"F", lenVar="nJetPass")
 	#self.out.branch("Pass_Trigger",   	"O")
 	#self.out.branch("nTopCand",		"I")
 	#self.out.branch("Stop0l_dphit1met", 	"F")
@@ -113,6 +118,15 @@ class LLObjectsProducer(Module):
 #	dphit12met = min(dphitmet[0], dphitmet[1])
 #	return dphitmet, dphit12met
 
+    def parselist(self, array, which):
+	listx_, listy_ = which, len(array)
+	out = []
+	for i in xrange(listy_):
+		#print "array: ", array[i], array[i][listx_]
+		out.append(array[i][listx_])
+	return out
+			
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
@@ -132,6 +146,16 @@ class LLObjectsProducer(Module):
 	mt 		     = self.SelMtlepMET(electrons, muons, isotracks, met)
 	PassLeptonVeto       = self.PassLeptonVeto(electrons, muons, isotracks)
 	#dPhiTopMet, dPhiTop12Met = self.CalcDphiTopMET(stop0l, met)
+
+	jet_pass = []
+	for j in jets:
+		jet_ = []
+		if self.Jet_Stop0l:
+			jet_.append(j.pt)
+			jet_.append(j.eta)
+			jet_.append(j.phi)
+			jet_.append(j.mass)
+			jet_pass.append(jet_)
 
 	#sigAccept_met = (
 	#self.mygetattr(hlt, 'PFMET100_PFMHT100_IDTight', False)
@@ -160,6 +184,11 @@ class LLObjectsProducer(Module):
 	#)
 	
         ### Store output
+	self.out.fillBranch("nJetPass", len(jet_pass))
+	self.out.fillBranch("JetPass_pt",   self.parselist(jet_pass, 0))
+	self.out.fillBranch("JetPass_eta",  self.parselist(jet_pass, 1))
+	self.out.fillBranch("JetPass_phi",  self.parselist(jet_pass, 2))
+	self.out.fillBranch("JetPass_mass", self.parselist(jet_pass, 3))
 	self.out.fillBranch("nStop0l_MtLepMET", len(mt))
 	self.out.fillBranch("Stop0l_MtLepMET",  mt)
 	self.out.fillBranch("Jet_btagStop0l_pt1", bJetPt[0])
