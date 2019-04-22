@@ -148,9 +148,11 @@ class LLObjectsProducer(Module):
 	#dPhiTopMet, dPhiTop12Met = self.CalcDphiTopMET(stop0l, met)
 
 	jet_pass = []
-	for j in jets:
+	for i in xrange(len(jets)):
 		jet_ = []
-		if self.Jet_Stop0l:
+		j = jets[i]
+		if self.Jet_Stop0l[i] == 1:
+			#print "jet: ", j.pt, j.eta, j.phi, j.mass
 			jet_.append(j.pt)
 			jet_.append(j.eta)
 			jet_.append(j.phi)

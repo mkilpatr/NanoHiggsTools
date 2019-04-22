@@ -233,7 +233,7 @@ class tauMVAProducer(Module):
 			if(match and nGenHadTaus > 0): gentaumatch = True
 			gentaumatch_.append(gentaumatch)		
 	
-			#if self.isTauMVA = False and gentaumatch==True and nGenLeptons==0 and nGenTaus==nGenHadTaus and nGenHadTaus > 0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and ptmatch > 6. and absdz<0.2: 
+			#if self.isTauMVA == False and gentaumatch==True and nGenLeptons==0 and nGenTaus==nGenHadTaus and nGenHadTaus > 0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and ptmatch > 6. and absdz<0.2: 
 			#	GoodTaus = True
 			if gentaumatch==False and nGenLeptons==0 and nGenTaus==0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and absdz<0.2: 
 				FakeTaus = True
