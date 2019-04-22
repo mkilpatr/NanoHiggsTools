@@ -21,7 +21,7 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_JetID",         "O")
         self.out.branch("Pass_EventFilter",   "O")
         self.out.branch("Pass_LeptonVeto",    "O")
-        self.out.branch("Pass_LeptonTauVeto", "O")
+        #self.out.branch("Pass_LeptonTauVeto", "O")
         self.out.branch("Pass_NJets20",       "O")
         self.out.branch("Pass_MET",           "O")
         self.out.branch("Pass_HT",            "O")
@@ -111,7 +111,7 @@ class Stop0lBaselineProducer(Module):
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
-        tauMVA    = Collection(event, "TauMVA")
+        #tauMVA    = Collection(event, "TauMVA")
 	jets      = Collection(event, "Jet")
         met       = Object(event,     "MET")
         flags     = Object(event,     "Flag")
@@ -121,7 +121,7 @@ class Stop0lBaselineProducer(Module):
         PassJetID       = self.PassJetID(jets)
         PassEventFilter = self.PassEventFilter(flags) and PassJetID
         PassLeptonVeto  = self.PassLeptonVeto(electrons, muons, isotracks)
-        PassLeptonTauVeto   = self.PassLeptonVeto(electrons, muons, tauMVA)
+        #PassLeptonTauVeto   = self.PassLeptonVeto(electrons, muons, tauMVA)
         PassNjets       = self.PassNjets(jets)
         PassMET         = met.pt >= 250
         PassHT          = stop0l.HT >= 300
@@ -137,7 +137,7 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_JetID",         PassJetID)
         self.out.fillBranch("Pass_EventFilter",   PassEventFilter)
         self.out.fillBranch("Pass_LeptonVeto",    PassLeptonVeto)
-        self.out.fillBranch("Pass_LeptonTauVeto", PassLeptonTauVeto)
+        #self.out.fillBranch("Pass_LeptonTauVeto", PassLeptonTauVeto)
         self.out.fillBranch("Pass_NJets20",       PassNjets)
         self.out.fillBranch("Pass_MET",           PassMET)
         self.out.fillBranch("Pass_HT",            PassHT)

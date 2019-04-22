@@ -39,7 +39,7 @@ DataDepInputs = {
 def main(args):
     isdata = args.isData
     isfastsim = args.isFastSim
-    istaumva = args.TauMVA
+    #istaumva = args.sampleName.startswith("SMS_")
     print(isdata, isfastsim)
 
     if isdata and isfastsim:
@@ -54,10 +54,10 @@ def main(args):
         eleMiniCutID(),
         Stop0lObjectsProducer(args.era),
         DeepTopProducer(args.era),
-	tauMVA(),
+	#tauMVA(),
         Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
         UpdateEvtWeight(isdata, args.crossSection, args.nEvents),
-	#tauMVAProducer(istaumva),
+	tauMVAProducer(),
     ]
     if args.era == "2018":
         mods.append(UpdateJetID(args.era))
@@ -76,15 +76,15 @@ def main(args):
         ]
 
     #files = ["/eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2-ext1/190225_171125/0000/prod2016MC_NANO_1-1.root"]
-    files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/SMS-T2tt_mStop-850_mLSP-100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2/190225_161802/0000/prod2016MC_NANO_1-1.root"]
-    #files = []
-    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-    #    #This is just a single test input file
-    #    files.append(args.inputfile[5:])
-    #else:
-    #    #this is a file list
-    #    with open(args.inputfile) as f:
-    #        files = [line.strip() for line in f]
+    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/SMS-T2tt_mStop-850_mLSP-100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2/190225_161802/0000/prod2016MC_NANO_1-1.root"]
+    files = []
+    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+        #This is just a single test input file
+        files.append(args.inputfile[5:])
+    else:
+        #this is a file list
+        with open(args.inputfile) as f:
+            files = [line.strip() for line in f]
 
     p=PostProcessor(args.outputfile,files,cut="MET_pt > 150 & nJet > 3", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
     p.run()
@@ -104,8 +104,8 @@ if __name__ == "__main__":
         default = "2017", help = 'Year of production')
     parser.add_argument('-f', '--isFastSim', action="store_true",  default = False,
                         help = "Input file is fastsim (Default: false)")
-    parser.add_argument('-t', '--TauMVA',  default = False,
-                        help = "Input file for Tau MVA (Default: false)")
+    #parser.add_argument('-t', '--TauMVA',  default = False,
+    #                    help = "Input file for Tau MVA (Default: false)")
     parser.add_argument('-d', '--isData',    action="store_true",  default = False,
                         help = "Input file is data (Default: false)")
     parser.add_argument('-c', '--crossSection',

@@ -8,6 +8,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import Pos
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
+from PhysicsTools.NanoSUSYTools.modules.tauMVA import *
 
 DataDepInputs = {
     "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
@@ -36,21 +37,22 @@ def main(args):
         exit(0)
 
     mods = [
-	#Stop0lObjectsProducer(args.era),
-	#Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
+	Stop0lObjectsProducer(args.era),
+	#tauMVA(),
+	Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
 	LLObjectsProducer(args.era),
     ]
 
     #files=["/eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PostProcessed_15Jan2019_v1/TTbar_HT-600to800_2017/TTbar_HT-600to800_2017_0.root"]
-    files=["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PostProcessed_22Feb2019_v2p2/TTbarDiLep_2016/TTbarDiLep_2016_10.root"]
-    #files = []
-    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-    #    #This is just a single test input file
-    #    files.append(args.inputfile[5:])
-    #else:
-    #    #this is a file list
-    #    with open(args.inputfile) as f:
-    #        files = [line.strip() for line in f]
+    #files=["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PostProcessed_22Feb2019_v2p2/TTbarDiLep_2016/TTbarDiLep_2016_10.root"]
+    files = []
+    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+        #This is just a single test input file
+        files.append(args.inputfile[5:])
+    else:
+        #this is a file list
+        with open(args.inputfile) as f:
+            files = [line.strip() for line in f]
 
     #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau", modules=mods,provenance=False)
     p=PostProcessor(args.outputfile,files,cut="MET_pt > 200 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False)
@@ -69,7 +71,7 @@ if __name__ == "__main__":
         default = "2017", help = 'Year of production')
     parser.add_argument('-f', '--isFastSim', action="store_true",  default = False,
                         help = "Input file is fastsim (Default: false)")
-    parser.add_argument('-d', '--isData',    action="store_true",  default = False,
+    parser.add_argument('-d', '--isData',  default = False,
                         help = "Input file is data (Default: false)")
     parser.add_argument('-c', '--crossSection',
                         type=float,

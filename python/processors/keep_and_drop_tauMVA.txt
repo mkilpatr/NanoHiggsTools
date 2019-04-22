@@ -1,6 +1,8 @@
 # this is a comment
 drop *
 keep *PFcand*
+keep *IsoTrack*
+keep *Pass*
 keep Pass_MET
 keep Pass_Baseline
 keep genWeight
