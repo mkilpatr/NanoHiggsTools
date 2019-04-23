@@ -9,18 +9,19 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class Stop0l_trigger(Module):
     def __init__(self, era):
-	self.maxEvents = -1
-	self.nEvents = 0
+        self.maxEvents = -1
+        self.nEvents = 0
         self.era = era
         eff_file = "%s/src/PhysicsTools/NanoSUSYTools/data/trigger_eff/" % os.environ['CMSSW_BASE']
         eff_file = eff_file + self.era + "_trigger_eff.root"
-	print "the efficiency file you are using is ", eff_file
         self.tf = ROOT.TFile.Open(eff_file)
 
         ## Keep the TGraph in memory
-	histo_name_list = ["MET_loose_baseline", "MET_high_dm", "MET_low_dm", "MET_high_dm_QCD", "MET_low_dm_QCD", "Electron_pt", "Electron_eta", "Muon_pt", "Muon_eta", "Photon_pt", "Photon_eta", "Zmumu_pt", "Zee_pt"]
+        histo_name_list = ["MET_loose_baseline", "MET_high_dm", "MET_low_dm", "MET_high_dm_QCD", 
+                           "MET_low_dm_QCD", "Electron_pt", "Electron_eta", "Muon_pt", "Muon_eta", 
+                           "Photon_pt", "Photon_eta", "Zmumu_pt", "Zee_pt"]
         self.effs = { }
-	for histo_name in histo_name_list:
+        for histo_name in histo_name_list:
             self.effs[histo_name] = self.tf.Get(histo_name)
 
     def beginJob(self):
@@ -36,46 +37,46 @@ class Stop0l_trigger(Module):
         self.out.branch("Pass_trigger_photon", "O")
 
         self.out.branch("Stop0l_trigger_eff_MET_loose_baseline", "F")
-        self.out.branch("Stop0l_trigger_eff_MET_loose_baseline_low", "F")
-        self.out.branch("Stop0l_trigger_eff_MET_loose_baseline_high", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_loose_baseline_down", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_loose_baseline_up", "F")
         self.out.branch("Stop0l_trigger_eff_MET_low_dm", "F")
-        self.out.branch("Stop0l_trigger_eff_MET_low_dm_low", "F")
-        self.out.branch("Stop0l_trigger_eff_MET_low_dm_high", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_low_dm_down", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_low_dm_up", "F")
         self.out.branch("Stop0l_trigger_eff_MET_high_dm", "F")
-        self.out.branch("Stop0l_trigger_eff_MET_high_dm_low", "F")
-        self.out.branch("Stop0l_trigger_eff_MET_high_dm_high", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_high_dm_down", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_high_dm_up", "F")
         self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD", "F")
-        self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD_low", "F")
-        self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD_high", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD_down", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD_up", "F")
         self.out.branch("Stop0l_trigger_eff_MET_high_dm_QCD", "F")
-        self.out.branch("Stop0l_trigger_eff_MET_high_dm_QCD_low", "F")
-        self.out.branch("Stop0l_trigger_eff_MET_high_dm_QCD_high", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_high_dm_QCD_down", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_high_dm_QCD_up", "F")
 
         self.out.branch("Stop0l_trigger_eff_Electron_pt", "F")
-        self.out.branch("Stop0l_trigger_eff_Electron_pt_low", "F")
-        self.out.branch("Stop0l_trigger_eff_Electron_pt_high", "F")
+        self.out.branch("Stop0l_trigger_eff_Electron_pt_down", "F")
+        self.out.branch("Stop0l_trigger_eff_Electron_pt_up", "F")
         self.out.branch("Stop0l_trigger_eff_Electron_eta", "F")
-        self.out.branch("Stop0l_trigger_eff_Electron_eta_low", "F")
-        self.out.branch("Stop0l_trigger_eff_Electron_eta_high", "F")
+        self.out.branch("Stop0l_trigger_eff_Electron_eta_down", "F")
+        self.out.branch("Stop0l_trigger_eff_Electron_eta_up", "F")
         self.out.branch("Stop0l_trigger_eff_Muon_pt", "F")
-        self.out.branch("Stop0l_trigger_eff_Muon_pt_low", "F")
-        self.out.branch("Stop0l_trigger_eff_Muon_pt_high", "F")
+        self.out.branch("Stop0l_trigger_eff_Muon_pt_down", "F")
+        self.out.branch("Stop0l_trigger_eff_Muon_pt_up", "F")
         self.out.branch("Stop0l_trigger_eff_Muon_eta", "F")
-        self.out.branch("Stop0l_trigger_eff_Muon_eta_low", "F")
-        self.out.branch("Stop0l_trigger_eff_Muon_eta_high", "F")
+        self.out.branch("Stop0l_trigger_eff_Muon_eta_down", "F")
+        self.out.branch("Stop0l_trigger_eff_Muon_eta_up", "F")
         self.out.branch("Stop0l_trigger_eff_Photon_pt", "F")
-        self.out.branch("Stop0l_trigger_eff_Photon_pt_low", "F")
-        self.out.branch("Stop0l_trigger_eff_Photon_pt_high", "F")
+        self.out.branch("Stop0l_trigger_eff_Photon_pt_down", "F")
+        self.out.branch("Stop0l_trigger_eff_Photon_pt_up", "F")
         self.out.branch("Stop0l_trigger_eff_Photon_eta", "F")
-        self.out.branch("Stop0l_trigger_eff_Photon_eta_low", "F")
-        self.out.branch("Stop0l_trigger_eff_Photon_eta_high", "F")
+        self.out.branch("Stop0l_trigger_eff_Photon_eta_down", "F")
+        self.out.branch("Stop0l_trigger_eff_Photon_eta_up", "F")
 
         self.out.branch("Stop0l_trigger_eff_Zee_pt", "F")
-        self.out.branch("Stop0l_trigger_eff_Zee_pt_low", "F")
-        self.out.branch("Stop0l_trigger_eff_Zee_pt_high", "F")
+        self.out.branch("Stop0l_trigger_eff_Zee_pt_down", "F")
+        self.out.branch("Stop0l_trigger_eff_Zee_pt_up", "F")
         self.out.branch("Stop0l_trigger_eff_Zmumu_pt", "F")
-        self.out.branch("Stop0l_trigger_eff_Zmumu_pt_low", "F")
-        self.out.branch("Stop0l_trigger_eff_Zmumu_pt_high", "F")
+        self.out.branch("Stop0l_trigger_eff_Zmumu_pt_down", "F")
+        self.out.branch("Stop0l_trigger_eff_Zmumu_pt_up", "F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -90,7 +91,7 @@ class Stop0l_trigger(Module):
     def get_efficiency(self, trigger_name, kinematic):
         if trigger_name not in self.effs:
             #self.effs[trigger_name] = self.tf.Get(trigger_name)
-	    print trigger_name, " not found. Talk to Hui"
+            print trigger_name, " not found. Talk to Hui"
             return 0, 0, 0
 
         eff = self.effs[trigger_name]  
@@ -117,14 +118,14 @@ class Stop0l_trigger(Module):
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
     	self.nEvents += 1
-	if (self.maxEvents != -1 and self.nEvents > self.maxEvents):
-	    return False
+        if (self.maxEvents != -1 and self.nEvents > self.maxEvents):
+            return False
 
         hlt       = Object(event, "HLT")
         met       = Object(event, "MET")
-	electrons = Collection(event, "Electron")
-	muons	  = Collection(event, "Muon")
-	photons   = Collection(event, "Photon")
+        electrons = Collection(event, "Electron")
+        muons	  = Collection(event, "Muon")
+        photons   = Collection(event, "Photon")
 
         Pass_trigger_MET = (
             self.mygetattr(hlt, 'PFMET100_PFMHT100_IDTight', False)
@@ -240,43 +241,38 @@ class Stop0l_trigger(Module):
 			photon_loose.append(photon)
 	n_photon = len(photon_loose)
 
-	if(self.nEvents==1):
-		print "MET 6 eff = ", self.get_efficiency("MET_loose_baseline", 6)
-		print "MET 600 eff = ", self.get_efficiency("MET_loose_baseline", 600)
-		print "MET 60000 eff = ", self.get_efficiency("MET_loose_baseline", 6000)
-
-	MET_trigger_eff_loose_baseline = MET_trigger_eff_loose_baseline_low = MET_trigger_eff_loose_baseline_high = 0
-	MET_trigger_eff_high_dm = MET_trigger_eff_high_dm_low = MET_trigger_eff_high_dm_high = 0
-	MET_trigger_eff_low_dm = MET_trigger_eff_low_dm_low = MET_trigger_eff_low_dm_high = 0
-	MET_trigger_eff_high_dm_QCD = MET_trigger_eff_high_dm_QCD_low = MET_trigger_eff_high_dm_QCD_high = 0
-	MET_trigger_eff_low_dm_QCD = MET_trigger_eff_low_dm_QCD_low = MET_trigger_eff_low_dm_QCD_high = 0
+	MET_trigger_eff_loose_baseline = MET_trigger_eff_loose_baseline_down = MET_trigger_eff_loose_baseline_up = 0
+	MET_trigger_eff_high_dm = MET_trigger_eff_high_dm_down = MET_trigger_eff_high_dm_up = 0
+	MET_trigger_eff_low_dm = MET_trigger_eff_low_dm_down = MET_trigger_eff_low_dm_up = 0
+	MET_trigger_eff_high_dm_QCD = MET_trigger_eff_high_dm_QCD_down = MET_trigger_eff_high_dm_QCD_up = 0
+	MET_trigger_eff_low_dm_QCD = MET_trigger_eff_low_dm_QCD_down = MET_trigger_eff_low_dm_QCD_up = 0
 
 	if (met.pt > 100):
-		MET_trigger_eff_loose_baseline, MET_trigger_eff_loose_baseline_low, MET_trigger_eff_loose_baseline_high = self.get_efficiency("MET_loose_baseline", met.pt)
-		MET_trigger_eff_high_dm, MET_trigger_eff_high_dm_low, MET_trigger_eff_high_dm_high = self.get_efficiency("MET_high_dm", met.pt)
-		MET_trigger_eff_low_dm, MET_trigger_eff_low_dm_low, MET_trigger_eff_low_dm_high = self.get_efficiency("MET_low_dm", met.pt)
-		MET_trigger_eff_high_dm_QCD, MET_trigger_eff_high_dm_QCD_low, MET_trigger_eff_high_dm_QCD_high = self.get_efficiency("MET_high_dm_QCD", met.pt)
-		MET_trigger_eff_low_dm_QCD, MET_trigger_eff_low_dm_QCD_low, MET_trigger_eff_low_dm_QCD_high = self.get_efficiency("MET_low_dm_QCD", met.pt)
+		MET_trigger_eff_loose_baseline, MET_trigger_eff_loose_baseline_down, MET_trigger_eff_loose_baseline_up = self.get_efficiency("MET_loose_baseline", met.pt)
+		MET_trigger_eff_high_dm, MET_trigger_eff_high_dm_down, MET_trigger_eff_high_dm_up = self.get_efficiency("MET_high_dm", met.pt)
+		MET_trigger_eff_low_dm, MET_trigger_eff_low_dm_down, MET_trigger_eff_low_dm_up = self.get_efficiency("MET_low_dm", met.pt)
+		MET_trigger_eff_high_dm_QCD, MET_trigger_eff_high_dm_QCD_down, MET_trigger_eff_high_dm_QCD_up = self.get_efficiency("MET_high_dm_QCD", met.pt)
+		MET_trigger_eff_low_dm_QCD, MET_trigger_eff_low_dm_QCD_down, MET_trigger_eff_low_dm_QCD_up = self.get_efficiency("MET_low_dm_QCD", met.pt)
 
-	Electron_trigger_eff_pt = Electron_trigger_eff_pt_low = Electron_trigger_eff_pt_high = 0
-	if (n_ele_mid >=1): Electron_trigger_eff_pt, Electron_trigger_eff_pt_low, Electron_trigger_eff_pt_high = self.get_efficiency("Electron_pt", ele_mid[0].pt)
-	Electron_trigger_eff_eta = Electron_trigger_eff_eta_low = Electron_trigger_eff_eta_high = 0
-	if (n_ele_mid >=1): Electron_trigger_eff_eta, Electron_trigger_eff_eta_low, Electron_trigger_eff_eta_high = self.get_efficiency("Electron_eta", ele_mid[0].eta)
+	Electron_trigger_eff_pt = Electron_trigger_eff_pt_down = Electron_trigger_eff_pt_up = 0
+	if (n_ele_mid >=1): Electron_trigger_eff_pt, Electron_trigger_eff_pt_down, Electron_trigger_eff_pt_up = self.get_efficiency("Electron_pt", ele_mid[0].pt)
+	Electron_trigger_eff_eta = Electron_trigger_eff_eta_down = Electron_trigger_eff_eta_up = 0
+	if (n_ele_mid >=1): Electron_trigger_eff_eta, Electron_trigger_eff_eta_down, Electron_trigger_eff_eta_up = self.get_efficiency("Electron_eta", ele_mid[0].eta)
 
-	Muon_trigger_eff_pt = Muon_trigger_eff_pt_low = Muon_trigger_eff_pt_high = 0
-	if (n_mu_mid >=1): Muon_trigger_eff_pt, Muon_trigger_eff_pt_low, Muon_trigger_eff_pt_high = self.get_efficiency("Muon_pt", mu_mid[0].pt)
-	Muon_trigger_eff_eta = Muon_trigger_eff_eta_low = Muon_trigger_eff_eta_high = 0
-	if (n_mu_mid >=1): Muon_trigger_eff_eta, Muon_trigger_eff_eta_low, Muon_trigger_eff_eta_high = self.get_efficiency("Muon_eta", mu_mid[0].eta)
+	Muon_trigger_eff_pt = Muon_trigger_eff_pt_down = Muon_trigger_eff_pt_up = 0
+	if (n_mu_mid >=1): Muon_trigger_eff_pt, Muon_trigger_eff_pt_down, Muon_trigger_eff_pt_up = self.get_efficiency("Muon_pt", mu_mid[0].pt)
+	Muon_trigger_eff_eta = Muon_trigger_eff_eta_down = Muon_trigger_eff_eta_up = 0
+	if (n_mu_mid >=1): Muon_trigger_eff_eta, Muon_trigger_eff_eta_down, Muon_trigger_eff_eta_up = self.get_efficiency("Muon_eta", mu_mid[0].eta)
 
-	Photon_trigger_eff_pt = Photon_trigger_eff_pt_low = Photon_trigger_eff_pt_high = 0
-	if (n_photon >=1): Photon_trigger_eff_pt, Photon_trigger_eff_pt_low, Photon_trigger_eff_pt_high = self.get_efficiency("Photon_pt", photon_loose[0].pt)
-	Photon_trigger_eff_eta = Photon_trigger_eff_eta_low = Photon_trigger_eff_eta_high = 0
-	if (n_photon >=1): Photon_trigger_eff_eta, Photon_trigger_eff_eta_low, Photon_trigger_eff_eta_high = self.get_efficiency("Photon_eta", photon_loose[0].eta)
+	Photon_trigger_eff_pt = Photon_trigger_eff_pt_down = Photon_trigger_eff_pt_up = 0
+	if (n_photon >=1): Photon_trigger_eff_pt, Photon_trigger_eff_pt_down, Photon_trigger_eff_pt_up = self.get_efficiency("Photon_pt", photon_loose[0].pt)
+	Photon_trigger_eff_eta = Photon_trigger_eff_eta_down = Photon_trigger_eff_eta_up = 0
+	if (n_photon >=1): Photon_trigger_eff_eta, Photon_trigger_eff_eta_down, Photon_trigger_eff_eta_up = self.get_efficiency("Photon_eta", photon_loose[0].eta)
 
-	Zee_trigger_eff_pt = Zee_trigger_eff_pt_low = Zee_trigger_eff_pt_high = 0
-	if (n_zee ==1): Zee_trigger_eff_pt, Zee_trigger_eff_pt_low, Zee_trigger_eff_pt_high = self.get_efficiency("Zee_pt", zee_mid[0].Pt())
-	Zmumu_trigger_eff_pt = Zmumu_trigger_eff_pt_low = Zmumu_trigger_eff_pt_high = 0
-	if (n_zmumu ==1): Zmumu_trigger_eff_pt, Zmumu_trigger_eff_pt_low, Zmumu_trigger_eff_pt_high = self.get_efficiency("Zmumu_pt", zmumu_mid[0].Pt())
+	Zee_trigger_eff_pt = Zee_trigger_eff_pt_down = Zee_trigger_eff_pt_up = 0
+	if (n_zee ==1): Zee_trigger_eff_pt, Zee_trigger_eff_pt_down, Zee_trigger_eff_pt_up = self.get_efficiency("Zee_pt", zee_mid[0].Pt())
+	Zmumu_trigger_eff_pt = Zmumu_trigger_eff_pt_down = Zmumu_trigger_eff_pt_up = 0
+	if (n_zmumu ==1): Zmumu_trigger_eff_pt, Zmumu_trigger_eff_pt_down, Zmumu_trigger_eff_pt_up = self.get_efficiency("Zmumu_pt", zmumu_mid[0].Pt())
 
         ### Store output
         self.out.fillBranch("Pass_trigger_MET", Pass_trigger_MET)
@@ -285,46 +281,46 @@ class Stop0l_trigger(Module):
         self.out.fillBranch("Pass_trigger_photon", Pass_trigger_photon)
 
         self.out.fillBranch("Stop0l_trigger_eff_MET_loose_baseline", MET_trigger_eff_loose_baseline)
-        self.out.fillBranch("Stop0l_trigger_eff_MET_loose_baseline_low", MET_trigger_eff_loose_baseline_low)
-        self.out.fillBranch("Stop0l_trigger_eff_MET_loose_baseline_high", MET_trigger_eff_loose_baseline_high)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_loose_baseline_down", MET_trigger_eff_loose_baseline_down)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_loose_baseline_up", MET_trigger_eff_loose_baseline_up)
         self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm", MET_trigger_eff_low_dm)
-        self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_low", MET_trigger_eff_low_dm_low)
-        self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_high", MET_trigger_eff_low_dm_high)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_down", MET_trigger_eff_low_dm_down)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_up", MET_trigger_eff_low_dm_up)
         self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm", MET_trigger_eff_high_dm)
-        self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_low", MET_trigger_eff_high_dm_low)
-        self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_high", MET_trigger_eff_high_dm_high)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_down", MET_trigger_eff_high_dm_down)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_up", MET_trigger_eff_high_dm_up)
         self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD", MET_trigger_eff_low_dm_QCD)
-        self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD_low", MET_trigger_eff_low_dm_QCD_low)
-        self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD_high", MET_trigger_eff_low_dm_QCD_high)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD_down", MET_trigger_eff_low_dm_QCD_down)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD_up", MET_trigger_eff_low_dm_QCD_up)
         self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_QCD", MET_trigger_eff_high_dm_QCD)
-        self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_QCD_low", MET_trigger_eff_high_dm_QCD_low)
-        self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_QCD_high", MET_trigger_eff_high_dm_QCD_high)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_QCD_down", MET_trigger_eff_high_dm_QCD_down)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_QCD_up", MET_trigger_eff_high_dm_QCD_up)
 
         self.out.fillBranch("Stop0l_trigger_eff_Electron_pt", Electron_trigger_eff_pt)
-        self.out.fillBranch("Stop0l_trigger_eff_Electron_pt_low", Electron_trigger_eff_pt_low)
-        self.out.fillBranch("Stop0l_trigger_eff_Electron_pt_high", Electron_trigger_eff_pt_high)
+        self.out.fillBranch("Stop0l_trigger_eff_Electron_pt_down", Electron_trigger_eff_pt_down)
+        self.out.fillBranch("Stop0l_trigger_eff_Electron_pt_up", Electron_trigger_eff_pt_up)
         self.out.fillBranch("Stop0l_trigger_eff_Electron_eta", Electron_trigger_eff_eta)
-        self.out.fillBranch("Stop0l_trigger_eff_Electron_eta_low", Electron_trigger_eff_eta_low)
-        self.out.fillBranch("Stop0l_trigger_eff_Electron_eta_high", Electron_trigger_eff_eta_high)
+        self.out.fillBranch("Stop0l_trigger_eff_Electron_eta_down", Electron_trigger_eff_eta_down)
+        self.out.fillBranch("Stop0l_trigger_eff_Electron_eta_up", Electron_trigger_eff_eta_up)
         self.out.fillBranch("Stop0l_trigger_eff_Muon_pt", Muon_trigger_eff_pt)
-        self.out.fillBranch("Stop0l_trigger_eff_Muon_pt_low", Muon_trigger_eff_pt_low)
-        self.out.fillBranch("Stop0l_trigger_eff_Muon_pt_high", Muon_trigger_eff_pt_high)
+        self.out.fillBranch("Stop0l_trigger_eff_Muon_pt_down", Muon_trigger_eff_pt_down)
+        self.out.fillBranch("Stop0l_trigger_eff_Muon_pt_up", Muon_trigger_eff_pt_up)
         self.out.fillBranch("Stop0l_trigger_eff_Muon_eta", Muon_trigger_eff_eta)
-        self.out.fillBranch("Stop0l_trigger_eff_Muon_eta_low", Muon_trigger_eff_eta_low)
-        self.out.fillBranch("Stop0l_trigger_eff_Muon_eta_high", Muon_trigger_eff_eta_high)
+        self.out.fillBranch("Stop0l_trigger_eff_Muon_eta_down", Muon_trigger_eff_eta_down)
+        self.out.fillBranch("Stop0l_trigger_eff_Muon_eta_up", Muon_trigger_eff_eta_up)
         self.out.fillBranch("Stop0l_trigger_eff_Photon_pt", Photon_trigger_eff_pt)
-        self.out.fillBranch("Stop0l_trigger_eff_Photon_pt_low", Photon_trigger_eff_pt_low)
-        self.out.fillBranch("Stop0l_trigger_eff_Photon_pt_high", Photon_trigger_eff_pt_high)
+        self.out.fillBranch("Stop0l_trigger_eff_Photon_pt_down", Photon_trigger_eff_pt_down)
+        self.out.fillBranch("Stop0l_trigger_eff_Photon_pt_up", Photon_trigger_eff_pt_up)
         self.out.fillBranch("Stop0l_trigger_eff_Photon_eta", Photon_trigger_eff_eta)
-        self.out.fillBranch("Stop0l_trigger_eff_Photon_eta_low", Photon_trigger_eff_eta_low)
-        self.out.fillBranch("Stop0l_trigger_eff_Photon_eta_high", Photon_trigger_eff_eta_high)
+        self.out.fillBranch("Stop0l_trigger_eff_Photon_eta_down", Photon_trigger_eff_eta_down)
+        self.out.fillBranch("Stop0l_trigger_eff_Photon_eta_up", Photon_trigger_eff_eta_up)
 
         self.out.fillBranch("Stop0l_trigger_eff_Zee_pt", Zee_trigger_eff_pt)
-        self.out.fillBranch("Stop0l_trigger_eff_Zee_pt_low", Zee_trigger_eff_pt_low)
-        self.out.fillBranch("Stop0l_trigger_eff_Zee_pt_high", Zee_trigger_eff_pt_high)
+        self.out.fillBranch("Stop0l_trigger_eff_Zee_pt_down", Zee_trigger_eff_pt_down)
+        self.out.fillBranch("Stop0l_trigger_eff_Zee_pt_up", Zee_trigger_eff_pt_up)
         self.out.fillBranch("Stop0l_trigger_eff_Zmumu_pt", Zmumu_trigger_eff_pt)
-        self.out.fillBranch("Stop0l_trigger_eff_Zmumu_pt_low", Zmumu_trigger_eff_pt_low)
-        self.out.fillBranch("Stop0l_trigger_eff_Zmumu_pt_high", Zmumu_trigger_eff_pt_high)
+        self.out.fillBranch("Stop0l_trigger_eff_Zmumu_pt_down", Zmumu_trigger_eff_pt_down)
+        self.out.fillBranch("Stop0l_trigger_eff_Zmumu_pt_up", Zmumu_trigger_eff_pt_up)
 
         self.tf.Close()
         return True

@@ -13,3 +13,4 @@
 ## With PDFUncertiantyProducer, we will only store the systematic
 drop LHEPdfWeight
 drop nLHEPdfWeight
+drop Jet_btagSF*
