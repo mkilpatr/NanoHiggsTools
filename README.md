@@ -63,7 +63,7 @@ python Stop0l_postproc.py -i file:[input file] -d [data period] -e [year]
 Smearing QCD Notes NANOAOD
 In PhysicsTools/NanoSUSYTools/python/processors/
 You need to create a QCD file with all of the qcd_orig files that you want to run over.
-An example of all of these files is located in my area: /uscms_data/d3/mkilpatr/CMSSW_10_2_9/src/PhysicsTools/NanoSUSYTools/python/processors
+An example of all of these files is located in my area: /uscms_data/d3/{USER}/CMSSW_10_2_9/src/PhysicsTools/NanoSUSYTools/python/processors
 
 > python Stop0l_postproc_res.py
 
@@ -87,7 +87,7 @@ Use JetResDiagnostic.C to create the pngs from the previous command ^
 > python Stop0l_postproc_QCD.py
 
 For Condor:
-> python SubmitLPC.py -f ../Stop0l_postproc_QCD.py -c ../../../../../StopCfg/sampleSets_preProcess_2016_QCD.cfg -o /store/user/mkilpatr/13TeV/qcdsmearing_nanoaod/ -i /store/user/mkilpatr/13TeV/qcdsmearing_nanoaod/resTailOut_combined_filtered_CHEF_puWeight_weight_WoH_NORMALIZED_NANO.root -m 4
+> python SubmitLPC.py -f ../Stop0l_postproc_QCD.py -c ../../../../../StopCfg/sampleSets_PreProcessed_2016_QCD.cfg -o /store/user/{USER}/13TeV/qcdsmearing_nanoaod/ -i /store/user/{USER}/13TeV/qcdsmearing_nanoaod/resTailOut_combined_filtered_CHEF_puWeight_weight_WoH_NORMALIZED_NANO.root -m 4
 
 After QCD smearing you need to run the add weight part of the NTuples.
 You need to now create trees to run over and create the SF for the files. 
