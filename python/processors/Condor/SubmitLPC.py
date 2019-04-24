@@ -127,7 +127,7 @@ def my_process(args):
     global tempdir
     global ProjectName
     ProjectName = time.strftime('%b%d') + ShortProjectName
-    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
+    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_2/"
     try:
         os.makedirs(tempdir)
     except OSError:
