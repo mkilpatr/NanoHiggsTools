@@ -68,6 +68,7 @@ def ConfigList(config, era):
         }
         if process[stripped_entry[0]]["isData"]:
             process[stripped_entry[0]].update( {
+		"dataEra": stripped_entry[0][-1], #Example naming convention: Data_MET_2018_PeriodC. Alternate option: match "Period", take location + 6.
                 "crossSection":  float(stripped_entry[4]) , #storing lumi for data
                 "nEvents":  int(stripped_entry[5]),
             })

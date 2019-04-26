@@ -256,6 +256,7 @@ class qcdSmearProducer(Module):
 			recoJets_mass = []
 			for iJ in xrange(self.nSmearJets) :
 				info = SmearJets[iJ]
+				#if info[1].Pt() < 20: continue
 				newResValue = 1
 				if self.doFlatSampling :
 					newResValue = ROOT.gRandom.Uniform(info[6], info[7]) 

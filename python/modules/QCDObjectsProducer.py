@@ -11,9 +11,9 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, clo
 #2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
 
 class QCDObjectsProducer(Module):
-    def __init__(self, process):
+    def __init__(self, isQCD):
         self.metBranchName = "MET"
-	self.process       = process
+	self.isQCD       = isQCD
 
     def beginJob(self):
         pass
@@ -96,7 +96,7 @@ class QCDObjectsProducer(Module):
 	MMPseudoResp = pJ.pt/pseudoGenPT if pseudoGenPT > 0 else 999
 
 	# True response info
-	trueRespInd, trueResp = self.getQCDRespTailCorrector(jets, genjets, met) if self.process == "QCD" else -1, -1.0
+	trueRespInd, trueResp = self.getQCDRespTailCorrector(jets, genjets, met) if self.isQCD == 1 else -1, -1.0
 	trueRespFlv = 99
 	trueRespGenPT = -1.0
 	if trueRespInd >= 0:
