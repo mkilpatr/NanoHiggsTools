@@ -11,9 +11,10 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, clo
 #2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
 
 class QCDObjectsProducer(Module):
-    def __init__(self, isQCD):
+    def __init__(self, isQCD, isdata):
         self.metBranchName = "MET"
 	self.isQCD       = isQCD
+	self.isData	 = isdata
 
     def beginJob(self):
         pass
@@ -48,6 +49,7 @@ class QCDObjectsProducer(Module):
       	ind = -1
       	flv = -1
       	resp = -1
+	mmout = []
 	for iG in xrange(len(genJets)):
 		if iG > 2: break
         	if genJets[iG].pt == 0: break
@@ -57,7 +59,7 @@ class QCDObjectsProducer(Module):
 				fpt = jets[rJ].pt
 				break
         	if fpt < 0: fpt = 9.5 #for the cases with no reco jet due to being below thresh
-        	if(MM < 0 || abs(fpt - genJets[iG].pt) > MM):
+        	if(MM < 0 or abs(fpt - genJets[iG].pt) > MM):
 			ind = iG
 			resp =  fpt/genJets[iG].pt
 			MM = abs(fpt - genJets[iG].pt)
@@ -71,19 +73,22 @@ class QCDObjectsProducer(Module):
 			mmResp = -1
 			mmInd = -1
 			mmFlv = -1
-	return mmInd, mmResp#, mmFlv      		
+
+	mmout = [mmInd, mmResp, mmFlv]
+	return mmout     		
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
 	jets	  = Collection(event, "Jet")
-	genjets   = Collection(event, "GenJet")
+	if self.isData == False: 
+		genjets = Collection(event, "GenJet")
         met       = Object(event, self.metBranchName)
 
-	jetNearMETInd, MMJetDPhi = -1
+	jetNearMETInd, MMJetDPhi = -1, -1
 	for iJ in xrange(len(jets)):
 		if iJ > 2 : continue
-		dPhi = deltaPhi(jets[iJ].eta, jets[iJ].phi, met.eta, met.phi)
+		dPhi = deltaPhi(jets[iJ].phi, met.phi)
 		if(MMJetDPhi < 0 or dPhi < MMJetDPhi):
 			MMJetDPhi = dPhi
 			jetNearMETInd = iJ
@@ -96,15 +101,18 @@ class QCDObjectsProducer(Module):
 	MMPseudoResp = pJ.pt/pseudoGenPT if pseudoGenPT > 0 else 999
 
 	# True response info
-	trueRespInd, trueResp = self.getQCDRespTailCorrector(jets, genjets, met) if self.isQCD == 1 else -1, -1.0
+	#print "isQCD: ", self.isQCD
+	mmOut = self.getQCDRespTailCorrector(jets, genjets, met) if self.isQCD == True else [-1, -1.0, -1]
+	trueRespInd, trueResp = mmOut[0], mmOut[1]
+	#print "trueResp: ", trueRespInd, trueResp
 	trueRespFlv = 99
 	trueRespGenPT = -1.0
-	if trueRespInd >= 0:
+	if trueRespInd >= 0 and self.isData == False:
 		for iG in xrange(len(genjets)):
 			gjet = genjets[iG]
 			if iG != trueRespInd: continue
 			trueRespGenPT = gjet.pt
-			trueRespFlv = gjet.partonFlavor
+			trueRespFlv = gjet.partonFlavour
 			break
 	
         ### Store output
