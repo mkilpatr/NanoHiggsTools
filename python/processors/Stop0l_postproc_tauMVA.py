@@ -18,6 +18,7 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer im
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import jecUncertProducer
 from PhysicsTools.NanoSUSYTools.modules.tauMVAProducer import *
 from PhysicsTools.NanoSUSYTools.modules.tauMVA import *
+from PhysicsTools.NanoSUSYTools.modules.TauMVAObjectsProducer import *
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -37,44 +38,43 @@ DataDepInputs = {
 }
 
 def main(args):
-    isdata = args.isData
+    isdata = len(args.dataEra) > 0
     isfastsim = args.isFastSim
     isfakemva = True
-    #isfakemva = args.sampleName.startswith("SMS_")
-    print(isdata, isfastsim)
+    process = args.process
 
     if isdata and isfastsim:
         print "ERROR: It is impossible to have a dataset that is both data and fastsim"
         exit(0)
 
-    if not args.era in DataDepInputs.keys():
-        print "ERROR: Era \"" + args.era + "\" not recognized"
-        exit(0)
+    mods []
+    if process == "train":
+	mods = [ TauMVAObjectsProducer() ]
+    elif process == "taumva":
+    	mods = [
+    	    eleMiniCutID(),
+    	    Stop0lObjectsProducer(args.era),
+    	    DeepTopProducer(args.era),
+    	    #tauMVA(),
+    	    Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
+    	    UpdateEvtWeight(isdata, args.crossSection, args.nEvents),
+    	    tauMVAProducer(isFakeMVA=isfakemva),
+    	]
+    	if args.era == "2018":
+    	    mods.append(UpdateJetID(args.era))
 
-    mods = [
-        eleMiniCutID(),
-        Stop0lObjectsProducer(args.era),
-        DeepTopProducer(args.era),
-	#tauMVA(),
-        Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-        UpdateEvtWeight(isdata, args.crossSection, args.nEvents),
-	tauMVAProducer(isfakemva),
-    ]
-    if args.era == "2018":
-        mods.append(UpdateJetID(args.era))
-
-    #~~~~~ For MC ~~~~~
-    if not isdata:
-        pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[args.era]["pileup"])
-        mods += [
-            # jecUncertProducer(DataDepInputs[args.era]["JECU"]),
-            #PDFUncertiantyProducer(isdata),
-            # lepSFProducer(args.era),
-            #puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
-            # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
-            # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
-            GenPartFilter(statusFlags = [0x2100, 0x2080]),
-        ]
+    	#~~~~~ For MC ~~~~~
+    	if not isdata:
+    	    pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[args.era]["pileup"])
+    	    mods += [
+    	        # jecUncertProducer(DataDepInputs[args.era]["JECU"]),
+    	        #PDFUncertiantyProducer(isdata),
+    	        # lepSFProducer(args.era),
+    	        #puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
+    	        # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
+    	        # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
+    	        GenPartFilter(statusFlags = [0x2100, 0x2080]),
+    	    ]
 
     #files = ["/eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2-ext1/190225_171125/0000/prod2016MC_NANO_1-1.root"]
     #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/SMS-T2tt_mStop-850_mLSP-100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2/190225_161802/0000/prod2016MC_NANO_1-1.root"]
@@ -87,11 +87,9 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    p=PostProcessor(args.outputfile,files,cut="MET_pt > 150 & nJet > 3", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
+    if process=="train":    p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_Baseline", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau", modules=mods,provenance=False)
+    elif process=="taumva": p=PostProcessor(args.outputfile,files,cut="MET_pt > 150 & nJet > 3", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
     p.run()
-
-
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NanoAOD postprocessing.')
@@ -103,12 +101,14 @@ if __name__ == "__main__":
                         help = 'Path to the output file location. (Default: .)')
     parser.add_argument('-e', '--era',
         default = "2017", help = 'Year of production')
-    parser.add_argument('-f', '--isFastSim', action="store_true",  default = False,
+    parser.add_argument('-f', '--isFastSim', action="store",  default = False,
                         help = "Input file is fastsim (Default: false)")
-    #parser.add_argument('-t', '--TauMVA',  default = False,
-    #                    help = "Input file for Tau MVA (Default: false)")
-    parser.add_argument('-d', '--isData',    action="store_true",  default = False,
-                        help = "Input file is data (Default: false)")
+    parser.add_argument('-D', '--isData',  type=str, default = "",
+                        help = "Data era (B, C, D, ...).  Using this flag also switches the procesor to data mode. (Default: None, i.e. MC )")
+    parser.add_argument('-d', '--dataEra',    action="store",  type=str, default = "",
+                        help = "Data era (B, C, D, ...).  Using this flag also switches the procesor to data mode. (Default: None, i.e. MC )")
+    parser.add_argument('-s', '--sampleName',    action="store",  type=str, default = "",
+                        help = "Name of MC sample (from sampleSet file) (Default: )")
     parser.add_argument('-c', '--crossSection',
                         type=float,
                         default = 1,
@@ -117,5 +117,11 @@ if __name__ == "__main__":
                         type=float,
                         default = 1,
                         help = 'Number of events to use for MC x-sec*lumi weight (NOT the number of events to run over) (Default: 1.0)')
+    parser.add_argument('-m', '--maxEvents',
+                        type=int,
+                        default = -1,
+                        help = 'MAximum number of events to process (Default: all events)')
+    parser.add_argument('-p', '--process', type=str, default = "",
+                        help = "Type of QCD process to do (jetres or smear)")
     args = parser.parse_args()
     main(args)

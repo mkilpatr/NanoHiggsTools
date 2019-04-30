@@ -25,7 +25,7 @@ class XGBHelper:
         return self.bst.predict(dmat)[0]
 
 class tauMVAProducer(Module):
-    def __init__(self, isFakeMVA):
+    def __init__(self, isFakeMVA = False):
 	self.writeHistFile=True
 	self.isFakeMVA = isFakeMVA 
         self.metBranchName = "MET"

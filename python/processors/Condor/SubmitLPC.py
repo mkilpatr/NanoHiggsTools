@@ -48,6 +48,19 @@ def tar_cmssw():
     return cmsswtar
 
 def ConfigList(config, era):
+    #Allow for grabbing the era from the config file name instead. Only does so if era argument is not given.
+    if args.era == 0:
+      if "2016" in config:
+        temp_era = 2016
+      elif "2017" in config:
+        temp_era = 2017
+      elif "2018" in config:
+        temp_era = 2018
+      else:
+        raise Exception('No era given and none found in config file name. Please specify an era.')
+    else:
+        temp_era = args.era
+
     process = defaultdict(dict)
     #TODO: Split between sample set and sample collection configs
     lines = open(config).readlines()
@@ -61,10 +74,9 @@ def ConfigList(config, era):
         process[stripped_entry[0]] = {
             "Filepath__" : "%s/%s" % (stripped_entry[1], stripped_entry[2]),
             "Outpath__" : "%s" % (stripped_entry[1]) + "/" + ShortProjectName + "/" + stripped_entry[0]+"/",
-	    "sampleName" : stripped_entry[0], #process
             "isData" : "Data" in stripped_entry[0],
             "isFastSim" : "fastsim" in stripped_entry[0],
-            "era" : era, #era from args
+            "era" : temp_era,
         }
         if process[stripped_entry[0]]["isData"]:
             process[stripped_entry[0]].update( {
@@ -76,7 +88,13 @@ def ConfigList(config, era):
             process[stripped_entry[0]].update( {
                 "crossSection":  float(stripped_entry[4]) * float(stripped_entry[7]),
                 "nEvents":  int(stripped_entry[5]) - int(stripped_entry[6]), # using all event weight
+	        "sampleName" : stripped_entry[0], #process
+		"totEvents__":  int(stripped_entry[5]) + int(stripped_entry[6]), # using all event weight
             })
+	if args.process != "":
+	    process[stripped_entry[0]].update( {
+		"process" : args.process
+	    })
     return process
 
 def Condor_Sub(condor_file):
@@ -244,6 +262,9 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--inputfile',
 	default = "",
 	help = 'input root file for analysis.')
+    parser.add_argument('-p', '--process',
+	default = "",
+	help = 'Change process for QCD running.')
 
     args = parser.parse_args()
     my_process(args)

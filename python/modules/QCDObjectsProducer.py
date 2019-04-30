@@ -11,10 +11,10 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, clo
 #2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
 
 class QCDObjectsProducer(Module):
-    def __init__(self, isQCD, isdata):
+    def __init__(self, isQCD = False, isData = False):
         self.metBranchName = "MET"
 	self.isQCD       = isQCD
-	self.isData	 = isdata
+	self.isData	 = isData
 
     def beginJob(self):
         pass
