@@ -99,7 +99,7 @@ You need to link the directory to the input files in the MakeQCDRespTailSF.C in 
 > python Stop0l_postproc_QCD.py -p qcdsf
 
 For Condor:
-> python SubmitLPC.py -f ../Stop0l_postproc_QCDSF.py -c ../../../../../StopCfg/sampleSets_PostProcessed_2016_QCD_SF.cfg -o /store/user/mkilpatr/13TeV/nanoaod_QCDSF/ -e 2016 -p qcdsf
+> python SubmitLPC.py -f ../Stop0l_postproc_QCD.py -c ../../../../../StopCfg/sampleSets_PostProcessed_2016_QCD_SF.cfg -o /store/user/mkilpatr/13TeV/nanoaod_QCDSF/ -e 2016 -p qcdsf
 
 > cd AnalysisMethods/macros/JetMETStudies/
 
