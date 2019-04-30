@@ -47,7 +47,7 @@ def main(args):
         print "ERROR: It is impossible to have a dataset that is both data and fastsim"
         exit(0)
 
-    mods []
+    mods = []
     if process == "train":
 	mods = [ TauMVAObjectsProducer() ]
     elif process == "taumva":
@@ -57,7 +57,7 @@ def main(args):
     	    DeepTopProducer(args.era),
     	    #tauMVA(),
     	    Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-    	    UpdateEvtWeight(isdata, args.crossSection, args.nEvents),
+	    UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName),
     	    tauMVAProducer(isFakeMVA=isfakemva),
     	]
     	if args.era == "2018":
@@ -87,7 +87,7 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    if process=="train":    p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_Baseline", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau", modules=mods,provenance=False)
+    if process=="train":    p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_Baseline", branchsel=None, outputbranchsel="keep_and_drop_train.txt", typeofprocess="tau", modules=mods,provenance=False)
     elif process=="taumva": p=PostProcessor(args.outputfile,files,cut="MET_pt > 150 & nJet > 3", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
     p.run()
 
