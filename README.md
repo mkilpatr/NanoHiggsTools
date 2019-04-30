@@ -78,7 +78,9 @@ You need to get the jet Res for the Tail Smear
 > root -l -b -q ../rootlogon.C GetJetResForTailSmear.C+
 
 > mkdir skims
+
 > cd skims
+
 > cp ../JetResDiagnostic.C .
 
 Use JetResDiagnostic.C to create the pngs from the previous command ^
@@ -97,9 +99,10 @@ You need to link the directory to the input files in the MakeQCDRespTailSF.C in 
 > python Stop0l_postproc_QCD.py -p qcdsf
 
 For Condor:
-> python SubmitLPC_QCD.py -f ../Stop0l_postproc_QCDSF.py -c ../../../../../StopCfg/sampleSets_PostProcessed_2016_QCD_SF.cfg -o /store/user/mkilpatr/13TeV/nanoaod_QCDSF/ -e 2016 -p qcdsf
+> python SubmitLPC_QCD.py -f ../Stop0l_postproc_QCD.py -c ../../../../../StopCfg/sampleSets_PostProcessed_2016_QCD_SF.cfg -o /store/user/mkilpatr/13TeV/nanoaod_QCDSF/ -e 2016 -p qcdsf
 
 > cd AnalysisMethods/macros/JetMETStudies/
+
 > root -l -b -q ../rootlogon.C MakeQCDRespTailSF_NANO.C+
 
 This will run over the input files and calculate the correct SF for the QCD. Once it finishes there will be an output root file. You need to put this file in the data directory under corrections/ and in the right year. 
