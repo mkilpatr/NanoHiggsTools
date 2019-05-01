@@ -49,9 +49,9 @@ def main(args):
 
     mods = []
     if process == "train":
-	mods = [ TauMVAObjectsProducer() ]
+	mods.append(TauMVAObjectsProducer())
     elif process == "taumva":
-    	mods = [
+    	mods += [
     	    eleMiniCutID(),
     	    Stop0lObjectsProducer(args.era),
     	    DeepTopProducer(args.era),
@@ -77,7 +77,6 @@ def main(args):
     	    ]
 
     #files = ["/eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2-ext1/190225_171125/0000/prod2016MC_NANO_1-1.root"]
-    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/SMS-T2tt_mStop-850_mLSP-100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2/190225_161802/0000/prod2016MC_NANO_1-1.root"]
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file

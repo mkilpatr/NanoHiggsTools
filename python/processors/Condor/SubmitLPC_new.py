@@ -14,18 +14,16 @@ import math
 import argparse
 import uproot
 from collections import defaultdict
+from multiprocessing import Pool
 
-# TODO: set OutDir (and ProjectName?) to be modified based on input filelist location
-#DelExe    = '../Stop0l_postproc.py'
-#OutDir = '/store/user/%s/StopStudy' %  getpass.getuser()
+DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
 VersionNumber = '_v2p7'
 argument = "--inputFiles=%s.$(Process).list "
-#sendfiles = ["../keep_and_drop.txt"]
-# needed to create correct format of tau MVA training
-sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt", "../keep_and_drop_smear.txt"]
+sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
+NProcess = 10
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -84,7 +82,6 @@ def ConfigList(config):
             "Filepath__" : "%s/%s" % (stripped_entry[1], stripped_entry[2]),
             #"Outpath__" : "%s" % (stripped_entry[1]) + "/" + ShortProjectName + VersionNumber + "/" + stripped_entry[0]+"/", #old
             "Outpath__" : "%s" % (replaced_outdir) + VersionNumber + "/" + stripped_entry[0] + "/", #new
-            "sampleName" : stripped_entry[0], #process
             "isData__" : "Data" in stripped_entry[0],
             "isFastSim" : "fastsim" in stripped_entry[0], #isFastSim is a toggle in Stop0l_postproc.py, so it should be sent with no value.
             "era" : temp_era,
@@ -99,6 +96,7 @@ def ConfigList(config):
             process[stripped_entry[0]].update( {
                 "crossSection":  float(stripped_entry[4]) * float(stripped_entry[7]),
                 "nEvents":  int(stripped_entry[5]) - int(stripped_entry[6]), # using all event weight
+                "sampleName": stripped_entry[0], #process
                 "totEvents__":  int(stripped_entry[5]) + int(stripped_entry[6]), # using all event weight
             })
 
@@ -111,8 +109,10 @@ def Condor_Sub(condor_file):
     os.system("condor_submit " + condor_file)
     os.chdir(curdir)
 
+def GetNEvent(file):
+    return (file, uproot.numentries(file, TTreeName))
 
-def SplitPro(key, file, lineperfile=1, eventsplit=2**20, TreeName=None):
+def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -136,9 +136,14 @@ def SplitPro(key, file, lineperfile=1, eventsplit=2**20, TreeName=None):
         return splitedfiles
 
     f = open(filename, 'r')
-    for l_ in f.readlines():
-        l = l_.strip()
-        n = uproot.numentries(l, TreeName)
+    filelist = [l.strip() for l in f.readlines()]
+    r = None
+    pool = Pool(processes=NProcess)
+    r = pool.map(GetNEvent, filelist)
+    pool.close()
+    filedict = dict(r)
+    for l in filelist:
+        n = filedict[l]
         eventcnt += n
         if eventcnt > eventsplit:
             filecnt += 1
@@ -167,17 +172,6 @@ def my_process(args):
     except OSError:
         pass
 
-    ## Create the output directory
-    #outdir = OutDir +  "/" + ProjectName + "/"
-    #try:
-    #    os.makedirs("/eos/uscms/%s" % outdir)
-    #except OSError:
-    #    pass
-
-    #To have each job copy to a directory based on the input file, looks like I'd need to have a copy of RunExe.csh for name, sample in Process.items() as well.
-    #Needs to be inside the same name, sample for loop for the condor file so the condor file gets the correct EXECUTABLE name.
-
-
     ### Create Tarball
     Tarfiles = []
     NewNpro = {}
@@ -191,7 +185,7 @@ def my_process(args):
         Tarfiles+= npro
         NewNpro[key] = len(npro)
 
-    Tarfiles.append(os.path.abspath(args.runfile))
+    Tarfiles.append(os.path.abspath(DelExe))
     tarballname ="%s/%s.tar.gz" % (tempdir, ProjectName)
     with tarfile.open(tarballname, "w:gz", dereference=True) as tar:
         [tar.add(f, arcname=f.split('/')[-1]) for f in Tarfiles]
@@ -212,10 +206,8 @@ def my_process(args):
             for line in open("RunExe.csh","r"):
                 line = line.replace("DELSCR", os.environ['SCRAM_ARCH'])
                 line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
-                line = line.replace("DELEXE", args.runfile.split('/')[-1])
+                line = line.replace("DELEXE", DelExe.split('/')[-1])
                 line = line.replace("OUTDIR", outdir)
-                if args.inputfile != "": line = line.replace("INROOT", args.inputfile)
-                # line = line.replace("OUTFILE", outputfile)
                 outfile.write(line)
 
         #Update condor file
@@ -239,7 +231,6 @@ def my_process(args):
                 line = line.replace("TARFILES", tarballname)
                 line = line.replace("TEMPDIR", tempdir)
                 line = line.replace("PROJECTNAME", ProjectName)
-		line = line.replace("MEMORY", args.memory + " GB")
                 line = line.replace("SAMPLENAME", name)
                 line = line.replace("ARGUMENTS", arg)
                 outfile.write(line)
@@ -257,15 +248,6 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--outputdir',
         default = "", 
         help = 'Path to the output directory.')
-    parser.add_argument('-f', '--runfile',
-	default = "../Stop0l_postproc.py",
-	help = 'Path to the process file')
-    parser.add_argument('-m', '--memory',
-	default = "2",
-	help = 'Amount of memory to request.')
-    parser.add_argument('-i', '--inputfile',
-	default = "",
-	help = 'input root file for analysis.')
 
     args = parser.parse_args()
     my_process(args)
