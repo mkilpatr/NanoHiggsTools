@@ -24,7 +24,13 @@ DataDepInputs = {
 }
 
 def main(args):
-    isdata = args.isData
+    isdata = len(args.dataEra) > 0
+    isfastsim = args.isFastSim
+    process = args.process
+
+    if isdata and isfastsim:
+        print "ERROR: It is impossible to have a dataset that is both data and fastsim"
+        exit(0)    
 
     mods = [
 	LLObjectsProducer(args.era),
@@ -40,9 +46,7 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", typeofprocess="tau", modules=mods,provenance=False)
     p=PostProcessor(args.outputfile,files,cut="MET_pt > 200 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False)
-    #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
     p.run()
 
 if __name__ == "__main__":
@@ -55,14 +59,14 @@ if __name__ == "__main__":
                         help = 'Path to the output file location. (Default: .)')
     parser.add_argument('-e', '--era',
         default = "2017", help = 'Year of production')
-    parser.add_argument('-f', '--isFastSim',  default = False,
+    parser.add_argument('-f', '--isFastSim', action="store",  default = False,
                         help = "Input file is fastsim (Default: false)")
-    parser.add_argument('-d', '--isData',  default = False,
-                        help = "Input file is data (Default: false)")
-    parser.add_argument('-de', '--dataEra',    action="store",  type=str, default = "",
-			help = "Data era (B, C, D, ...).  Using this flag also switches the procesor to data mode. (Default: None, i.e. MC )")
+    parser.add_argument('-D', '--isData',  type=str, default = "",
+                        help = "Data era (B, C, D, ...).  Using this flag also switches the procesor to data mode. (Default: None, i.e. MC )")
+    parser.add_argument('-d', '--dataEra',    action="store",  type=str, default = "",
+                        help = "Data era (B, C, D, ...).  Using this flag also switches the procesor to data mode. (Default: None, i.e. MC )")
     parser.add_argument('-s', '--sampleName',    action="store",  type=str, default = "",
-			help = "Name of MC sample (from sampleSet file) (Default: )")
+                        help = "Name of MC sample (from sampleSet file) (Default: )")
     parser.add_argument('-c', '--crossSection',
                         type=float,
                         default = 1,
@@ -71,5 +75,11 @@ if __name__ == "__main__":
                         type=float,
                         default = 1,
                         help = 'Number of events to use for MC x-sec*lumi weight (NOT the number of events to run over) (Default: 1.0)')
+    parser.add_argument('-m', '--maxEvents',
+                        type=int,
+                        default = -1,
+                        help = 'MAximum number of events to process (Default: all events)')
+    parser.add_argument('-p', '--process', type=str, default = "",
+                        help = "Type of QCD process to do (jetres or smear)")
     args = parser.parse_args()
     main(args)
