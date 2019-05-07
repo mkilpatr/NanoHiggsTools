@@ -4,6 +4,7 @@ import ROOT
 from array import array
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from importlib import import_module
+from os import system, environ
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -24,7 +25,7 @@ class qcdSmearProducer(Module):
         self.nBootstraps = 50
         self.doFlatSampling = True
         self.respInputName = "JetResByFlav"
-        self.respFileName = "file:$CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/data/qcdJetRes/resTailOut_combined_filtered_CHEF_puWeight_weight_WoH_NORMALIZED_NANO.root"
+        self.respFileName = environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/qcdJetRes/resTailOut_combined_filtered_CHEF_puWeight_weight_WoH_NORMALIZED_NANO.root"
         self.respHistName = ["res_light_comp_1","res_light_comp_2","res_light_comp_3","res_light_comp_4","res_light_comp_5","res_light_comp_6","res_light_comp_7","res_light_comp_8","res_light_comp_9","res_light_comp_10","res_light_comp_11","res_light_comp_12","res_light_comp_13","res_b_comp_14","res_b_comp_15","res_b_comp_16","res_b_comp_17","res_b_comp_18","res_b_comp_19","res_b_comp_20","res_b_comp_21","res_b_comp_22","res_b_comp_23","res_b_comp_24","res_b_comp_25","res_b_comp_26"]
 
     def beginJob(self,histFile=None,histDirName=None):

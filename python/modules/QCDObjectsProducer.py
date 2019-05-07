@@ -102,12 +102,16 @@ class QCDObjectsProducer(Module):
 
 	# True response info
 	#print "isQCD: ", self.isQCD
-	mmOut = self.getQCDRespTailCorrector(jets, genjets, met) if self.isQCD == True else [-1, -1.0, -1]
+	mmOut = []
+	if self.isQCD == True:
+		mmOut = self.getQCDRespTailCorrector(jets, genjets, met) 
+	else:
+		mmOut = [-1, -1.0, -1]
 	trueRespInd, trueResp = mmOut[0], mmOut[1]
 	#print "trueResp: ", trueRespInd, trueResp
 	trueRespFlv = 99
 	trueRespGenPT = -1.0
-	if trueRespInd >= 0 and self.isData == False:
+	if trueRespInd >= 0:
 		for iG in xrange(len(genjets)):
 			gjet = genjets[iG]
 			if iG != trueRespInd: continue

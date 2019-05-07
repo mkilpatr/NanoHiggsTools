@@ -21,7 +21,7 @@ tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
 VersionNumber = '_v2p7'
 argument = "--inputFiles=%s.$(Process).list "
-sendfiles = ["../keep_and_drop.txt"]
+sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
 TTreeName = "Events"
 NProcess = 10
 
@@ -162,7 +162,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_tauMVA"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:

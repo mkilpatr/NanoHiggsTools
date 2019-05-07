@@ -8,7 +8,9 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import Pos
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
+from PhysicsTools.NanoSUSYTools.modules.dummyProducer import *
 from PhysicsTools.NanoSUSYTools.modules.tauMVA import *
+from PhysicsTools.NanoSUSYTools.modules.tauMVACompare import *
 
 DataDepInputs = {
     "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
@@ -33,18 +35,20 @@ def main(args):
         exit(0)    
 
     mods = [
-	LLObjectsProducer(args.era),
+	#dummyProducer(),
+	tauMVACompare(),
+	#LLObjectsProducer(args.era),
     ]
 
-    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PostProcessed_15Jan2019_v2p6/TTbarSingleLepT_2017/TTbarSingleLepT_2017_41.root"]
-    files = []
-    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-        #This is just a single test input file
-        files.append(args.inputfile[5:])
-    else:
-        #this is a file list
-        with open(args.inputfile) as f:
-            files = [line.strip() for line in f]
+    files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PreProcessed_15Jan2019/TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8/2017_MC_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_v14-v1/190111_191501/0000/prod2017MC_NANO_103.root"]
+    #files = []
+    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+    #    #This is just a single test input file
+    #    files.append(args.inputfile[5:])
+    #else:
+    #    #this is a file list
+    #    with open(args.inputfile) as f:
+    #        files = [line.strip() for line in f]
 
     p=PostProcessor(args.outputfile,files,cut="MET_pt > 200 & nJet >= 2", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False)
     p.run()

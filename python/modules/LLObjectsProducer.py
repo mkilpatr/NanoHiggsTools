@@ -44,6 +44,7 @@ class LLObjectsProducer(Module):
 	self.out.branch("Jet_btagStop0l_pt1", 	"F")
 	self.out.branch("Jet_btagStop0l_pt2", 	"F")
 	self.out.branch("nLeptonVeto",    	"I")
+	self.out.branch("Stop0l_nIsoTracks", 	"I")
 	self.out.branch("Stop0l_dphit1met", 	"F")
 	self.out.branch("Stop0l_dphit2met", 	"F")
 	self.out.branch("Stop0l_dphit12met", 	"F")
@@ -104,10 +105,10 @@ class LLObjectsProducer(Module):
 	dphit1met = 10
 	dphit2met = 10
 	
-	for t in xrange(len(hot.pt)):
-		if t == 0: dphit1met = deltaPhi(hot.phi[t], met.phi)
-		if t == 1: dphit2met = deltaPhi(hot.phi[t], met.phi)
-		if t == 2: break
+	#for t in xrange(len(hot.pt)):
+	#	if t == 0: dphit1met = deltaPhi(hot.phi[t], met.phi)
+	#	if t == 1: dphit2met = deltaPhi(hot.phi[t], met.phi)
+	#	if t == 2: break
 
 	return dphit1met, dphit2met
 
@@ -129,17 +130,18 @@ class LLObjectsProducer(Module):
 	mt 		     = self.SelMtlepMET(electrons, muons, isotracks, met)
 	PassLeptonVeto       = self.PassLeptonVeto(electrons, muons, isotracks)
 	dPhiTop1Met, dPhiTop2Met = self.CalcDphiTopMET(hot, met)
+	countIsk 	     = sum([i.Stop0l for i in isotracks])
 
         ### Store output
-	self.out.fillBranch("nStop0l_MtLepMET", len(mt))
-	self.out.fillBranch("Stop0l_MtLepMET",  mt)
-	self.out.fillBranch("Jet_btagStop0l_pt1", bJetPt[0])
-	self.out.fillBranch("Jet_btagStop0l_pt2", bJetPt[1])
-	self.out.fillBranch("nLeptonVeto",    PassLeptonVeto)
-	#self.out.fillBranch("Pass_Trigger", sigAccept_met)
-	self.out.fillBranch("Stop0l_dphit1met", dPhiTop1Met)
-	self.out.fillBranch("Stop0l_dphit2met", dPhiTop2Met)
-	self.out.fillBranch("Stop0l_dphit12met",min(dPhiTop1Met, dPhiTop2Met))
+	self.out.fillBranch("nStop0l_MtLepMET", 	len(mt))
+	self.out.fillBranch("Stop0l_MtLepMET",  	mt)
+	self.out.fillBranch("Jet_btagStop0l_pt1", 	bJetPt[0])
+	self.out.fillBranch("Jet_btagStop0l_pt2", 	bJetPt[1])
+	self.out.fillBranch("nLeptonVeto",    		PassLeptonVeto)
+	self.out.fillBranch("Stop0l_nIsoTracks",	countIsk)
+	self.out.fillBranch("Stop0l_dphit1met", 	dPhiTop1Met)
+	self.out.fillBranch("Stop0l_dphit2met", 	dPhiTop2Met)
+	self.out.fillBranch("Stop0l_dphit12met",	min(dPhiTop1Met, dPhiTop2Met))
 	return True
 
 

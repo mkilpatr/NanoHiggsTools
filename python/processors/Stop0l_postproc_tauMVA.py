@@ -23,7 +23,8 @@ from PhysicsTools.NanoSUSYTools.modules.TauMVAObjectsProducer import *
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
 # Actual text files are found here
-# https://github.com/cms-jet/JECDatabase/tree/master/textFiles
+# JEC: https://github.com/cms-jet/JECDatabase/tree/master/textFiles
+# JER: https://github.com/cms-jet/JRDatabase/tree/master/textFiles
 DataDepInputs = {
     "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
                "JECU": "Summer16_07Aug2017_V11_MC"
@@ -76,7 +77,7 @@ def main(args):
     	        GenPartFilter(statusFlags = [0x2100, 0x2080]),
     	    ]
 
-    #files = ["/eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2-ext1/190225_171125/0000/prod2016MC_NANO_1-1.root"]
+    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PreProcessed_15Jan2019/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/2017_MC_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_v14-v1/190111_191903/0000/prod2017MC_NANO_108.root"]
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file
@@ -119,7 +120,7 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--maxEvents',
                         type=int,
                         default = -1,
-                        help = 'MAximum number of events to process (Default: all events)')
+                        help = 'Maximum number of events to process (Default: all events)')
     parser.add_argument('-p', '--process', type=str, default = "",
                         help = "Type of QCD process to do (jetres or smear)")
     args = parser.parse_args()
