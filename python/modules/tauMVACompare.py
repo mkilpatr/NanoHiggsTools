@@ -185,10 +185,9 @@ class tauMVACompare(Module):
 				ptmatch = genchhad.pt
 				etamatch = genchhad.eta
 		
-		if(pfc.pt > 10.0 and abs(pfc.eta) < 2.4 and abs(pfc.dz) < 0.2):
+		if(pfc.pt > 10.0 and abs(pfc.eta) < 2.4 and abs(pfc.dz) < 0.2 and match): 
 			mt = self.computeMT(pfc, met, pfcand)
 			if mt < 100:
-
 				pt 	     = min(pfc.pt,float(300.0))
 				abseta       = min(abs(pfc.eta), float(2.4))
 				absdz        = abs(pfc.dz)
