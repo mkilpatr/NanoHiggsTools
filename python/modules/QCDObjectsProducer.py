@@ -88,7 +88,7 @@ class QCDObjectsProducer(Module):
 	jetNearMETInd, MMJetDPhi = -1, -1
 	for iJ in xrange(len(jets)):
 		if iJ > 2 : continue
-		dPhi = deltaPhi(jets[iJ].phi, met.phi)
+		dPhi = abs(deltaPhi(jets[iJ].phi, met.phi))
 		if(MMJetDPhi < 0 or dPhi < MMJetDPhi):
 			MMJetDPhi = dPhi
 			jetNearMETInd = iJ
