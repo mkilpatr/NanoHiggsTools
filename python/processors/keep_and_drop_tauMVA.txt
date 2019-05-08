@@ -13,7 +13,12 @@ drop *SubJet*
 drop *fiducialGen*
 drop *CaloMET*
 drop *FatJet*
-drop *Gen*
+drop GenJet*
+drop GenMET_*
+drop GenPart_*
+drop GenVisTau_*
+drop Generator_*
+drop GenDressed*
 drop *SoftActivity*
 drop Tau_*
 drop *TrigObj*

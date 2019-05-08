@@ -105,7 +105,7 @@ def Condor_Sub(condor_file):
     os.chdir(curdir)
 
 
-def SplitPro(key, file, lineperfile=20):
+def SplitPro(key, file, lineperfile=30):
     splitedfiles = []
     filelistdir = tempdir + '/' + "FileList"
     try:
