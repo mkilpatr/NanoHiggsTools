@@ -1,8 +1,0 @@
-# this is a comment
-drop Jet_pt
-drop Jet_phi
-drop Jet_eta
-drop Jet_mass
-drop MET_pt
-drop MET_phi
-drop genWeight

@@ -1,2 +1,26 @@
 # this is a comment
-drop *
+drop *MET*
+drop *Electron*
+drop *Jet*
+drop *Flag*
+drop *Gen*
+drop *HLT*
+drop *IsoTrack*
+drop *LHE*
+drop *L1*
+drop *Muon*
+drop *PV*
+drop *PS*
+drop *Photon*
+drop *Pileup*
+drop *SV*
+drop *SoftActivity*
+drop *Tau*
+drop *TrigObj*
+drop btagWeight*
+drop *fixedGridRhoFastjet*
+drop *luminosityBlock*
+drop *PFcand*
+drop *SB*
+drop genTtbarId
+drop *ResolvedTop*
