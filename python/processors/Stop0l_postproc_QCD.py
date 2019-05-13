@@ -27,15 +27,15 @@ def main(args):
     elif process == 'qcdsf':
 	mods.append( QCDObjectsProducer(isQCD=isqcd, isData=isdata) )
     
-    files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v1/190225_211123/0000/prod2016MC_NANO_109.root"]
-    #files = []
-    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-    #    #This is just a single test input file
-    #    files.append(args.inputfile[5:])
-    #else:
-    #    #this is a file list
-    #    with open(args.inputfile) as f:
-    #        files = [line.strip() for line in f]
+    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v1/190225_211123/0000/prod2016MC_NANO_109.root"]
+    files = []
+    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+        #This is just a single test input file
+        files.append(args.inputfile[5:])
+    else:
+        #this is a file list
+        with open(args.inputfile) as f:
+            files = [line.strip() for line in f]
     
     if process=='jetres':  p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_res.txt",typeofprocess="resp",modules=mods,provenance=False)
     elif process=='smear': p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_QCD.txt", outputbranchselsmear="keep_and_drop_QCD.txt",typeofprocess="smear",modules=mods,provenance=False)

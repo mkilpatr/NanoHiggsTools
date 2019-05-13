@@ -8,50 +8,32 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import Pos
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
-from PhysicsTools.NanoSUSYTools.modules.dummyProducer import *
-from PhysicsTools.NanoSUSYTools.modules.tauMVA import *
-from PhysicsTools.NanoSUSYTools.modules.tauMVACompare import *
-
-DataDepInputs = {
-    "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
-               "JECU": "Summer16_07Aug2017_V11_MC"
-               },
-    "2017" : { "pileup": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
-               "JECU": "Fall17_17Nov2017_V32_MC"
-               },
-    "2018" : { "pileup": "Cert314472_325175_PromptReco_Collisions18.root",
-                #The 2018 files is actually a softlink to this file
-               "JECU": "Fall17_17Nov2017_V32_MC"
-               }
-}
 
 def main(args):
     isdata = len(args.dataEra) > 0
     isfastsim = args.isFastSim
     process = args.process
 
-    if isdata and isfastsim:
-        print "ERROR: It is impossible to have a dataset that is both data and fastsim"
-        exit(0)    
+    #if isdata and isfastsim:
+    #    print "ERROR: It is impossible to have a dataset that is both data and fastsim"
+    #    exit(0)    
 
     mods = [
-	dummyProducer(),
-	#tauMVACompare(),
-	#LLObjectsProducer(args.era),
+	LLObjectsProducer(args.era),
     ]
 
-    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PreProcessed_15Jan2019/TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8/2017_MC_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_v14-v1/190111_191501/0000/prod2017MC_NANO_103.root"]
-    files = ["/uscms/home/mkilpatr/nobackup/CMSSW_9_4_10/src/AnalysisMethods/macros/run/plots_19_05_07_qcdSmearComp/qcd_smear_tree.root"]
-    #files = []
-    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-    #    #This is just a single test input file
-    #    files.append(args.inputfile[5:])
-    #else:
-    #    #this is a file list
-    #    with open(args.inputfile) as f:
-    #        files = [line.strip() for line in f]
+#    files = ["root://cmseos.fnal.gov//store/user/lpcsusyhad/Stop_production/Autumn18_102X_v1/PostProcessed_22March2019/MET_v2p7/Data_MET_2018_PeriodB/Data_MET_2018_PeriodB_2.root",
+#	     "root://cmseos.fnal.gov//store/user/lpcsusyhad/Stop_production/Autumn18_102X_v1/PostProcessed_22March2019_v2p7/TTbarDiLep_2018/TTbarDiLep_2018_17.root"]
+    files = []
+    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+        #This is just a single test input file
+        files.append(args.inputfile[5:])
+    else:
+        #this is a file list
+        with open(args.inputfile) as f:
+            files = [line.strip() for line in f]
 
-    p=PostProcessor(args.outputfile,files,cut="Pass_QCDCR", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
+    p=PostProcessor(args.outputfile,files,cut="Pass_MET", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False)
     p.run()
 
 if __name__ == "__main__":

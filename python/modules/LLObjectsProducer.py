@@ -44,7 +44,9 @@ class LLObjectsProducer(Module):
 	self.out.branch("Jet_btagStop0l_pt1", 	"F")
 	self.out.branch("Jet_btagStop0l_pt2", 	"F")
 	self.out.branch("nLeptonVeto",    	"I")
-	self.out.branch("Stop0l_nIsoTracks", 	"I")
+	self.out.branch("Stop0l_nIsoTracksLep", "I")
+	self.out.branch("Stop0l_nIsoTracksHad", "I")
+	self.out.branch("Stop0l_nVetoElecMuon", "I")
 	self.out.branch("Stop0l_dphit1met", 	"F")
 	self.out.branch("Stop0l_dphit2met", 	"F")
 	self.out.branch("Stop0l_dphit12met", 	"F")
@@ -105,10 +107,10 @@ class LLObjectsProducer(Module):
 	dphit1met = 10
 	dphit2met = 10
 	
-	#for t in xrange(len(hot.pt)):
-	#	if t == 0: dphit1met = deltaPhi(hot.phi[t], met.phi)
-	#	if t == 1: dphit2met = deltaPhi(hot.phi[t], met.phi)
-	#	if t == 2: break
+	for t in xrange(len(hot.pt)):
+		if t == 0: dphit1met = deltaPhi(hot.phi[t], met.phi)
+		if t == 1: dphit2met = deltaPhi(hot.phi[t], met.phi)
+		if t == 2: break
 
 	return dphit1met, dphit2met
 
@@ -118,6 +120,8 @@ class LLObjectsProducer(Module):
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
+	muons     = Collection(event, "Muon")
+	electrons = Collection(event, "Electron")
 	jets      = Collection(event, "Jet")
 	met       = Object(event, self.metBranchName)
 	hot	  = Object(event, "HOT")
@@ -130,7 +134,9 @@ class LLObjectsProducer(Module):
 	mt 		     = self.SelMtlepMET(electrons, muons, isotracks, met)
 	PassLeptonVeto       = self.PassLeptonVeto(electrons, muons, isotracks)
 	dPhiTop1Met, dPhiTop2Met = self.CalcDphiTopMET(hot, met)
-	countIsk 	     = sum([i.Stop0l for i in isotracks])
+	countIskLep 	     = sum([(i.Stop0l and (abs(i.pdgId) == 11 or abs(i.pdgId) == 13)) for i in isotracks])
+	countIskHad 	     = sum([(i.Stop0l and abs(i.pdgId) == 211) for i in isotracks])
+	countEleMuon	     = sum([e.Stop0l for e in eles]) + sum([m.Stop0l for m in muons])
 
         ### Store output
 	self.out.fillBranch("nStop0l_MtLepMET", 	len(mt))
@@ -138,7 +144,9 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Jet_btagStop0l_pt1", 	bJetPt[0])
 	self.out.fillBranch("Jet_btagStop0l_pt2", 	bJetPt[1])
 	self.out.fillBranch("nLeptonVeto",    		PassLeptonVeto)
-	self.out.fillBranch("Stop0l_nIsoTracks",	countIsk)
+	self.out.fillBranch("Stop0l_nIsoTracksLep",	countIskLep)
+	self.out.fillBranch("Stop0l_nIsoTracksHad",	countIskHad)
+	self.out.fillBranch("Stop0l_nVetoElecMuon", 	countEleMuon)
 	self.out.fillBranch("Stop0l_dphit1met", 	dPhiTop1Met)
 	self.out.fillBranch("Stop0l_dphit2met", 	dPhiTop2Met)
 	self.out.fillBranch("Stop0l_dphit12met",	min(dPhiTop1Met, dPhiTop2Met))

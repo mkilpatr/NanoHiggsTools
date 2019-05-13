@@ -28,8 +28,6 @@ from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProd
 from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
-from PhysicsTools.NanoSUSYTools.modules.tauMVACompare import *
-from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -194,8 +192,6 @@ def main(args):
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
              Stop0l_trigger(args.era),
              UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName),
-	     tauMVACompare(),
-	     LLObjectsProducer(args.era),
             ]
 
     #~~~~~ Modules for MC Only ~~~~~
@@ -253,7 +249,7 @@ def main(args):
     #============================================================================#
     #-------------------------     Run PostProcessor     ------------------------#
     #============================================================================#
-    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PreProcessed_15Jan2019/TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8/2017_MC_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_v14-v1/190111_191501/0000/prod2017MC_NANO_103.root"]
+    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_11Apr2019/QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_smear/QCD_HT300to500_2016_0.root"]
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file
@@ -264,7 +260,7 @@ def main(args):
             files = [line.strip() for line in f]
 
     #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
-    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    p=PostProcessor(args.outputfile,files,cut="MET_pt > 200", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
 if __name__ == "__main__":

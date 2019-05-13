@@ -25,10 +25,11 @@ class XGBHelper:
         return self.bst.predict(dmat)[0]
 
 class tauMVAProducer(Module):
-    def __init__(self, isFakeMVA = False, isEff = False):
+    def __init__(self, isFakeMVA = False, isEff = False, isSF = False):
 	self.writeHistFile=True
 	self.isFakeMVA = isFakeMVA 
 	self.isEff = isEff
+	self.isSF = isSF
         self.metBranchName = "MET"
 	self.p_tauminus = 15
 	self.p_Z0       = 23
@@ -222,7 +223,7 @@ class tauMVAProducer(Module):
 				ptmatch = genchhad.pt
 				etamatch = genchhad.eta
 		
-		if((not self.isEff and pfc.pt > 10.0 and abs(pfc.eta) < 2.4 and abs(pfc.dz) < 0.2) or (self.isEff and match and pfc.pt > 10.0 and abs(pfc.eta) < 2.4 and abs(pfc.dz) < 0.2)):
+		if((pfc.pt > 10.0 and abs(pfc.eta) < 2.4 and abs(pfc.dz) < 0.2)):
 			mt = self.computeMT(pfc, met, pfcand)
 			if mt < 100:
 				pt = min(pfc.pt,float(300.0))
