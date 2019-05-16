@@ -195,56 +195,56 @@ def main(args):
             ]
 
     #~~~~~ Modules for MC Only ~~~~~
-    #if not isdata:
-    #    pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
-    #    pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
-    #    ## TODO: ZW don't understand this part, So this is for fullsim? 
-    #    ## Isn't jetmetUncertaintiesProducer included jecUncertProducer
-    #    if not isfastsim:
-    #        mods += [
-    #            jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]),
-    #            ]
-    #    ## Major modules for MC
-    #    mods += [
-    #        TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp", AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),
-    #                          topDiscCut=DeepResovledDiscCut, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
-    #        TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), 
-    #                          topDiscCut=DeepResovledDiscCut, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
-    #        DeepTopProducer(args.era, "JESUp"),
-    #        DeepTopProducer(args.era, "JESDown"),
-    #        Stop0lObjectsProducer(args.era, "JESUp"),
-    #        Stop0lObjectsProducer(args.era, "JESDown"),
-    #        Stop0lObjectsProducer(args.era, "METUnClustUp"),
-    #        Stop0lObjectsProducer(args.era, "METUnClustDown"),
-    #        Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESUp"),
-    #        Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESDown"),
-    #        Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustUp"),
-    #        Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustDown"),
-    #        PDFUncertiantyProducer(isdata, isSUSY),
-    #        lepSFProducer(args.era),
-    #        lepSFProducer(args.era, muonSelectionTag="Medium",
-    #                      electronSelectionTag="Medium",
-    #                      photonSelectionTag="Medium"),
-    #        puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
-    #        btagSFProducer(era=args.era, algo="deepcsv"),
-    #        BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
-    #        # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
-    #        # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
-    #        GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
-    #        # TODO: first implemtation, need double check
-    #        ISRSFWeightProducer(args.era, isSUSY, "allInOne_ISRWeight.root", args.sampleName), 
-    #        ]
-    #    # Special PU reweighting for 2017 separately
-    #    if args.era == "2017":
-    #        pufile_dataBtoE = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/Collisions17_BtoE.root" % os.environ['CMSSW_BASE']
-    #        pufile_dataF = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/Collisions17_F.root" % os.environ['CMSSW_BASE']
-    #        mods += [
-    #            puWeightProducer(pufile_mc, pufile_dataBtoE, args.sampleName,"pileup", name="17BtoEpuWeight"),
-    #            puWeightProducer(pufile_mc, pufile_dataF, args.sampleName,"pileup", name="17FpuWeight")
-    #        ]
-    #    # 2016 and 2017 L1 ECal prefiring reweighting
-    #    if args.era == "2016" or args.era == "2017":
-    #        mods.append(PrefCorr(args.era))
+    if not isdata:
+        pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
+        pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
+        ## TODO: ZW don't understand this part, So this is for fullsim? 
+        ## Isn't jetmetUncertaintiesProducer included jecUncertProducer
+        if not isfastsim:
+            mods += [
+                jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]),
+                ]
+        ## Major modules for MC
+        mods += [
+            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp", AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),
+                              topDiscCut=DeepResovledDiscCut, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), 
+                              topDiscCut=DeepResovledDiscCut, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+            DeepTopProducer(args.era, "JESUp"),
+            DeepTopProducer(args.era, "JESDown"),
+            Stop0lObjectsProducer(args.era, "JESUp"),
+            Stop0lObjectsProducer(args.era, "JESDown"),
+            Stop0lObjectsProducer(args.era, "METUnClustUp"),
+            Stop0lObjectsProducer(args.era, "METUnClustDown"),
+            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESUp"),
+            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESDown"),
+            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustUp"),
+            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustDown"),
+            PDFUncertiantyProducer(isdata, isSUSY),
+            lepSFProducer(args.era),
+            lepSFProducer(args.era, muonSelectionTag="Medium",
+                          electronSelectionTag="Medium",
+                          photonSelectionTag="Medium"),
+            puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
+            btagSFProducer(era=args.era, algo="deepcsv"),
+            BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
+            # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
+            # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
+            GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
+            # TODO: first implemtation, need double check
+            ISRSFWeightProducer(args.era, isSUSY, "allInOne_ISRWeight.root", args.sampleName), 
+            ]
+        # Special PU reweighting for 2017 separately
+        if args.era == "2017":
+            pufile_dataBtoE = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/Collisions17_BtoE.root" % os.environ['CMSSW_BASE']
+            pufile_dataF = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/Collisions17_F.root" % os.environ['CMSSW_BASE']
+            mods += [
+                puWeightProducer(pufile_mc, pufile_dataBtoE, args.sampleName,"pileup", name="17BtoEpuWeight"),
+                puWeightProducer(pufile_mc, pufile_dataF, args.sampleName,"pileup", name="17FpuWeight")
+            ]
+        # 2016 and 2017 L1 ECal prefiring reweighting
+        if args.era == "2016" or args.era == "2017":
+            mods.append(PrefCorr(args.era))
 
     #============================================================================#
     #-------------------------     Run PostProcessor     ------------------------#
@@ -259,8 +259,8 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
-    p=PostProcessor(args.outputfile,files,cut="MET_pt > 200", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    #p=PostProcessor(args.outputfile,files,cut="MET_pt > 250", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
 if __name__ == "__main__":

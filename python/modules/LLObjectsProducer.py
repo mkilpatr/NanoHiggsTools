@@ -136,7 +136,7 @@ class LLObjectsProducer(Module):
 	dPhiTop1Met, dPhiTop2Met = self.CalcDphiTopMET(hot, met)
 	countIskLep 	     = sum([(i.Stop0l and (abs(i.pdgId) == 11 or abs(i.pdgId) == 13)) for i in isotracks])
 	countIskHad 	     = sum([(i.Stop0l and abs(i.pdgId) == 211) for i in isotracks])
-	countEleMuon	     = sum([e.Stop0l for e in eles]) + sum([m.Stop0l for m in muons])
+	countEleMuon	     = sum([e.Stop0l for e in electrons]) + sum([m.Stop0l for m in muons])
 
         ### Store output
 	self.out.fillBranch("nStop0l_MtLepMET", 	len(mt))

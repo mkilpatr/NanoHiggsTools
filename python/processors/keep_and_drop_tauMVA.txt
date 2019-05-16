@@ -4,11 +4,11 @@ drop HLT*
 drop Flag_*
 drop SB_*
 drop *cleanmask
-drop *Photon*
+drop Photon_*
 drop Pileup_*
 drop *LHE*
-drop *Electron*
-drop *Muon*
+drop Electron_*
+drop Muon_*
 drop *SubJet*
 drop *fiducialGen*
 drop *CaloMET*

@@ -59,7 +59,7 @@ def main(args):
     	    DeepTopProducer(args.era),
     	    Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
 	    UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName),
-    	    tauMVAProducer(isFakeMVA=isfakemva, isEff=iseff),
+    	    tauMVAProducer(isFakeMVA=isfakemva, isEff=iseff, isData=isdata),
 	    LLObjectsProducer(args.era),
     	]
     	if args.era == "2018":
@@ -78,15 +78,15 @@ def main(args):
     	        GenPartFilter(statusFlags = [0x2100, 0x2080]),
     	    ]
 
-    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PreProcessed_15Jan2019/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/2017_MC_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_v14-v1/190111_191903/0000/prod2017MC_NANO_108.root"]
-    files = []
-    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-        #This is just a single test input file
-        files.append(args.inputfile[5:])
-    else:
-        #this is a file list
-        with open(args.inputfile) as f:
-            files = [line.strip() for line in f]
+    files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Autumn18_102X_v1/PreProcessed_22March2019/MET//2018_Data_Run2018A-17Sep2018-v1/190330_215429/0000/prod2018DATA_NANO_1-41.root"]
+    #files = []
+    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+    #    #This is just a single test input file
+    #    files.append(args.inputfile[5:])
+    #else:
+    #    #this is a file list
+    #    with open(args.inputfile) as f:
+    #        files = [line.strip() for line in f]
 
     if process=="train":    
 	p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_Baseline", branchsel=None, outputbranchsel="keep_and_drop_train.txt", typeofprocess="tau", modules=mods,provenance=False)

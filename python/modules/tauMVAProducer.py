@@ -25,11 +25,11 @@ class XGBHelper:
         return self.bst.predict(dmat)[0]
 
 class tauMVAProducer(Module):
-    def __init__(self, isFakeMVA = False, isEff = False, isSF = False):
+    def __init__(self, isFakeMVA = False, isEff = False, isData = False):
 	self.writeHistFile=True
 	self.isFakeMVA = isFakeMVA 
 	self.isEff = isEff
-	self.isSF = isSF
+	self.isData = isData
         self.metBranchName = "MET"
 	self.p_tauminus = 15
 	self.p_Z0       = 23
@@ -81,6 +81,8 @@ class tauMVAProducer(Module):
 	self.out.branch("nGoodTaus", 		"I")
 	self.out.branch("FakeTaus", 		"O", lenVar="PFcand")
 	self.out.branch("nFakeTaus", 		"I")
+	self.out.branch("TauCR", 		"O", lenVar="PFcand")
+	self.out.branch("nTauCR", 		"I")
 	if self.isEff:
 		self.out.branch("taumva",               "F", lenVar="nPFcand")
 		self.out.branch("TauMVA_Stop0l_68",     "O", lenVar="nPFcand")
@@ -152,7 +154,8 @@ class tauMVAProducer(Module):
         ## Getting objects
 	met	  = Object(event, self.metBranchName)
 	jets	  = Collection(event, "Jet")
-	genPart   = Collection(event, "GenPart")
+	if not self.isData:
+		genPart   = Collection(event, "GenPart")
 	pfcand    = Collection(event, "PFcand")
 	eventNum  = event.event
 
@@ -162,21 +165,22 @@ class tauMVAProducer(Module):
 	nGenLeptons = 0
 	nGenChHads = 0
 	nGenChHadsAcc = 0
-	for p in genPart:
-	        if p.statusFlags & 4:
-			nGenTaus+=1
-	                lepdecay = False
-	                if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
-	                        lepdecay = True
-	                        continue
-	                if (not self.isA(self.p_nu_e, p.pdgId)) and (not self.isA(self.p_nu_mu, p.pdgId)):
-				if (self.isA(self.pfhplus, p.pdgId) or self.isA(321, p.pdgId)):
-	                                taudecayprods.append(p)
-	                                if p.pt > 10.0 and abs(p.eta) < 2.4: nGenChHadsAcc+=1
-	                if not lepdecay:
-	                  nGenHadTaus+=1
-	                if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
-	                  nGenLeptons+=1
+	if not self.isData:
+		for p in genPart:
+		        if p.statusFlags & 4:
+				nGenTaus+=1
+		                lepdecay = False
+		                if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
+		                        lepdecay = True
+		                        continue
+		                if (not self.isA(self.p_nu_e, p.pdgId)) and (not self.isA(self.p_nu_mu, p.pdgId)):
+					if (self.isA(self.pfhplus, p.pdgId) or self.isA(321, p.pdgId)):
+		                                taudecayprods.append(p)
+		                                if p.pt > 10.0 and abs(p.eta) < 2.4: nGenChHadsAcc+=1
+		                if not lepdecay:
+					nGenHadTaus+=1
+		                if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
+					nGenLeptons+=1
 	
 
 	misset = met.pt
@@ -193,6 +197,7 @@ class tauMVAProducer(Module):
 	mva_eta00003_ = []
 	GoodTaus_ = []
 	FakeTaus_ = []
+	TauCR_ = []
 	mt_ = []
 	gentaumatch_ = [] 
 	for pfc in pfcand:
@@ -204,6 +209,7 @@ class tauMVAProducer(Module):
 		etamatch = -10
 		GoodTaus = False
 		FakeTaus = False
+		TauCR = False
 		gentaumatch = False
 		mva_eta3 = -10.0
 		mva_eta03 = -10.0
@@ -248,13 +254,16 @@ class tauMVAProducer(Module):
 				if(contjetcsv < 0.0): contjetcsv = 0.0
 				if(match and nGenHadTaus > 0): gentaumatch = True
 				gentaumatch_.append(gentaumatch)		
-	
-				if (self.isFakeMVA == False or self.isEff) and gentaumatch==True and nGenLeptons==0 and nGenTaus==nGenHadTaus and nGenHadTaus > 0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and ptmatch > 6. and absdz<0.2: 
+
+				baseline = len(jets)>3 and misset>150 and mt<100 and pt>10 and absdz<0.2	
+				if (self.isFakeMVA == False or self.isEff) and gentaumatch==True and nGenLeptons==0 and nGenTaus==nGenHadTaus and nGenHadTaus > 0 and baseline and  ptmatch > 6.: 
 					GoodTaus = True
-				if (self.isFakeMVA == True or self.isEff) and gentaumatch==False and nGenLeptons==0 and nGenTaus==0 and len(jets)>3 and misset>150 and mt<100 and pt>10 and absdz<0.2: 
+				if (self.isFakeMVA == True or self.isEff) and gentaumatch==False and nGenLeptons==0 and nGenTaus==0 and baseline:
 					FakeTaus = True
-				#print "Tau info: ", (gentaumatch, nGenLeptons, nGenTaus, len(jets), misset, mt, pt, absdz)
-				if FakeTaus == True or GoodTaus == True or self.isEff:
+				if GoodTaus or FakeTaus or (self.isData and baseline):
+					TauCR = True
+
+				if FakeTaus == True or GoodTaus == True or self.isEff or TauCR == True:
 					mva = {self.bdt_vars[0]: pt, 
 					       self.bdt_vars[1]: abseta,
 					       self.bdt_vars[2]: chiso0p1, 
@@ -268,7 +277,7 @@ class tauMVAProducer(Module):
 					       self.bdt_vars[10]: neartrkdr, 
 					       self.bdt_vars[11]: contjetdr, 
 					       self.bdt_vars[12]: contjetcsv}
-					if self.isEff:
+					if self.isEff or TauCR == True:
 						mva_buff = self.xgb.eval(mva)
 					else:
 						mva_eta3	 = self.xgb_eta3.eval(mva)
@@ -287,6 +296,7 @@ class tauMVAProducer(Module):
 		mva_eta00003_.append(mva_eta00003)
 		GoodTaus_.append(GoodTaus)
 		FakeTaus_.append(FakeTaus)
+		TauCR_.append(TauCR)
 	TauMVA_Stop0l_68 = self.SelTauMVA(mva_, 0.68)
         TauMVA_Stop0l_70 = self.SelTauMVA(mva_, 0.70)
         TauMVA_Stop0l_71 = self.SelTauMVA(mva_, 0.71)
@@ -307,7 +317,9 @@ class tauMVAProducer(Module):
 	self.out.fillBranch("nGoodTaus", sum(GoodTaus_))
 	self.out.fillBranch("FakeTaus", FakeTaus_)
 	self.out.fillBranch("nFakeTaus", sum(FakeTaus_))
-	if self.isEff:
+	self.out.fillBranch("TauCR", TauCR_)
+	self.out.fillBranch("nTauCR", sum(TauCR_))
+	if self.isEff or self.isData:
 		self.out.fillBranch("taumva",           mva_)
 		self.out.fillBranch("TauMVA_Stop0l_68", TauMVA_Stop0l_68)
 		self.out.fillBranch("nTauMVA_68",       sum(TauMVA_Stop0l_68))
