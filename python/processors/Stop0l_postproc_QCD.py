@@ -11,13 +11,8 @@ from PhysicsTools.NanoSUSYTools.modules.QCDObjectsProducer import *
 
 def main(args):
     isdata = len(args.dataEra) > 0
-    isfastsim = args.isFastSim
     isqcd = args.sampleName.startswith("QCD_")
     process = args.process
-
-    if isdata and isfastsim:
-        print "ERROR: It is impossible to have a dataset that is both data and fastsim"
-        exit(0)
 
     mods = []
     if process == 'jetres':

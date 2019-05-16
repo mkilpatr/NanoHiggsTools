@@ -19,13 +19,7 @@ from multiprocessing import Pool
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess_v1'
 argument = "--inputFiles=%s.$(Process).list "
-<<<<<<< HEAD
 sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
-=======
-sendfiles = ["../keep_and_drop.txt"]
-TTreeName = "Events"
-NProcess = 10
->>>>>>> upstream/dev_v3
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -77,22 +71,7 @@ def ConfigList(config, era):
             continue
         entry = line.split(",")
         stripped_entry = [ i.strip() for i in entry]
-<<<<<<< HEAD
         print(stripped_entry)
-=======
-        #print(stripped_entry)
-        replaced_outdir = stripped_entry[1].replace("Pre","Post")
-
-        #cut off anything after the processing date folder 
-        replaced_outdir = replaced_outdir.split("/")
-        nCut = 0
-        for i, s in enumerate(replaced_outdir):
-            if"PostProcessed" in s:
-                nCut = i
-                break
-        replaced_outdir = "/".join(replaced_outdir[:nCut + 1])
-            
->>>>>>> upstream/dev_v3
         process[stripped_entry[0]] = {
             "Filepath__" : "%s/%s" % (stripped_entry[1], stripped_entry[2]),
             "Outpath__" : "%s" % (stripped_entry[1]) + "/" + ShortProjectName + "/" + stripped_entry[0]+"/",
@@ -147,7 +126,6 @@ def SplitPro(key, file, lineperfile=20):
         splitedfiles.append(os.path.abspath("%s/%s.0.list" % (filelistdir, key)))
         return splitedfiles
 
-<<<<<<< HEAD
     fraction = len(lines) / lineperfile
     if len(lines) % lineperfile > 0:
         fraction += 1
@@ -162,27 +140,6 @@ def SplitPro(key, file, lineperfile=20):
             outf = open("%s/%s.%d.list" % (filelistdir, key, i), 'w')
             outf.writelines(wlines)
             splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, i)))
-=======
-    f = open(filename, 'r')
-    filelist = [l.strip() for l in f.readlines()]
-    r = None
-    pool = Pool(processes=NProcess)
-    r = pool.map(GetNEvent, filelist)
-    pool.close()
-    filedict = dict(r)
-    for l in filelist:
-        n = filedict[l]
-        eventcnt += n
-        if eventcnt > eventsplit:
-            filecnt += 1
-            eventcnt = n
-        filemap[filecnt].append(l)
-
-    for k,v in filemap.items():
-        outf = open("%s/%s.%d.list" % (filelistdir, key, k), 'w')
-        outf.write("\n".join(v))
-        splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, k)))
->>>>>>> upstream/dev_v3
         outf.close()
 
     return splitedfiles
@@ -192,37 +149,12 @@ def my_process(args):
     global tempdir
     global ProjectName
     ProjectName = time.strftime('%b%d') + ShortProjectName
-    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_2018/"
+    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_tauSF2018/"
     try:
         os.makedirs(tempdir)
     except OSError:
         pass
 
-<<<<<<< HEAD
-    ## Create the output directory
-    #outdir = OutDir +  "/" + ProjectName + "/"
-    #try:
-    #    os.makedirs("/eos/uscms/%s" % outdir)
-    #except OSError:
-    #    pass
-
-    """
-    ## Update RunHT.csh with DelDir and pileups
-    RunHTFile = tempdir + "/" + "RunExe.csh"
-    with open(RunHTFile, "wt") as outfile:
-        for line in open("RunExe.csh", "r"):
-            line = line.replace("DELSCR", os.environ['SCRAM_ARCH'])
-            line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
-            line = line.replace("DELEXE", DelExe.split('/')[-1])
-            line = line.replace("OUTDIR", outdir)
-            outfile.write(line)
-    """
-    #To have each job copy to a directory based on the input file, looks like I'd need to have a copy of RunExe.csh for name, sample in Process.items() as well.
-    #Needs to be inside the same name, sample for loop for the condor file so the condor file gets the correct EXECUTABLE name.
-
-
-=======
->>>>>>> upstream/dev_v3
     ### Create Tarball
     Tarfiles = []
     NewNpro = {}
