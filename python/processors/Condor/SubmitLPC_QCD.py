@@ -105,7 +105,7 @@ def Condor_Sub(condor_file):
     os.chdir(curdir)
 
 
-def SplitPro(key, file, lineperfile=30):
+def SplitPro(key, file, lineperfile=10):
     splitedfiles = []
     filelistdir = tempdir + '/' + "FileList"
     try:
@@ -146,7 +146,7 @@ def my_process(args):
     global tempdir
     global ProjectName
     ProjectName = time.strftime('%b%d') + ShortProjectName
-    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_2/"
+    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_qcdsmear_v2/"
     try:
         os.makedirs(tempdir)
     except OSError:

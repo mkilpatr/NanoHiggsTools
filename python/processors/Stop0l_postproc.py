@@ -226,7 +226,7 @@ def main(args):
                           electronSelectionTag="Medium",
                           photonSelectionTag="Medium"),
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
-            btagSFProducer(era=args.era, algo="deepcsv"),
+            btagSFProducer(era=args.era, algo="deepcsv", verbose=1),
             BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
@@ -249,7 +249,6 @@ def main(args):
     #============================================================================#
     #-------------------------     Run PostProcessor     ------------------------#
     #============================================================================#
-    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_11Apr2019/QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_smear/QCD_HT300to500_2016_0.root"]
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file

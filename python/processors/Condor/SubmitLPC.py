@@ -162,7 +162,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_qcdpost_final"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_qcdpost_final_3"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -232,6 +232,7 @@ def my_process(args):
                 line = line.replace("TEMPDIR", tempdir)
                 line = line.replace("PROJECTNAME", ProjectName)
                 line = line.replace("SAMPLENAME", name)
+		line = line.replace("MEMORY", args.memory + " GB")
                 line = line.replace("ARGUMENTS", arg)
                 outfile.write(line)
 
@@ -248,6 +249,9 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--outputdir',
         default = "", 
         help = 'Path to the output directory.')
+    parser.add_argument('-m', '--memory',
+        default = "2",
+        help = 'Amount of memory to request.')
 
     args = parser.parse_args()
     my_process(args)
