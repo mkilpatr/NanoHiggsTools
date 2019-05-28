@@ -18,15 +18,18 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateEvtWeight import *
 from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
-from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
-from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import *
+from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import UpdateJetID
+from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import PDFUncertiantyProducer
 from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
-from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import jecUncertProducer
+from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
+from PhysicsTools.NanoSUSYTools.modules.UpdateMETProducer import UpdateMETProducer
+from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProducer
+from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
+from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
+from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 from PhysicsTools.NanoSUSYTools.modules.tauMVAProducer import *
 from PhysicsTools.NanoSUSYTools.modules.TauMVAObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
-from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -34,17 +37,103 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 # JEC: https://github.com/cms-jet/JECDatabase/tree/master/textFiles
 # JER: https://github.com/cms-jet/JRDatabase/tree/master/textFiles
 DataDepInputs = {
-    "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
-               "JECU": "Summer16_07Aug2017_V11_MC"
-               },
-    "2017" : { "pileup": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
-               "JECU": "Fall17_17Nov2017_V32_MC"
-               },
-    "2018" : { "pileup": "Cert314472_325175_PromptReco_Collisions18.root",
-                #The 2018 files is actually a softlink to this file
-               "JECU": "Fall17_17Nov2017_V32_MC"
-               }
+    "MC": {
+        "2016" : {"pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
+                  "pileup_MC": "pileup_profile_2016.root",
+                  "JERMC": "Summer16_25nsV1_MC",
+                  "JECMC": "Summer16_07Aug2017_V11_MC",
+                  "redoJEC": False,
+                 },
+        "2017" : {"pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
+                  "pileup_MC": "pileup_profile_2017.root",
+                  "JERMC": "Fall17_V3_MC",
+                  "JECMC": "Fall17_17Nov2017_V32_MC",
+                  "redoJEC": False,
+                 },
+        "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
+                  "pileup_MC": "pileup_profile_2018.root",
+                  "JERMC": "Autumn18_V1_MC",
+                  "JECMC": "Autumn18_V8_MC",
+                  "redoJEC": True,
+                 }
+    },
+
+    "FASTSIM": {
+        "2016" : {"pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
+                  "pileup_MC": "pileup_profile_2016.root",
+                  "JERMC": "Summer16_25nsV1_MC",
+                  "JECMC": "Spring16_25nsFastSimV1_MC",
+                  "redoJEC": False,
+                 },
+        "2017" : {"pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
+                  "pileup_MC": "pileup_profile_2017.root",
+                  "JERMC": "Fall17_V3_MC",
+                  "JECMC": "Fall17_FastsimV1_MC",
+                  "redoJEC": True,
+                 },
+        "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
+                  "pileup_MC": "pileup_profile_2018.root",
+                  "JERMC": "Autumn18_V1_MC",
+                  "JECMC": "Fall17_FastsimV1_MC",
+                  "redoJEC": True,
+                 }
+    },
+
+    "Data": {
+        "2016B" : { "JEC": "Summer16_07Aug2017BCD_V11_DATA",
+                    "redoJEC": False,
+                   },
+        "2016C" : { "JEC": "Summer16_07Aug2017BCD_V11_DATA",
+                    "redoJEC": False,
+                   },
+        "2016D" : { "JEC": "Summer16_07Aug2017BCD_V11_DATA",
+                    "redoJEC": False,
+                   },
+        "2016E" : { "JEC": "Summer16_07Aug2017EF_V11_DATA",
+                    "redoJEC": False,
+                   },
+        "2016F" : { "JEC": "Summer16_07Aug2017EF_V11_DATA",
+                    "redoJEC": False,
+                   },
+        "2016G" : { "JEC": "Summer16_07Aug2017GH_V11_DATA",
+                    "redoJEC": False,
+                   },
+        "2016H" : { "JEC": "Summer16_07Aug2017GH_V11_DATA",
+                    "redoJEC": False,
+                   },
+
+        "2017B" : { "JEC": "Fall17_17Nov2017B_V32_DATA",
+                    "redoJEC": False,
+                   },
+        "2017C" : { "JEC": "Fall17_17Nov2017C_V32_DATA",
+                    "redoJEC": False,
+                   },
+        "2017D" : { "JEC": "Fall17_17Nov2017DE_V32_DATA",
+                    "redoJEC": False,
+                   },
+        "2017E" : { "JEC": "Fall17_17Nov2017DE_V32_DATA",
+                    "redoJEC": False,
+                   },
+        "2017F" : { "JEC": "Fall17_17Nov2017F_V32_DATA",
+                    "redoJEC": False,
+                   },
+
+        "2018A" : { "JEC": "Autumn18_RunA_V8_DATA",
+                    "redoJEC": True,
+                   },
+        "2018B" : { "JEC": "Autumn18_RunB_V8_DATA",
+                    "redoJEC": True,
+                   },
+        "2018C" : { "JEC": "Autumn18_RunC_V8_DATA",
+                    "redoJEC": True,
+                   },
+        "2018D" : { "JEC": "Autumn18_RunD_V8_DATA",
+                    "redoJEC": True,
+                   },
+            }
 }
+
+DeepResovledDiscCut = 0.6
 
 def main(args):
     isdata = len(args.dataEra) > 0
@@ -52,10 +141,27 @@ def main(args):
     process = args.process
     isfakemva = True
     iseff = True if process == "taumvacompare" else False
+    isSUSY = args.sampleName.startswith("SMS_")
 
     if isdata and isfastsim:
         print "ERROR: It is impossible to have a dataset that is both data and fastsim"
         exit(0)
+
+    if isdata:
+        dataType="Data"
+        if not args.era + args.dataEra in DataDepInputs[dataType].keys():
+            print "ERROR: Era \"" + args.era + "\" not recognized"
+            exit(0)
+    elif isfastsim:
+        dataType="FASTSIM"
+        if not args.era + args.dataEra in DataDepInputs[dataType].keys():
+            print "ERROR: Era \"" + args.era + "\" not recognized"
+            exit(0)
+    else:
+        dataType = "MC"
+        if not args.era in DataDepInputs[dataType].keys():
+            print "ERROR: Era \"" + args.era + "\" not recognized"
+            exit(0)
 
     mods = []
     if process == "train":
@@ -94,10 +200,11 @@ def main(args):
             Stop0l_trigger(args.era),
             UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName),
     	    tauMVAProducer(isFakeMVA=isfakemva, isEff=iseff, isData=isdata),
-	    LLObjectsProducer(args.era),
     	]
+	if process == "taumvacompare": 
+		mods.append(LLObjectsProducer(args.era))
 	#~~~~~ Modules for MC Only ~~~~~
-	if not isdata:
+	if not isdata and process == "taumvacompare":
 	    pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
 	    pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
 	    ## TODO: ZW don't understand this part, So this is for fullsim? 
@@ -128,7 +235,7 @@ def main(args):
 	                      electronSelectionTag="Medium",
 	                      photonSelectionTag="Medium"),
 	        puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
-	        btagSFProducer(era=args.era, algo="deepcsv", verbose=1),
+	        btagSFProducer(era=args.era, algo="deepcsv"),
 	        BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
 	        # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
 	        # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
@@ -166,7 +273,7 @@ def main(args):
     elif process=="taumva": 
 	p=PostProcessor(args.outputfile,files,cut="MET_pt > 150 & nJet > 3", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
     elif process == "taumvacompare":
-	p=PostProcessor(args.outputfile,files,cut="MET_pt > 150", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False)
+	p=PostProcessor(args.outputfile,files,cut="MET_pt > 150", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
     p.run()
 
 if __name__ == "__main__":

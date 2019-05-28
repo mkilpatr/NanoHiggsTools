@@ -107,10 +107,10 @@ class LLObjectsProducer(Module):
 	dphit1met = 10
 	dphit2met = 10
 	
-	for t in xrange(len(hot.pt)):
-		if t == 0: dphit1met = deltaPhi(hot.phi[t], met.phi)
-		if t == 1: dphit2met = deltaPhi(hot.phi[t], met.phi)
-		if t == 2: break
+	#for t in xrange(len(hot.pt)):
+	#	if t == 0: dphit1met = deltaPhi(hot.phi[t], met.phi)
+	#	if t == 1: dphit2met = deltaPhi(hot.phi[t], met.phi)
+	#	if t == 2: break
 
 	return dphit1met, dphit2met
 

@@ -11,10 +11,12 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, clo
 #2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
 
 class QCDObjectsProducer(Module):
-    def __init__(self, isQCD = False, isData = False):
+    def __init__(self, isQCD = False, isData = False, isQCDOrig = False):
         self.metBranchName = "MET"
 	self.isQCD       = isQCD
 	self.isData	 = isData
+	self.isQCDOrig	 = isQCDOrig
+	self.nBootstraps = 50
 
     def beginJob(self):
         pass
@@ -30,6 +32,9 @@ class QCDObjectsProducer(Module):
 	self.out.branch("pseudoRespCSV"        , "F")
 	self.out.branch("pseudoRespPseudoGenPT", "F")
 	self.out.branch("pseudoRespPassFilter" , "O")
+	if self.isQCDOrig:
+		self.out.branch("nBootstrapWeight",        "I")
+		self.out.branch("bootstrapWeight",         "I", lenVar="nBootstrapWeight")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -118,6 +123,13 @@ class QCDObjectsProducer(Module):
 			trueRespGenPT = gjet.pt
 			trueRespFlv = gjet.partonFlavour
 			break
+	
+	if self.isQCDOrig:
+		b = []
+		for iB in xrange(self.nBootstraps):
+		        b.append(1)
+		self.out.fillBranch("nBootstrapWeight",        self.nBootstraps)
+		self.out.fillBranch("bootstrapWeight",         b)
 	
         ### Store output
 	self.out.fillBranch("pseudoResp"           , MMPseudoResp)

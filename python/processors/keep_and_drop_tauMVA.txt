@@ -16,7 +16,6 @@ drop *FatJet*
 drop GenJet*
 drop GenMET_*
 drop GenPart_*
-drop GenVisTau_*
 drop Generator_*
 drop GenDressed*
 drop *SoftActivity*

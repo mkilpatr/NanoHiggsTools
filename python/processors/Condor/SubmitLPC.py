@@ -16,12 +16,13 @@ import uproot
 from collections import defaultdict
 from multiprocessing import Pool
 
-DelExe    = '../Stop0l_postproc.py'
+#DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
 VersionNumber = '_v2p7'
 argument = "--inputFiles=%s.$(Process).list "
-sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
+#sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
+sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
 TTreeName = "Events"
 NProcess = 10
 
@@ -99,6 +100,10 @@ def ConfigList(config):
                 "sampleName": stripped_entry[0], #process
                 "totEvents__":  int(stripped_entry[5]) + int(stripped_entry[6]), # using all event weight
             })
+	if args.process != "":
+            process[stripped_entry[0]].update( {
+                "process" : args.process
+            })
 
     return process
 
@@ -162,7 +167,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_qcdpost_final_3"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_tausf_052819"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -185,7 +190,7 @@ def my_process(args):
         Tarfiles+= npro
         NewNpro[key] = len(npro)
 
-    Tarfiles.append(os.path.abspath(DelExe))
+    Tarfiles.append(os.path.abspath(args.runfile))
     tarballname ="%s/%s.tar.gz" % (tempdir, ProjectName)
     with tarfile.open(tarballname, "w:gz", dereference=True) as tar:
         [tar.add(f, arcname=f.split('/')[-1]) for f in Tarfiles]
@@ -206,7 +211,8 @@ def my_process(args):
             for line in open("RunExe.csh","r"):
                 line = line.replace("DELSCR", os.environ['SCRAM_ARCH'])
                 line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
-                line = line.replace("DELEXE", DelExe.split('/')[-1])
+                line = line.replace("DELEXE", args.runfile.split('/')[-1])
+		#line = line.replace("DELEXE", DelExe.split('/')[-1])
                 line = line.replace("OUTDIR", outdir)
                 outfile.write(line)
 
@@ -249,9 +255,15 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--outputdir',
         default = "", 
         help = 'Path to the output directory.')
+    parser.add_argument('-f', '--runfile',
+        default = "../Stop0l_postproc.py",
+        help = 'Path to the process file')
     parser.add_argument('-m', '--memory',
         default = "2",
         help = 'Amount of memory to request.')
+    parser.add_argument('-p', '--process',
+        default = "",
+        help = 'Change process for QCD running.')
 
     args = parser.parse_args()
     my_process(args)

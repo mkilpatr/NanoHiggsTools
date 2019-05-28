@@ -306,6 +306,10 @@ class qcdSmearProducer(Module):
 					recoJets_eta.append(originalRecoJets[j].eta)
 					recoJets_phi.append(originalRecoJets[j].phi)
 					recoJets_mass.append(originalRecoJets[j].mass)
+				flavour = originalRecoJets[j].hadronFlavour
+				if not abs(flavour) in [ 0, 1, 2, 3, 4, 5, 21 ]:
+					print "Jet Flavour not part of known values, flavour is ", flavour
+					print "Occurred at event num: " + eventNum + " at jet: " + j
 
 			if canSmear :
 				#print "recoJets_pt: ", recoJets_pt

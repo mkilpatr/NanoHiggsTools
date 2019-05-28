@@ -249,14 +249,15 @@ def main(args):
     #============================================================================#
     #-------------------------     Run PostProcessor     ------------------------#
     #============================================================================#
-    files = []
-    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-        #This is just a single test input file
-        files.append(args.inputfile[5:])
-    else:
-        #this is a file list
-        with open(args.inputfile) as f:
-            files = [line.strip() for line in f]
+    files = ["QCD_ORIG_HT_200to300_2016.root"]
+    #files = []
+    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+    #    #This is just a single test input file
+    #    files.append(args.inputfile[5:])
+    #else:
+    #    #this is a file list
+    #    with open(args.inputfile) as f:
+    #        files = [line.strip() for line in f]
 
     p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     #p=PostProcessor(args.outputfile,files,cut="MET_pt > 250", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)

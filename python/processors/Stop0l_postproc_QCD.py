@@ -12,6 +12,7 @@ from PhysicsTools.NanoSUSYTools.modules.QCDObjectsProducer import *
 def main(args):
     isdata = len(args.dataEra) > 0
     isqcd = args.sampleName.startswith("QCD_")
+    isqcdorig = "ORIG" in args.sampleName
     process = args.process
 
     mods = []
@@ -20,7 +21,7 @@ def main(args):
     elif process == 'smear':
 	mods.append( qcdSmearProducer() )
     elif process == 'qcdsf':
-	mods.append( QCDObjectsProducer(isQCD=isqcd, isData=isdata) )
+	mods.append( QCDObjectsProducer(isQCD=isqcd, isData=isdata, isQCDOrig=isqcdorig) )
     
     #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_22Feb2019/QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MINIAODv3_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2-ext1/190225_163236/0000/prod2016MC_NANO_103.root"]
     files = []
