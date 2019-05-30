@@ -140,7 +140,7 @@ def main(args):
     isfastsim = args.isFastSim
     process = args.process
     isfakemva = False
-    iseff = True if process == "taumvacompare" else False
+    iseff = True if (process == "taumvaeff" or process == "taumvacompare") else False
     isSUSY = args.sampleName.startswith("SMS_")
 
     if isdata and isfastsim:
@@ -201,7 +201,7 @@ def main(args):
             UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName),
     	    tauMVAProducer(isFakeMVA=isfakemva, isEff=iseff, isData=isdata),
     	]
-	if process == "taumvacompare": 
+	if process == "taumvacompare" or process == "taumvaeff": 
 		mods.append(LLObjectsProducer(args.era))
 	#~~~~~ Modules for MC Only ~~~~~
 	if not isdata and process == "taumvacompare":
