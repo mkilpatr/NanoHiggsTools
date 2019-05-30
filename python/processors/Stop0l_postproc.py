@@ -226,7 +226,7 @@ def main(args):
                           electronSelectionTag="Medium",
                           photonSelectionTag="Medium"),
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
-            btagSFProducer(era=args.era, algo="deepcsv", verbose=1),
+            btagSFProducer(era=args.era, algo="deepcsv"),
             BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
@@ -249,18 +249,17 @@ def main(args):
     #============================================================================#
     #-------------------------     Run PostProcessor     ------------------------#
     #============================================================================#
-    files = ["QCD_ORIG_HT_200to300_2016.root"]
-    #files = []
-    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-    #    #This is just a single test input file
-    #    files.append(args.inputfile[5:])
-    #else:
-    #    #this is a file list
-    #    with open(args.inputfile) as f:
-    #        files = [line.strip() for line in f]
+    #files = ["QCD_ORIG_HT_100to200_2016.root"]
+    files = []
+    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+        #This is just a single test input file
+        files.append(args.inputfile[5:])
+    else:
+        #this is a file list
+        with open(args.inputfile) as f:
+            files = [line.strip() for line in f]
 
     p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
-    #p=PostProcessor(args.outputfile,files,cut="MET_pt > 250", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
 if __name__ == "__main__":

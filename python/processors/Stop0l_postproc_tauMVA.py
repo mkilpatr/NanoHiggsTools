@@ -139,7 +139,7 @@ def main(args):
     isdata = len(args.dataEra) > 0
     isfastsim = args.isFastSim
     process = args.process
-    isfakemva = True
+    isfakemva = False
     iseff = True if process == "taumvacompare" else False
     isSUSY = args.sampleName.startswith("SMS_")
 

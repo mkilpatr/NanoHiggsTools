@@ -142,12 +142,13 @@ class TauMVAObjectsProducer(Module):
 		
 		for genchhad in taudecayprods:
 			dpt = 0.0
-			if(genchhad.pt>0.5): dpt = abs(1.0 - pfc.pt/genchhad.pt);
+			if(genchhad.pt>0.5): 
+				dpt = abs(1.0 - pfc.pt/genchhad.pt)
 			if((deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) +  kpt*dpt) < tmpDr and dpt < 0.4):
-			  tmpDr = deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) + kpt*dpt
-			  match = True
-			  ptmatch = genchhad.pt
-			  etamatch = genchhad.eta
+				tmpDr = deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) + kpt*dpt
+				match = True
+				ptmatch = genchhad.pt
+				etamatch = genchhad.eta
 		
 		if(pfc.pt > 10.0 and abs(pfc.eta) < 2.4):
 		

@@ -72,7 +72,6 @@ class tauMVAProducer(Module):
 	self.out.branch("nGenChHads", 		"I")
 	self.out.branch("nGenChHadsAcc", 	"I")
 	self.out.branch("nGenLeptons", 		"I")
-	self.out.branch("nGenTauProng",		"I")
 	self.out.branch("pt", 			"F", lenVar="PFcand")
 	self.out.branch("mt", 			"F", lenVar="PFcand")
 	self.out.branch("misset", 		"F")
@@ -167,9 +166,6 @@ class tauMVAProducer(Module):
 	nGenLeptons = 0
 	nGenChHads = 0
 	nGenChHadsAcc = 0
-	nGenTauProng = 0
-	pion_eta = -1.0
-	pion_phi = 10.0
 	if not self.isData:
 		for p in genPart:
 		        if p.statusFlags & 4:
@@ -181,12 +177,7 @@ class tauMVAProducer(Module):
 		                if (not self.isA(self.p_nu_e, p.pdgId)) and (not self.isA(self.p_nu_mu, p.pdgId)):
 					if (self.isA(self.pfhplus, p.pdgId) or self.isA(321, p.pdgId)):
 		                                taudecayprods.append(p)
-						nGenTauProng+=1
-						pion_eta = p.eta
-						pion_phi = p.phi
 		                                if p.pt > 10.0 and abs(p.eta) < 2.4: nGenChHadsAcc+=1
-					if self.isA(self.pfhneu, p.pdgId) and deltaR(p.eta, p.phi, pion_eta, pion_phi) < 0.4:
-						nGenTauProng+=1
 		                if not lepdecay:
 					nGenHadTaus+=1
 		                if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
@@ -320,7 +311,6 @@ class tauMVAProducer(Module):
 	self.out.fillBranch("nGenChHads", 	nGenChHads)
 	self.out.fillBranch("nGenChHadsAcc", 	nGenChHadsAcc)
 	self.out.fillBranch("nGenLeptons", 	nGenLeptons)
-	self.out.fillBranch("nGenTauProng",	nGenTauProng)
 	self.out.fillBranch("mt", 		mt_)
 	self.out.fillBranch("misset", 		misset)
 	self.out.fillBranch("gentaumatch", 	gentaumatch_)
