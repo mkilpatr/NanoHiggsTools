@@ -166,7 +166,7 @@ def main(args):
     mods = []
     if process == "train":
 	mods.append(TauMVAObjectsProducer())
-    elif process == "taumva" or process == "taumvacompare":
+    elif "taumva" in process:
 	#~~~~~ Different modules for Data and MC ~~~~~
 	# These modules must be run first in order to update JEC and MET approperiately for future modules 
 	# The MET update module must also be run before the JEC update modules 
@@ -272,8 +272,8 @@ def main(args):
 	p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_Baseline", branchsel=None, outputbranchsel="keep_and_drop_train.txt", typeofprocess="tau", modules=mods,provenance=False)
     elif process=="taumva": 
 	p=PostProcessor(args.outputfile,files,cut="MET_pt > 150 & nJet > 3", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
-    elif process == "taumvacompare":
-	p=PostProcessor(args.outputfile,files,cut="MET_pt > 150", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
+    elif process == "taumvacompare" or process == "taumvaeff":
+	p=PostProcessor(args.outputfile,files,cut="MET_pt > 200", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
     p.run()
 
 if __name__ == "__main__":

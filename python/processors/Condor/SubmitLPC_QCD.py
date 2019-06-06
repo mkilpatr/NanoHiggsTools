@@ -117,7 +117,7 @@ def Condor_Sub(condor_file):
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-def SplitPro(key, file, lineperfile=5, eventsplit=2**18, TreeName=None):
+def SplitPro(key, file, lineperfile=10, eventsplit=2**18, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -167,7 +167,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_qcdsmear_test_052819"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_qcdsmear_060319"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -203,7 +203,7 @@ def my_process(args):
 
         #define output directory
         if args.outputdir == "": outdir = sample["Outpath__"]
-        else: outdir = args.outputdir + "/"
+	else: outdir = args.outputdir + "/" + name + "/"
 
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"

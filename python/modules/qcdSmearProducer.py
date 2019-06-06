@@ -56,6 +56,7 @@ class qcdSmearProducer(Module):
 	self.outsmear.branch("MET_pt", "F")
 	self.outsmear.branch("MET_phi", "F")
 	self.outsmear.branch("genWeight", "F")
+	self.outsmear.branch("Stop0l_evtWeight", "F")
 	self.outsmear.branch("nBootstrapWeight",        "I")
 	self.outsmear.branch("bootstrapWeight",         "I", lenVar="nBootstrapWeight")
 	self.targeth = self.loadHisto(self.respFileName,self.respHistName)
@@ -180,7 +181,8 @@ class qcdSmearProducer(Module):
         jets      = Collection(event, "Jet")
         genjets   = Collection(event, "GenJet")
         met       = Object(event,     self.metBranchName)
-	weight    = event.genWeight
+	#weight    = event.genWeight
+	weight    = event.Stop0l_evtWeight
 	eventNum  = event.event
 
 	#Need to initialize a random seed
@@ -326,6 +328,7 @@ class qcdSmearProducer(Module):
 				self.outsmear.fillBranch("MET_pt", met.Pt())
 				self.outsmear.fillBranch("MET_phi", met.Phi())
 				self.outsmear.fillBranch("genWeight", weight)
+				self.outsmear.fillBranch("Stop0l_evtWeight", weight)
 				self.outsmear.fillBranch("nBootstrapWeight", self.nBootstraps)
 				self.outsmear.fillBranch("bootstrapWeight", b)
 				self.outsmear.fill()

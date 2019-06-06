@@ -19,7 +19,6 @@ drop GenPart_*
 drop Generator_*
 drop GenDressed*
 drop *SoftActivity*
-drop Tau_*
 drop *TrigObj*
 drop *Puppi*
 drop *LHE*

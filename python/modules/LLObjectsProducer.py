@@ -47,9 +47,8 @@ class LLObjectsProducer(Module):
 	self.out.branch("Stop0l_nIsoTracksLep", "I")
 	self.out.branch("Stop0l_nIsoTracksHad", "I")
 	self.out.branch("Stop0l_nVetoElecMuon", "I")
-	self.out.branch("Stop0l_dphit1met", 	"F")
-	self.out.branch("Stop0l_dphit2met", 	"F")
-	self.out.branch("Stop0l_dphit12met", 	"F")
+	self.out.branch("Pass_dphiMETqcdsf",    "O") 
+	self.out.branch("Pass_LLLepqcdsf",	"O")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -102,17 +101,22 @@ class LLObjectsProducer(Module):
 
         return Bjetpt
 
-    def CalcDphiTopMET(self, hot, met):
-	#1 boosted top , 2 boosted W  and 3 resolved
-	dphit1met = 10
-	dphit2met = 10
-	
-	#for t in xrange(len(hot.pt)):
-	#	if t == 0: dphit1met = deltaPhi(hot.phi[t], met.phi)
-	#	if t == 1: dphit2met = deltaPhi(hot.phi[t], met.phi)
-	#	if t == 2: break
+    def GetJetSortedIdx(self, jets):
+        ptlist = []
+        dphiMET = []
+        for j in jets:
+            if math.fabs(j.eta) > 4.7 or j.pt < 20:
+                pass
+            else:
+                ptlist.append(j.pt)
+                dphiMET.append(j.dPhiMET)
+        return [dphiMET[j] for j in np.argsort(ptlist)[::-1]]
 
-	return dphit1met, dphit2met
+    def PassdPhi(self, sortedPhi, dPhiCuts, invertdPhi =False):
+        if invertdPhi:
+            return any( a < b for a, b in zip(sortedPhi, dPhiCuts))
+        else:
+            return all( a > b for a, b in zip(sortedPhi, dPhiCuts))
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -124,7 +128,7 @@ class LLObjectsProducer(Module):
 	electrons = Collection(event, "Electron")
 	jets      = Collection(event, "Jet")
 	met       = Object(event, self.metBranchName)
-	hot	  = Object(event, "HOT")
+	tau	  = Object(event, "Tau")
 
         ## Selecting objects
 	self.Jet_Stop0l      = map(self.SelJets, jets)
@@ -133,10 +137,14 @@ class LLObjectsProducer(Module):
 	bJetPt 		     = self.CalMTbPTb(jets, met)
 	mt 		     = self.SelMtlepMET(electrons, muons, isotracks, met)
 	PassLeptonVeto       = self.PassLeptonVeto(electrons, muons, isotracks)
-	dPhiTop1Met, dPhiTop2Met = self.CalcDphiTopMET(hot, met)
 	countIskLep 	     = sum([(i.Stop0l and (abs(i.pdgId) == 11 or abs(i.pdgId) == 13)) for i in isotracks])
 	countIskHad 	     = sum([(i.Stop0l and abs(i.pdgId) == 211) for i in isotracks])
 	countEleMuon	     = sum([e.Stop0l for e in electrons]) + sum([m.Stop0l for m in muons])
+	PassLLLep	     = (countEleMuon + countIskHad + countIskLep > 0) and sum(mt) < 100
+
+	#Calc Dphi for QCDSF
+	sortedPhi = self.GetJetSortedIdx(jets)
+	PassdPhiQCDSF = self.PassdPhi(sortedPhi, [0.1, 0.1], invertdPhi = True)
 
         ### Store output
 	self.out.fillBranch("nStop0l_MtLepMET", 	len(mt))
@@ -147,9 +155,8 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Stop0l_nIsoTracksLep",	countIskLep)
 	self.out.fillBranch("Stop0l_nIsoTracksHad",	countIskHad)
 	self.out.fillBranch("Stop0l_nVetoElecMuon", 	countEleMuon)
-	self.out.fillBranch("Stop0l_dphit1met", 	dPhiTop1Met)
-	self.out.fillBranch("Stop0l_dphit2met", 	dPhiTop2Met)
-	self.out.fillBranch("Stop0l_dphit12met",	min(dPhiTop1Met, dPhiTop2Met))
+	self.out.fillBranch("Pass_dphiMETqcdsf",  	PassdPhiQCDSF)
+	self.out.fillBranch("Pass_LLLepqcdsf",		PassLLLep)
 	return True
 
 

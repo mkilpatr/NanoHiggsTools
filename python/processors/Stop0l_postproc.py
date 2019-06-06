@@ -191,7 +191,7 @@ def main(args):
              DeepTopProducer(args.era),
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
              Stop0l_trigger(args.era),
-             UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName),
+             #UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName),
             ]
 
     #~~~~~ Modules for MC Only ~~~~~

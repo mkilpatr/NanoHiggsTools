@@ -157,6 +157,7 @@ class tauMVAProducer(Module):
 	jets	  = Collection(event, "Jet")
 	if not self.isData:
 		genPart   = Collection(event, "GenPart")
+		genVisTau = Collection(event, "GenVisTau")
 	pfcand    = Collection(event, "PFcand")
 	eventNum  = event.event
 
@@ -200,6 +201,9 @@ class tauMVAProducer(Module):
 	FakeTaus_ = []
 	TauCR_ = []
 	mt_ = []
+	pt_ = []
+	abseta_ = []
+	absdz_ = []
 	gentaumatch_ = [] 
 	for pfc in pfcand:
       
@@ -219,6 +223,8 @@ class tauMVAProducer(Module):
 		mva_eta00003 = -10.0
 		mva_buff = -10.0
 		mt = 0.0
+		abseta = 10.0
+		absdz  = -1.0
 		
 		for genchhad in taudecayprods:
 			dpt = 0.0
@@ -289,6 +295,9 @@ class tauMVAProducer(Module):
 
 		#print "fastsim: %d, FakeTaus: %d, GoodTaus: %d" %(self.isFakeMVA, FakeTaus, GoodTaus)
 		mt_.append(mt)
+		pt_.append(pt)
+		abseta_.append(abseta)
+		absdz_.append(absdz)
 		mva_.append(mva_buff)
 		mva_eta3_.append(mva_eta3)
 		mva_eta03_.append(mva_eta03)
@@ -311,7 +320,10 @@ class tauMVAProducer(Module):
 	self.out.fillBranch("nGenChHads", 	nGenChHads)
 	self.out.fillBranch("nGenChHadsAcc", 	nGenChHadsAcc)
 	self.out.fillBranch("nGenLeptons", 	nGenLeptons)
+	self.out.fillBranch("pt",               pt_)
 	self.out.fillBranch("mt", 		mt_)
+	self.out.fillBranch("abseta", 		abseta_)
+	self.out.fillBranch("absdz", 		absdz_)
 	self.out.fillBranch("misset", 		misset)
 	self.out.fillBranch("gentaumatch", 	gentaumatch_)
 	self.out.fillBranch("GoodTaus", GoodTaus_)
