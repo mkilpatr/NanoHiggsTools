@@ -27,7 +27,6 @@ def main(args):
 	mods.append(QCDObjectsProducer(isQCD=isqcd, isData=isdata, isQCDOrig=isqcdorig))
 	mods.append(LLObjectsProducer(args.era))
     
-    #files = ["root://cmseos.fnal.gov//store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PostProcessed_11Apr2019_v2p7/QCD_HT_700to1000_2016/QCD_HT_700to1000_2016_2.root"]
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file
@@ -39,7 +38,7 @@ def main(args):
     
     if process=='jetres':  p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_res.txt",typeofprocess="resp",modules=mods,provenance=False)
     elif process=='smear': p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_QCD.txt", outputbranchselsmear="keep_and_drop_QCD.txt",typeofprocess="smear",modules=mods,provenance=False)
-    elif process=='qcdsf': p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_EventFilter & Pass_HT", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    elif process=='qcdsf': p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_EventFilter & Pass_JetID", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
 if __name__ == "__main__":

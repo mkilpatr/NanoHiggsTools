@@ -55,7 +55,7 @@ class QCDObjectsProducer(Module):
       	flv = -1
       	resp = -1
 	mmout = []
-	for iG in xrange(len(genJets)):
+	for iG in range(1,len(genJets)):
 		if iG > 2: break
         	if genJets[iG].pt == 0: break
         	fpt = -1
@@ -70,14 +70,14 @@ class QCDObjectsProducer(Module):
 			MM = abs(fpt - genJets[iG].pt)
 			flv = genJets[iG].partonFlavour
     
-		if ind >= 0:
-			mmResp = resp
-			mmInd = ind
-			mmFlv = flv
-      		else:
-			mmResp = -1
-			mmInd = -1
-			mmFlv = -1
+	if ind >= 0:
+		mmResp = resp
+		mmInd = ind
+		mmFlv = flv
+	else:
+		mmResp = -1
+		mmInd = -1
+		mmFlv = -1
 
 	mmout = [mmInd, mmResp, mmFlv]
 	return mmout     		
@@ -91,7 +91,7 @@ class QCDObjectsProducer(Module):
         met       = Object(event, self.metBranchName)
 
 	jetNearMETInd, MMJetDPhi = -1, -1
-	for iJ in xrange(len(jets)):
+	for iJ in range(1,len(jets)):
 		if iJ > 2 : continue
 		dPhi = abs(deltaPhi(jets[iJ].phi, met.phi))
 		if(MMJetDPhi < 0 or dPhi < MMJetDPhi):

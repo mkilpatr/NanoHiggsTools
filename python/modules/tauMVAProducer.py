@@ -222,9 +222,10 @@ class tauMVAProducer(Module):
 		mva_eta0003 = -10.0
 		mva_eta00003 = -10.0
 		mva_buff = -10.0
-		mt = 0.0
+		mt = 999
+		pt = 0.0
 		abseta = 10.0
-		absdz  = -1.0
+		absdz  = 10.0
 		
 		for genchhad in taudecayprods:
 			dpt = 0.0
