@@ -22,8 +22,6 @@ def main(args):
 	LLObjectsProducer(args.era),
     ]
 
-    #files = ["root://cmseos.fnal.gov//store/user/lpcsusyhad/Stop_production/Autumn18_102X_v1/PostProcessed_22March2019/MET_v2p7/Data_MET_2018_PeriodB/Data_MET_2018_PeriodB_2.root"]#,
-#	     "root://cmseos.fnal.gov//store/user/lpcsusyhad/Stop_production/Autumn18_102X_v1/PostProcessed_22March2019_v2p7/TTbarDiLep_2018/TTbarDiLep_2018_17.root"]
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file

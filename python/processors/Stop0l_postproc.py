@@ -249,7 +249,6 @@ def main(args):
     #============================================================================#
     #-------------------------     Run PostProcessor     ------------------------#
     #============================================================================#
-    #files = ["QCD_ORIG_HT_100to200_2016.root"]
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file

@@ -257,16 +257,14 @@ def main(args):
 	
 
 
-    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Autumn18_102X_v1/PreProcessed_22March2019/MET//2018_Data_Run2018A-17Sep2018-v1/190330_215429/0000/prod2018DATA_NANO_1-41.root"]
-    files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Autumn18_102X_v1/PreProcessed_22March2019/TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8/2018_Data_RunIIAutumn18MiniAOD-102X_v15-v1/190425_194617/0000/prod2018MC_NANO_119.root"]
-    #files = []
-    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-    #    #This is just a single test input file
-    #    files.append(args.inputfile[5:])
-    #else:
-    #    #this is a file list
-    #    with open(args.inputfile) as f:
-    #        files = [line.strip() for line in f]
+    files = []
+    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+        #This is just a single test input file
+        files.append(args.inputfile[5:])
+    else:
+        #this is a file list
+        with open(args.inputfile) as f:
+            files = [line.strip() for line in f]
 
     if process=="train":    
 	p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_Baseline", branchsel=None, outputbranchsel="keep_and_drop_train.txt", typeofprocess="tau", modules=mods,provenance=False)
