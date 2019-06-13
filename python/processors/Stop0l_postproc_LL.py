@@ -22,6 +22,7 @@ def main(args):
 	LLObjectsProducer(args.era),
     ]
 
+    #files = ["root://cmseos.fnal.gov//store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PostProcessed_11Apr2019_v2p7/TTbarSingleLepT_2016/TTbarSingleLepT_2016_23.root"]
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file
