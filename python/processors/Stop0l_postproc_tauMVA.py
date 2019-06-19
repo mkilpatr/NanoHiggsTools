@@ -202,7 +202,7 @@ def main(args):
     	    tauMVAProducer(isFakeMVA=isfakemva, isEff=iseff, isData=isdata),
     	]
 	if process == "taumvacompare" or process == "taumvaeff": 
-		mods.append(LLObjectsProducer(args.era))
+		mods.append(LLObjectsProducer(args.era, isData=isdata))
 	#~~~~~ Modules for MC Only ~~~~~
 	if not isdata and process == "taumvacompare":
 	    pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
@@ -257,21 +257,23 @@ def main(args):
 	
 
 
-    files = []
-    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-        #This is just a single test input file
-        files.append(args.inputfile[5:])
-    else:
-        #this is a file list
-        with open(args.inputfile) as f:
-            files = [line.strip() for line in f]
+    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_25Apr2019/MET/2016_Data_Run2016B-17Jul2018_ver2-v1/190517_020101/0000/prod2016Data_NANO_120.root"]
+    files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_11Apr2019/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MC_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2-ext1/190411_213442/0000/prod2016MC_NANO_1-122.root"]
+    #files = []
+    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+    #    #This is just a single test input file
+    #    files.append(args.inputfile[5:])
+    #else:
+    #    #this is a file list
+    #    with open(args.inputfile) as f:
+    #        files = [line.strip() for line in f]
 
     if process=="train":    
 	p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_Baseline", branchsel=None, outputbranchsel="keep_and_drop_train.txt", typeofprocess="tau", modules=mods,provenance=False)
     elif process=="taumva": 
 	p=PostProcessor(args.outputfile,files,cut="MET_pt > 150 & nJet > 3", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
     elif process == "taumvacompare" or process == "taumvaeff":
-	p=PostProcessor(args.outputfile,files,cut="MET_pt > 200", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
+	p=PostProcessor(args.outputfile,files,cut="MET_pt > 200 & nJet > 2", branchsel=None, outputbranchsel="keep_and_drop_tauMVA.txt", modules=mods,provenance=False)
     p.run()
 
 if __name__ == "__main__":
@@ -286,8 +288,6 @@ if __name__ == "__main__":
         default = "2017", help = 'Year of production')
     parser.add_argument('-f', '--isFastSim', action="store",  default = False,
                         help = "Input file is fastsim (Default: false)")
-    parser.add_argument('-D', '--isData',  type=str, default = "",
-                        help = "Data era (B, C, D, ...).  Using this flag also switches the procesor to data mode. (Default: None, i.e. MC )")
     parser.add_argument('-d', '--dataEra',    action="store",  type=str, default = "",
                         help = "Data era (B, C, D, ...).  Using this flag also switches the procesor to data mode. (Default: None, i.e. MC )")
     parser.add_argument('-s', '--sampleName',    action="store",  type=str, default = "",

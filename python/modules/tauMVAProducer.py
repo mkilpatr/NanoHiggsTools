@@ -71,6 +71,8 @@ class tauMVAProducer(Module):
 	self.out.branch("nGenTaus", 		"I")
 	self.out.branch("nGenChHads", 		"I")
 	self.out.branch("nGenChHadsAcc", 	"I")
+	self.out.branch("nGenEle", 		"I")
+	self.out.branch("nGenMuon", 		"I")
 	self.out.branch("nGenLeptons", 		"I")
 	self.out.branch("pt", 			"F", lenVar="PFcand")
 	self.out.branch("mt", 			"F", lenVar="PFcand")
@@ -85,19 +87,15 @@ class tauMVAProducer(Module):
 	self.out.branch("TauCR", 		"O", lenVar="PFcand")
 	self.out.branch("nTauCR", 		"I")
 	if self.isEff:
-		self.out.branch("taumva",               "F", lenVar="nPFcand")
-		self.out.branch("TauMVA_Stop0l_68",     "O", lenVar="nPFcand")
-		self.out.branch("nTauMVA_68",           "I")
-		self.out.branch("TauMVA_Stop0l_70",     "O", lenVar="nPFcand")
-		self.out.branch("nTauMVA_70",           "I")
-		self.out.branch("TauMVA_Stop0l_71",     "O", lenVar="nPFcand")
-		self.out.branch("nTauMVA_71",           "I")
-		self.out.branch("TauMVA_Stop0l_73",     "O", lenVar="nPFcand")
-		self.out.branch("nTauMVA_73",           "I")
-		self.out.branch("TauMVA_Stop0l_74",     "O", lenVar="nPFcand")
-		self.out.branch("nTauMVA_74",           "I")
-		self.out.branch("TauMVA_Stop0l_75",     "O", lenVar="nPFcand")
-		self.out.branch("nTauMVA_75",           "I")
+		self.out.branch("taumva",               	"F", lenVar="nPFcand")
+		self.out.branch("TauMVA_Stop0l_71",     	"O", lenVar="nPFcand")
+		self.out.branch("nTauMVA_71",           	"I")
+		self.out.branch("TauMVA_Stop0l_73",     	"O", lenVar="nPFcand")
+		self.out.branch("nTauMVA_73",           	"I")
+		self.out.branch("TauMVA_Stop0l_71_ptgeq20",     "O", lenVar="nPFcand")
+		self.out.branch("nTauMVA_71_ptgeq20",           "I")
+		self.out.branch("TauMVA_Stop0l_73_ptgeq20",     "O", lenVar="nPFcand")
+		self.out.branch("nTauMVA_73_ptgeq20",           "I")
 	else:
         	self.out.branch("taumva_eta3", 		"F", lenVar="PFcand")
         	self.out.branch("taumva_eta03", 	"F", lenVar="PFcand")
@@ -109,13 +107,9 @@ class tauMVAProducer(Module):
         pass
 
     def SelTauMVA(self, mva, tauMVADisc):
-        out = []
-        for i in mva:
-                if i > tauMVADisc:
-                        out.append(True)
-                else:
-                        out.append(False)
-        return out
+        if mva < tauMVADisc:
+                return False
+        return True
 
     def isA(self, particleID, p):
 	return abs(p) == particleID
@@ -165,6 +159,8 @@ class tauMVAProducer(Module):
 	nGenTaus = 0
 	nGenHadTaus = 0
 	nGenLeptons = 0
+	nGenEle = 0
+	nGenMuon = 0
 	nGenChHads = 0
 	nGenChHadsAcc = 0
 	if not self.isData:
@@ -181,8 +177,12 @@ class tauMVAProducer(Module):
 		                                if p.pt > 10.0 and abs(p.eta) < 2.4: nGenChHadsAcc+=1
 		                if not lepdecay:
 					nGenHadTaus+=1
-		                if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
+				if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
 					nGenLeptons+=1
+			if self.isA(self.pfelectron, p.pdgId) and p.pt > 5 and abs(p.eta) < 2.5:
+				nGenEle+=1
+			if self.isA(self.pfmuon, p.pdgId) and p.pt > 5 and abs(p.eta) < 2.4:
+				nGenMuon+=1
 	
 
 	misset = met.pt
@@ -268,10 +268,10 @@ class tauMVAProducer(Module):
 					GoodTaus = True
 				if (self.isFakeMVA == True or self.isEff) and gentaumatch==False and nGenLeptons==0 and nGenTaus==0 and baseline:
 					FakeTaus = True
-				if ((GoodTaus or FakeTaus) and self.isEff) or (self.isData and baseline):
+				if self.isEff and baseline:
 					TauCR = True
 
-				if FakeTaus == True or GoodTaus == True or self.isEff or TauCR == True:
+				if FakeTaus == True or GoodTaus == True or TauCR == True:
 					mva = {self.bdt_vars[0]: pt, 
 					       self.bdt_vars[1]: abseta,
 					       self.bdt_vars[2]: chiso0p1, 
@@ -285,7 +285,7 @@ class tauMVAProducer(Module):
 					       self.bdt_vars[10]: neartrkdr, 
 					       self.bdt_vars[11]: contjetdr, 
 					       self.bdt_vars[12]: contjetcsv}
-					if self.isEff or TauCR == True:
+					if TauCR == True:
 						mva_buff = self.xgb.eval(mva)
 					else:
 						mva_eta3	 = self.xgb_eta3.eval(mva)
@@ -308,18 +308,25 @@ class tauMVAProducer(Module):
 		GoodTaus_.append(GoodTaus)
 		FakeTaus_.append(FakeTaus)
 		TauCR_.append(TauCR)
-	TauMVA_Stop0l_68 = self.SelTauMVA(mva_, 0.68)
-        TauMVA_Stop0l_70 = self.SelTauMVA(mva_, 0.70)
-        TauMVA_Stop0l_71 = self.SelTauMVA(mva_, 0.71)
-        TauMVA_Stop0l_73 = self.SelTauMVA(mva_, 0.73)
-        TauMVA_Stop0l_74 = self.SelTauMVA(mva_, 0.74)
-        TauMVA_Stop0l_75 = self.SelTauMVA(mva_, 0.75)
+
+	cut_71 = []
+	cut_73 = []
+	for i in mva_:
+		cut_71.append(0.71)
+		cut_73.append(0.73)
+
+        TauMVA_Stop0l_71 = map(self.SelTauMVA, mva_, cut_71)
+        TauMVA_Stop0l_73 = map(self.SelTauMVA, mva_, cut_73)
+	self.TauMVA_Stop0l_71_ptgeq20 = [t and pt > 20 for t, pt in zip(TauMVA_Stop0l_71, pt_)]
+	self.TauMVA_Stop0l_73_ptgeq20 = [t and pt > 20 for t, pt in zip(TauMVA_Stop0l_73, pt_)]
 
 	#print "mva output: ", mva_
 	self.out.fillBranch("nGenHadTaus", 	nGenHadTaus)
 	self.out.fillBranch("nGenTaus", 	nGenTaus)
 	self.out.fillBranch("nGenChHads", 	nGenChHads)
 	self.out.fillBranch("nGenChHadsAcc", 	nGenChHadsAcc)
+	self.out.fillBranch("nGenEle", 		nGenEle)
+	self.out.fillBranch("nGenMuon", 	nGenMuon)
 	self.out.fillBranch("nGenLeptons", 	nGenLeptons)
 	self.out.fillBranch("pt",               pt_)
 	self.out.fillBranch("mt", 		mt_)
@@ -335,18 +342,14 @@ class tauMVAProducer(Module):
 	self.out.fillBranch("nTauCR", sum(TauCR_))
 	if self.isEff or self.isData:
 		self.out.fillBranch("taumva",           mva_)
-		self.out.fillBranch("TauMVA_Stop0l_68", TauMVA_Stop0l_68)
-		self.out.fillBranch("nTauMVA_68",       sum(TauMVA_Stop0l_68))
-		self.out.fillBranch("TauMVA_Stop0l_70", TauMVA_Stop0l_70)
-		self.out.fillBranch("nTauMVA_70",       sum(TauMVA_Stop0l_70))
 		self.out.fillBranch("TauMVA_Stop0l_71", TauMVA_Stop0l_71)
 		self.out.fillBranch("nTauMVA_71",       sum(TauMVA_Stop0l_71))
 		self.out.fillBranch("TauMVA_Stop0l_73", TauMVA_Stop0l_73)
 		self.out.fillBranch("nTauMVA_73",       sum(TauMVA_Stop0l_73))
-		self.out.fillBranch("TauMVA_Stop0l_74", TauMVA_Stop0l_74)
-		self.out.fillBranch("nTauMVA_74",       sum(TauMVA_Stop0l_74))
-		self.out.fillBranch("TauMVA_Stop0l_75", TauMVA_Stop0l_75)
-		self.out.fillBranch("nTauMVA_75",       sum(TauMVA_Stop0l_75))
+		self.out.fillBranch("TauMVA_Stop0l_71_ptgeq20", self.TauMVA_Stop0l_71_ptgeq20)
+		self.out.fillBranch("nTauMVA_71_ptgeq20",       sum(self.TauMVA_Stop0l_71_ptgeq20))
+		self.out.fillBranch("TauMVA_Stop0l_73_ptgeq20", self.TauMVA_Stop0l_73_ptgeq20)
+		self.out.fillBranch("nTauMVA_73_ptgeq20",       sum(self.TauMVA_Stop0l_73_ptgeq20))
         else:
 		self.out.fillBranch("taumva_eta3", 	mva_eta3_)
         	self.out.fillBranch("taumva_eta03", 	mva_eta03_)

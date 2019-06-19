@@ -78,7 +78,7 @@ class qcdSmearProducer(Module):
         if vecKind :
 		return pt_index
 	else:
-		if recojet.partonFlavour == 4 :
+		if abs(recojet.partonFlavour) == 4 :
 			return (pt_index + len(self.respHistName)/2)
         	else :
 			return pt_index
