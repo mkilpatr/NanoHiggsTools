@@ -47,6 +47,7 @@ class LLObjectsProducer(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
 	self.out.branch("Stop0l_nJets_HighPt",  		"I")
+	self.out.branch("Stop0l_nJets30",  			"I")
 	self.out.branch("Stop0l_nbtags_Loose",  		"I")
 	self.out.branch("Stop0l_MtLepMET", 			"F")
 	self.out.branch("nLeptonVeto",    			"I")
@@ -61,6 +62,7 @@ class LLObjectsProducer(Module):
 	self.out.branch("Stop0l_TauPOG",			"I")
 	if not self.isData:
 		self.out.branch("Stop0l_GenVisTau",			"I")
+		self.out.branch("Stop0l_GenVisTau_pt10to20",		"I")
 		self.out.branch("Stop0l_GenVisTau_ptgeq20",		"I")
 		self.out.branch("Stop0l_GenVisTau_1Prong0PiZero",	"I")
 		self.out.branch("Stop0l_GenVisTau_1Prong1PiZero",	"I")
@@ -84,6 +86,11 @@ class LLObjectsProducer(Module):
 
     def SelJets(self, jet):
         if jet.pt < 20 or math.fabs(jet.eta) > 2.4 :
+            return False
+        return True
+
+    def SelJets30(self, jet):
+        if jet.pt < 30 or math.fabs(jet.eta) > 2.4 :
             return False
         return True
 
@@ -135,7 +142,7 @@ class LLObjectsProducer(Module):
 	electrons = Collection(event, "Electron")
 	jets      = Collection(event, "Jet")
 	met       = Object(event, self.metBranchName)
-	tau	  = Collection(event, "Tau")
+	#tau	  = Collection(event, "Tau")
 	if not self.isData:
 		gentau	  = Collection(event, "GenVisTau")
 	stop0l    = Object(event, "Stop0l")
@@ -144,6 +151,7 @@ class LLObjectsProducer(Module):
         ## Selecting objects
 	self.Jet_Stop0lHighPt= map(self.SelJetsHighPt, jets)
 	self.Jet_Stop0l      = map(self.SelJets, jets)
+	self.Jet_Stop0l30    = map(self.SelJets30, jets)
 	local_BJet_Stop0l    = map(self.SelBtagJets, jets)
         self.BJet_Stop0l     = [a and b for a, b in zip(self.Jet_Stop0l, local_BJet_Stop0l )]
 	mt 		     = self.SelMtlepMET(electrons, muons, isotracks, met)
@@ -155,11 +163,12 @@ class LLObjectsProducer(Module):
 	sortedPhi 	     = self.GetJetSortedIdx(jets)
         PassdPhiMedDM        = self.PassdPhi(sortedPhi, [0.15, 0.15, 0.15], invertdPhi=True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
-	self.Tau_Stop0l      = map(self.SelTauPOG, tau)
-	countTauPOG	     = sum(self.Tau_Stop0l)
+	#self.Tau_Stop0l      = map(self.SelTauPOG, tau)
+	#countTauPOG	     = sum(self.Tau_Stop0l)
 	if not self.isData:
 		self.GenVisTau_Stop0l= map(self.SelGenTau, gentau)
 		countGenTau	     = sum(self.GenVisTau_Stop0l)
+		countGenTau_pt10to20  =sum([g.pt > 10 and g.pt < 20 and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
 		countGenTau_ptgeq20  = sum([g.pt > 20 and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
 		countGenTau_1Prong0PiZero  = sum([g.status == 0  and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
 		countGenTau_1Prong1PiZero  = sum([g.status == 1  and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
@@ -170,6 +179,7 @@ class LLObjectsProducer(Module):
 
         ### Store output
 	self.out.fillBranch("Stop0l_nJets_HighPt",    	sum(self.Jet_Stop0lHighPt))
+	self.out.fillBranch("Stop0l_nJets30",    	sum(self.Jet_Stop0l30))
 	self.out.fillBranch("Stop0l_nbtags_Loose",   	sum(self.BJet_Stop0l))
 	self.out.fillBranch("Stop0l_MtLepMET",  	mt)
 	self.out.fillBranch("nLeptonVeto",    		countMuon + countEle + countIskLep)
@@ -181,9 +191,10 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Stop0l_nVetoElecMuon", 	countEle + countMuon)
 	self.out.fillBranch("Pass_dPhiMETMedDM", 	PassdPhiMedDM)
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
-	self.out.fillBranch("Stop0l_TauPOG",		countTauPOG)
+	#self.out.fillBranch("Stop0l_TauPOG",		countTauPOG)
 	if not self.isData:
 		self.out.fillBranch("Stop0l_GenVisTau",		countGenTau)
+		self.out.fillBranch("Stop0l_GenVisTau_pt10to20",countGenTau_pt10to20)
 		self.out.fillBranch("Stop0l_GenVisTau_ptgeq20",	countGenTau_ptgeq20)
 		self.out.fillBranch("Stop0l_GenVisTau_1Prong0PiZero",		countGenTau_1Prong0PiZero)
 		self.out.fillBranch("Stop0l_GenVisTau_1Prong1PiZero",		countGenTau_1Prong1PiZero)

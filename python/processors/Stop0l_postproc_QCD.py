@@ -25,10 +25,8 @@ def main(args):
 	mods.append(qcdSmearProducer())
     elif process == 'qcdsf':
 	mods.append(QCDObjectsProducer(isQCD=isqcd, isData=isdata, isQCDOrig=isqcdorig))
-	mods.append(LLObjectsProducer(args.era))
+	mods.append(LLObjectsProducer(args.era, isData=isdata))
     
-
-    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/qcdNanoSmear_PostProcess_2016_test/QCD_SMEAR_HT_300to500_2016/QCD_SMEAR_HT_300to500_2016_0.root"]
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file

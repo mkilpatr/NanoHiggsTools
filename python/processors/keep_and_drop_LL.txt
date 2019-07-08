@@ -16,7 +16,6 @@ drop Flag_*
 drop SB_*
 drop *cleanmask
 drop Photon_*
-drop PV_*
 drop Pileup_*
 drop *LHE*
 drop *Gen*

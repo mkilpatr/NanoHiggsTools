@@ -32,9 +32,9 @@ class QCDObjectsProducer(Module):
 	self.out.branch("pseudoRespCSV"        , "F")
 	self.out.branch("pseudoRespPseudoGenPT", "F")
 	self.out.branch("pseudoRespPassFilter" , "O")
-	if self.isQCDOrig:
-		self.out.branch("nBootstrapWeight",        "I")
-		self.out.branch("bootstrapWeight",         "I", lenVar="nBootstrapWeight")
+	#if self.isQCDOrig:
+	#	self.out.branch("nBootstrapWeight",        "I")
+	#	self.out.branch("bootstrapWeight",         "I", lenVar="nBootstrapWeight")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -55,7 +55,7 @@ class QCDObjectsProducer(Module):
       	flv = -1
       	resp = -1
 	mmout = []
-	for iG in range(1,len(genJets)):
+	for iG in range(0,len(genJets)):
 		if iG > 2: break
         	if genJets[iG].pt == 0: break
         	fpt = -1
@@ -92,7 +92,7 @@ class QCDObjectsProducer(Module):
         met       = Object(event, self.metBranchName)
 
 	jetNearMETInd, MMJetDPhi = -1, -1
-	for iJ in range(1,len(jets)):
+	for iJ in range(0,len(jets)):
 		if iJ > 2 : continue
 		if not jets[iJ].Stop0l: continue
 		dPhi = abs(deltaPhi(jets[iJ].phi, met.phi))
@@ -126,12 +126,12 @@ class QCDObjectsProducer(Module):
 			trueRespFlv = abs(gjet.partonFlavour)
 			break
 	
-	if self.isQCDOrig:
-		b = []
-		for iB in xrange(self.nBootstraps):
-		        b.append(1)
-		self.out.fillBranch("nBootstrapWeight",        self.nBootstraps)
-		self.out.fillBranch("bootstrapWeight",         b)
+	#if self.isQCDOrig:
+	#	b = []
+	#	for iB in xrange(self.nBootstraps):
+	#	        b.append(1)
+	#	self.out.fillBranch("nBootstrapWeight",        self.nBootstraps)
+	#	self.out.fillBranch("bootstrapWeight",         b)
 	
         ### Store output
 	self.out.fillBranch("pseudoResp"           , MMPseudoResp)

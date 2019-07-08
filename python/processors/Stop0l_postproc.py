@@ -28,6 +28,7 @@ from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProd
 from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
+from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightQCDProducer import *
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -137,6 +138,8 @@ def main(args):
     isdata = len(args.dataEra) > 0
     isfastsim = args.isFastSim
     isSUSY = args.sampleName.startswith("SMS_")
+    isqcd = args.sampleName.startswith("QCD_")
+    isqcdorig = "ORIG" in args.sampleName
 
     if isdata and isfastsim:
         print "ERROR: It is impossible to have a dataset that is both data and fastsim"
@@ -228,6 +231,7 @@ def main(args):
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
             btagSFProducer(era=args.era, algo="deepcsv"),
             BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
+	    BtagSFWeightQCDProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
@@ -259,6 +263,7 @@ def main(args):
             files = [line.strip() for line in f]
 
     p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    #p=PostProcessor(args.outputfile,files,cut="MET_pt > 200", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
 if __name__ == "__main__":

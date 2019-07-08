@@ -92,6 +92,10 @@ class tauMVAProducer(Module):
 		self.out.branch("nTauMVA_71",           	"I")
 		self.out.branch("TauMVA_Stop0l_73",     	"O", lenVar="nPFcand")
 		self.out.branch("nTauMVA_73",           	"I")
+		self.out.branch("TauMVA_Stop0l_71_pt10to20",    "O", lenVar="nPFcand")
+		self.out.branch("nTauMVA_71_pt10to20",          "I")
+		self.out.branch("TauMVA_Stop0l_73_pt10to20",    "O", lenVar="nPFcand")
+		self.out.branch("nTauMVA_73_pt10to20",          "I")
 		self.out.branch("TauMVA_Stop0l_71_ptgeq20",     "O", lenVar="nPFcand")
 		self.out.branch("nTauMVA_71_ptgeq20",           "I")
 		self.out.branch("TauMVA_Stop0l_73_ptgeq20",     "O", lenVar="nPFcand")
@@ -317,6 +321,8 @@ class tauMVAProducer(Module):
 
         TauMVA_Stop0l_71 = map(self.SelTauMVA, mva_, cut_71)
         TauMVA_Stop0l_73 = map(self.SelTauMVA, mva_, cut_73)
+	self.TauMVA_Stop0l_71_pt10to20 = [t and pt > 10 and pt < 20  for t, pt in zip(TauMVA_Stop0l_71, pt_)]
+	self.TauMVA_Stop0l_73_pt10to20 = [t and pt > 10 and pt < 20  for t, pt in zip(TauMVA_Stop0l_73, pt_)]
 	self.TauMVA_Stop0l_71_ptgeq20 = [t and pt > 20 for t, pt in zip(TauMVA_Stop0l_71, pt_)]
 	self.TauMVA_Stop0l_73_ptgeq20 = [t and pt > 20 for t, pt in zip(TauMVA_Stop0l_73, pt_)]
 
@@ -346,6 +352,10 @@ class tauMVAProducer(Module):
 		self.out.fillBranch("nTauMVA_71",       sum(TauMVA_Stop0l_71))
 		self.out.fillBranch("TauMVA_Stop0l_73", TauMVA_Stop0l_73)
 		self.out.fillBranch("nTauMVA_73",       sum(TauMVA_Stop0l_73))
+		self.out.fillBranch("TauMVA_Stop0l_71_pt10to20", self.TauMVA_Stop0l_71_pt10to20)
+		self.out.fillBranch("nTauMVA_71_pt10to20",       sum(self.TauMVA_Stop0l_71_pt10to20))
+		self.out.fillBranch("TauMVA_Stop0l_73_pt10to20", self.TauMVA_Stop0l_73_pt10to20)
+		self.out.fillBranch("nTauMVA_73_pt10to20",       sum(self.TauMVA_Stop0l_73_pt10to20))
 		self.out.fillBranch("TauMVA_Stop0l_71_ptgeq20", self.TauMVA_Stop0l_71_ptgeq20)
 		self.out.fillBranch("nTauMVA_71_ptgeq20",       sum(self.TauMVA_Stop0l_71_ptgeq20))
 		self.out.fillBranch("TauMVA_Stop0l_73_ptgeq20", self.TauMVA_Stop0l_73_ptgeq20)

@@ -258,15 +258,15 @@ def main(args):
 
 
     #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_25Apr2019/MET/2016_Data_Run2016B-17Jul2018_ver2-v1/190517_020101/0000/prod2016Data_NANO_120.root"]
-    files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_11Apr2019/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MC_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2-ext1/190411_213442/0000/prod2016MC_NANO_1-122.root"]
-    #files = []
-    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-    #    #This is just a single test input file
-    #    files.append(args.inputfile[5:])
-    #else:
-    #    #this is a file list
-    #    with open(args.inputfile) as f:
-    #        files = [line.strip() for line in f]
+    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Summer16_94X_v3/PreProcessed_11Apr2019/TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/2016_MC_RunIISummer16MiniAODv3-PUMoriond17_94X_v3-v2-ext1/190411_213442/0000/prod2016MC_NANO_1-122.root"]
+    files = []
+    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+        #This is just a single test input file
+        files.append(args.inputfile[5:])
+    else:
+        #this is a file list
+        with open(args.inputfile) as f:
+            files = [line.strip() for line in f]
 
     if process=="train":    
 	p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_Baseline", branchsel=None, outputbranchsel="keep_and_drop_train.txt", typeofprocess="tau", modules=mods,provenance=False)
