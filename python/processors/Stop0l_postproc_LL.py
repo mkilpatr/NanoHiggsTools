@@ -22,7 +22,7 @@ def main(args):
 	LLObjectsProducer(args.era, isData=isdata),
     ]
 
-    #files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PreProcessed_15Jan2019/TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8/2017_MC_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_v14-v1/190111_191501/0000/prod2017MC_NANO_109.root"]
+    #files = ["root://cmseos.fnal.gov//store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PostProcessed_15Jan2019_v2p7/TTbarSingleLepT_2017/TTbarSingleLepT_2017_23.root"]
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file
@@ -32,7 +32,7 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    p=PostProcessor(args.outputfile,files,cut="Pass_MET", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False)
+    p=PostProcessor(args.outputfile,files,cut="MET_pt > 150", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False)
     p.run()
 
 if __name__ == "__main__":

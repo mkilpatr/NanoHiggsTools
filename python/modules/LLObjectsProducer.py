@@ -60,16 +60,10 @@ class LLObjectsProducer(Module):
 	self.out.branch("Pass_dPhiMETMedDM", 			"O")
 	self.out.branch("Stop0l_dPhiISRMET",			"F")
 	self.out.branch("Stop0l_TauPOG",			"I")
-	if not self.isData:
-		self.out.branch("Stop0l_GenVisTau",			"I")
-		self.out.branch("Stop0l_GenVisTau_pt10to20",		"I")
-		self.out.branch("Stop0l_GenVisTau_ptgeq20",		"I")
-		self.out.branch("Stop0l_GenVisTau_1Prong0PiZero",	"I")
-		self.out.branch("Stop0l_GenVisTau_1Prong1PiZero",	"I")
-		self.out.branch("Stop0l_GenVisTau_1Prong2PiZero",	"I")
-		self.out.branch("Stop0l_GenVisTau_3Prong0PiZero",	"I")
-		self.out.branch("Stop0l_GenVisTau_3Prong1PiZero",	"I")
-		self.out.branch("Stop0l_GenVisTau_other",		"I")
+	self.out.branch("Pass_HT30", 				"O")
+	self.out.branch("Pass_dPhiMET30", 			"O")
+	self.out.branch("Pass_dPhiMETLowDM30", 			"O")
+	self.out.branch("Pass_dPhiMETHighDM30", 		"O")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -105,11 +99,11 @@ class LLObjectsProducer(Module):
             return True
         return False
 
-    def GetJetSortedIdx(self, jets):
+    def GetJetSortedIdx(self, jets, jetpt = 20):
         ptlist = []
         dphiMET = []
         for j in jets:
-            if math.fabs(j.eta) > 4.7 or j.pt < 20:
+            if math.fabs(j.eta) > 4.7 or j.pt < jetpt:
                 pass
             else:
                 ptlist.append(j.pt)
@@ -131,6 +125,10 @@ class LLObjectsProducer(Module):
 	if gentau.pt < 10 or abs(gentau.eta) > 2.4:
 		return False
 	return True
+
+    def CalHT(self, jets, jetpt):
+	HT = sum([j.pt for i, j in enumerate(jets) if (self.Jet_Stop0l[i] and j.pt > jetpt)])
+	return HT
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -165,17 +163,11 @@ class LLObjectsProducer(Module):
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 	#self.Tau_Stop0l      = map(self.SelTauPOG, tau)
 	#countTauPOG	     = sum(self.Tau_Stop0l)
-	if not self.isData:
-		self.GenVisTau_Stop0l= map(self.SelGenTau, gentau)
-		countGenTau	     = sum(self.GenVisTau_Stop0l)
-		countGenTau_pt10to20  =sum([g.pt > 10 and g.pt < 20 and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
-		countGenTau_ptgeq20  = sum([g.pt > 20 and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
-		countGenTau_1Prong0PiZero  = sum([g.status == 0  and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
-		countGenTau_1Prong1PiZero  = sum([g.status == 1  and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
-		countGenTau_1Prong2PiZero  = sum([g.status == 2  and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
-		countGenTau_3Prong0PiZero  = sum([g.status == 10 and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
-		countGenTau_3Prong1PiZero  = sum([g.status == 11 and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
-		countGenTau_other	   = sum([g.status == 15 and gt for g, gt in zip(gentau, self.GenVisTau_Stop0l)])
+	HT 		     = self.CalHT(jets, 30)
+	PassHT30	     = HT >= 300
+	sortedPhi30 	     = self.GetJetSortedIdx(jets, 30)
+	PassdPhiLowDM30      = self.PassdPhi(sortedPhi30, [0.5, 0.15, 0.15])
+	PassdPhiHighDM30     = self.PassdPhi(sortedPhi30, [0.5, 0.5, 0.5, 0.5])
 
         ### Store output
 	self.out.fillBranch("Stop0l_nJets_HighPt",    	sum(self.Jet_Stop0lHighPt))
@@ -192,16 +184,10 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Pass_dPhiMETMedDM", 	PassdPhiMedDM)
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
 	#self.out.fillBranch("Stop0l_TauPOG",		countTauPOG)
-	if not self.isData:
-		self.out.fillBranch("Stop0l_GenVisTau",		countGenTau)
-		self.out.fillBranch("Stop0l_GenVisTau_pt10to20",countGenTau_pt10to20)
-		self.out.fillBranch("Stop0l_GenVisTau_ptgeq20",	countGenTau_ptgeq20)
-		self.out.fillBranch("Stop0l_GenVisTau_1Prong0PiZero",		countGenTau_1Prong0PiZero)
-		self.out.fillBranch("Stop0l_GenVisTau_1Prong1PiZero",		countGenTau_1Prong1PiZero)
-		self.out.fillBranch("Stop0l_GenVisTau_1Prong2PiZero",		countGenTau_1Prong2PiZero)
-		self.out.fillBranch("Stop0l_GenVisTau_3Prong0PiZero",		countGenTau_3Prong0PiZero)
-		self.out.fillBranch("Stop0l_GenVisTau_3Prong1PiZero",		countGenTau_3Prong1PiZero)
-		self.out.fillBranch("Stop0l_GenVisTau_other",			countGenTau_other)
+	self.out.fillBranch("Pass_HT30",		PassHT30)
+	self.out.fillBranch("Pass_dPhiMET30", 		PassdPhiLowDM30)
+	self.out.fillBranch("Pass_dPhiMETLowDM30", 	PassdPhiLowDM30)
+	self.out.fillBranch("Pass_dPhiMETHighDM30", 	PassdPhiHighDM30)
 	return True
 
 
