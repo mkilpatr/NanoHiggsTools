@@ -8,10 +8,11 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class Stop0l_trigger(Module):
-    def __init__(self, era):
+    def __init__(self, era, isData = False):
         self.maxEvents = -1
         self.nEvents = 0
         self.era = era
+	self.isData = isData
         eff_file = "%s/src/PhysicsTools/NanoSUSYTools/data/trigger_eff/" % os.environ['CMSSW_BASE']
         eff_file = eff_file + self.era + "_trigger_eff.root"
         self.tf = ROOT.TFile.Open(eff_file)
@@ -101,6 +102,9 @@ class Stop0l_trigger(Module):
 	#print " my_xrange is ", my_xrange
         if findbix == -1:
             return 0, 0, 0
+	if eff.GetN() < findbix:
+		print findbix
+		print eff.GetN()
         return eff.GetY()[findbix], eff.GetY()[findbix] - eff.GetErrorYlow(findbix), eff.GetY()[findbix] + eff.GetErrorYhigh(findbix)
 
     def SelPhotons(self, photon):
@@ -127,7 +131,8 @@ class Stop0l_trigger(Module):
         muons	  = Collection(event, "Muon")
         photons   = Collection(event, "Photon")
 
-        Pass_trigger_MET = (
+	if not self.isData: Pass_trigger_MET = True
+        else: Pass_trigger_MET = (
             self.mygetattr(hlt, 'PFMET100_PFMHT100_IDTight', False)
             or self.mygetattr(hlt, 'PFMET110_PFMHT110_IDTight', False)
             or self.mygetattr(hlt, 'PFMET120_PFMHT120_IDTight', False)
@@ -153,7 +158,8 @@ class Stop0l_trigger(Module):
             #or self.mygetattr(hlt, 'PFMETNoMu120_PFMHTNoMu120_IDTight_HFCleaned', False)
         )
 
-        Pass_trigger_muon = (
+	if not self.isData: Pass_trigger_muon = True
+        else: Pass_trigger_muon = (
             self.mygetattr(hlt, 'IsoMu20', False)
             or self.mygetattr(hlt, 'IsoMu22', False)
             or self.mygetattr(hlt, 'IsoMu24', False)
@@ -166,7 +172,8 @@ class Stop0l_trigger(Module):
             or self.mygetattr(hlt, 'Mu55', False)
         )
 
-        Pass_trigger_electron = (
+	if not self.isData: Pass_trigger_electron = True
+        else: Pass_trigger_electron = (
             self.mygetattr(hlt, 'Ele105_CaloIdVT_GsfTrkIdT', False)
             or self.mygetattr(hlt, 'Ele115_CaloIdVT_GsfTrkIdT', False)
             or self.mygetattr(hlt, 'Ele135_CaloIdVT_GsfTrkIdT', False)
@@ -186,7 +193,8 @@ class Stop0l_trigger(Module):
             or self.mygetattr(hlt, 'DoubleEle33_CaloIdL_MW', False)
         )
 
-        Pass_trigger_photon = (
+	if not self.isData: Pass_trigger_photon = True
+        else: Pass_trigger_photon = (
             self.mygetattr(hlt, 'Photon175', False)
             or self.mygetattr(hlt, 'Photon200', False)
         )

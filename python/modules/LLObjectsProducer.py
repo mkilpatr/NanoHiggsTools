@@ -99,6 +99,28 @@ class LLObjectsProducer(Module):
             return True
         return False
 
+    def GetJetSortedIdxVal(self, jets):
+        ptlist = []
+	etalist = []
+        dphiMET = []
+        for j in jets:
+            if math.fabs(j.eta) > 4.7 or j.pt < 20:
+                pass
+            else:
+                ptlist.append(j.pt)
+		etalist.append(math.fabs(j.eta))
+                dphiMET.append(j.dPhiMET)
+	output = []
+	for j, e in zip(np.argsort(ptlist)[::-1], np.argsort(etalist)):
+		if j != len(ptlist) - 1:
+			if ptlist[j] == ptlist[j + 1]:
+				output.append(dphiMET[e])
+		else:
+			output.append(dphiMET[j])
+	
+	return output
+
+
     def GetJetSortedIdx(self, jets, jetpt = 20):
         ptlist = []
         dphiMET = []
@@ -109,6 +131,10 @@ class LLObjectsProducer(Module):
                 ptlist.append(j.pt)
                 dphiMET.append(j.dPhiMET)
         return [dphiMET[j] for j in np.argsort(ptlist)[::-1]]
+
+    def PassdPhiVal(self, sortedPhi, dPhiCutsLow, dPhiCutsHigh):
+	return all( (a < b and b < c) for a, b, c in zip(dPhiCutsLow, sortedPhi, dPhiCutsHigh))
+
 
     def PassdPhi(self, sortedPhi, dPhiCuts, invertdPhi =False):
         if invertdPhi:
@@ -158,10 +184,10 @@ class LLObjectsProducer(Module):
 	countIskHad_ptgeq20  = sum([(i.Stop0l and abs(i.pdgId) == 211 and i.pt > 20) for i in isotracks])
 	countEle	     = sum([e.Stop0l for e in electrons])
 	countMuon	     = sum([m.Stop0l for m in muons])
-	sortedPhi 	     = self.GetJetSortedIdx(jets)
-        PassdPhiMedDM        = self.PassdPhi(sortedPhi, [0.15, 0.15, 0.15], invertdPhi=True)
+	sortedPhiVal         = self.GetJetSortedIdxVal(jets)
+	PassdPhiMedDM        = self.PassdPhiVal(sortedPhiVal, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
-	#self.Tau_Stop0l      = map(self.SelTauPOG, tau)
+	#self.Tau_Stop0l     = map(self.SelTauPOG, tau)
 	#countTauPOG	     = sum(self.Tau_Stop0l)
 	HT 		     = self.CalHT(jets, 30)
 	PassHT30	     = HT >= 300
