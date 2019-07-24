@@ -57,7 +57,9 @@ class LLObjectsProducer(Module):
 	self.out.branch("Stop0l_nVetoElec", 			"I")
 	self.out.branch("Stop0l_nVetoMuon", 			"I")
 	self.out.branch("Stop0l_nVetoElecMuon", 		"I")
+	self.out.branch("Stop0l_noMuonJet",			"O")
 	self.out.branch("Pass_dPhiMETMedDM", 			"O")
+	self.out.branch("Pass_dPhiQCD",				"O")
 	self.out.branch("Stop0l_dPhiISRMET",			"F")
 	self.out.branch("Stop0l_TauPOG",			"I")
 	self.out.branch("Pass_HT30", 				"O")
@@ -111,10 +113,16 @@ class LLObjectsProducer(Module):
 		etalist.append(math.fabs(j.eta))
                 dphiMET.append(j.dPhiMET)
 	output = []
-	for j, e in zip(np.argsort(ptlist)[::-1], np.argsort(etalist)):
+	for j in np.argsort(ptlist)[::-1]:
 		if j != len(ptlist) - 1:
 			if ptlist[j] == ptlist[j + 1]:
-				output.append(dphiMET[e])
+				#print "j: ", j
+				#print "ptList: ", ptlist
+				#print "etalist: ", etalist
+				if etalist[j] <= etalist[j + 1]:
+					output.append(dphiMET[j])
+				else:
+					output.append(dphiMET[j + 1])
 		else:
 			output.append(dphiMET[j])
 	
@@ -156,6 +164,13 @@ class LLObjectsProducer(Module):
 	HT = sum([j.pt for i, j in enumerate(jets) if (self.Jet_Stop0l[i] and j.pt > jetpt)])
 	return HT
 
+    def SelNoMuon(self, jets, met):
+	noMuonJet = True
+	for j in jets:
+		if j.pt > 200 and j.muEF > 0.5 and abs(deltaPhi(j.phi, met.phi)) > (math.pi - 0.4):
+			noMuonJet = False
+	return noMuonJet
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
@@ -184,8 +199,11 @@ class LLObjectsProducer(Module):
 	countIskHad_ptgeq20  = sum([(i.Stop0l and abs(i.pdgId) == 211 and i.pt > 20) for i in isotracks])
 	countEle	     = sum([e.Stop0l for e in electrons])
 	countMuon	     = sum([m.Stop0l for m in muons])
+	noMuonJet	     = self.SelNoMuon(jets, met)
 	sortedPhiVal         = self.GetJetSortedIdxVal(jets)
 	PassdPhiMedDM        = self.PassdPhiVal(sortedPhiVal, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
+	sortedPhi	     = self.GetJetSortedIdx(jets)
+	PassdPhiQCD          = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 	#self.Tau_Stop0l     = map(self.SelTauPOG, tau)
 	#countTauPOG	     = sum(self.Tau_Stop0l)
@@ -207,7 +225,9 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Stop0l_nVetoElec", 	countEle)
 	self.out.fillBranch("Stop0l_nVetoMuon", 	countMuon)
 	self.out.fillBranch("Stop0l_nVetoElecMuon", 	countEle + countMuon)
+	self.out.fillBranch("Stop0l_noMuonJet",		noMuonJet)
 	self.out.fillBranch("Pass_dPhiMETMedDM", 	PassdPhiMedDM)
+	self.out.fillBranch("Pass_dPhiQCD",		PassdPhiQCD)
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
 	#self.out.fillBranch("Stop0l_TauPOG",		countTauPOG)
 	self.out.fillBranch("Pass_HT30",		PassHT30)
