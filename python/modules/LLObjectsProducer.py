@@ -112,21 +112,7 @@ class LLObjectsProducer(Module):
                 ptlist.append(j.pt)
 		etalist.append(math.fabs(j.eta))
                 dphiMET.append(j.dPhiMET)
-	output = []
-	for j in np.argsort(ptlist)[::-1]:
-		if j != len(ptlist) - 1:
-			if ptlist[j] == ptlist[j + 1]:
-				#print "j: ", j
-				#print "ptList: ", ptlist
-				#print "etalist: ", etalist
-				if etalist[j] <= etalist[j + 1]:
-					output.append(dphiMET[j])
-				else:
-					output.append(dphiMET[j + 1])
-		else:
-			output.append(dphiMET[j])
-	
-	return output
+	return [dphiMET[j] for j in np.lexsort((etalist, ptlist[::-1]))]
 
 
     def GetJetSortedIdx(self, jets, jetpt = 20):
