@@ -60,6 +60,7 @@ class LLObjectsProducer(Module):
 	self.out.branch("Stop0l_noMuonJet",			"O")
 	self.out.branch("Pass_dPhiMETMedDM", 			"O")
 	self.out.branch("Pass_dPhiQCD",				"O")
+	self.out.branch("Pass_dPhiQCDSF",			"O")
 	self.out.branch("Stop0l_dPhiISRMET",			"F")
 	self.out.branch("Stop0l_TauPOG",			"I")
 	self.out.branch("Pass_HT30", 				"O")
@@ -101,30 +102,21 @@ class LLObjectsProducer(Module):
             return True
         return False
 
-    def GetJetSortedIdxVal(self, jets):
-        ptlist = []
-	etalist = []
-        dphiMET = []
-        for j in jets:
-            if math.fabs(j.eta) > 4.7 or j.pt < 20:
-                pass
-            else:
-                ptlist.append(j.pt)
-		etalist.append(math.fabs(j.eta))
-                dphiMET.append(j.dPhiMET)
-	return [dphiMET[j] for j in np.lexsort((etalist, ptlist[::-1]))]
-
-
     def GetJetSortedIdx(self, jets, jetpt = 20):
         ptlist = []
+	etalist = []
         dphiMET = []
         for j in jets:
             if math.fabs(j.eta) > 4.7 or j.pt < jetpt:
                 pass
             else:
                 ptlist.append(j.pt)
+		etalist.append(math.fabs(j.eta))
                 dphiMET.append(j.dPhiMET)
-        return [dphiMET[j] for j in np.argsort(ptlist)[::-1]]
+
+	sortIdx = np.lexsort((etalist, ptlist[::-1]))
+
+	return sortIdx, [dphiMET[j] for j in sortIdx]
 
     def PassdPhiVal(self, sortedPhi, dPhiCutsLow, dPhiCutsHigh):
 	return all( (a < b and b < c) for a, b, c in zip(dPhiCutsLow, sortedPhi, dPhiCutsHigh))
@@ -186,16 +178,16 @@ class LLObjectsProducer(Module):
 	countEle	     = sum([e.Stop0l for e in electrons])
 	countMuon	     = sum([m.Stop0l for m in muons])
 	noMuonJet	     = self.SelNoMuon(jets, met)
-	sortedPhiVal         = self.GetJetSortedIdxVal(jets)
-	PassdPhiMedDM        = self.PassdPhiVal(sortedPhiVal, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
-	sortedPhi	     = self.GetJetSortedIdx(jets)
+	sortIdx, sortedPhi   = self.GetJetSortedIdx(jets)
+	PassdPhiMedDM        = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
 	PassdPhiQCD          = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
+	PassdPhiQCDSF        = self.PassdPhi(sortedPhi, [0.1, 0.1], invertdPhi =True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 	#self.Tau_Stop0l     = map(self.SelTauPOG, tau)
 	#countTauPOG	     = sum(self.Tau_Stop0l)
 	HT 		     = self.CalHT(jets, 30)
 	PassHT30	     = HT >= 300
-	sortedPhi30 	     = self.GetJetSortedIdx(jets, 30)
+	sortIdx30, sortedPhi30= self.GetJetSortedIdx(jets, 30)
 	PassdPhiLowDM30      = self.PassdPhi(sortedPhi30, [0.5, 0.15, 0.15])
 	PassdPhiHighDM30     = self.PassdPhi(sortedPhi30, [0.5, 0.5, 0.5, 0.5])
 
@@ -214,6 +206,7 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Stop0l_noMuonJet",		noMuonJet)
 	self.out.fillBranch("Pass_dPhiMETMedDM", 	PassdPhiMedDM)
 	self.out.fillBranch("Pass_dPhiQCD",		PassdPhiQCD)
+	self.out.fillBranch("Pass_dPhiQCDSF",		PassdPhiQCDSF)
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
 	#self.out.fillBranch("Stop0l_TauPOG",		countTauPOG)
 	self.out.fillBranch("Pass_HT30",		PassHT30)

@@ -233,7 +233,7 @@ class qcdSmearProducer(Module):
 		if origRes_ < 0 or origRes_ > 2 : continue
 		
 		respHisto = self.ptmapping(recoJet, vecKind)
-		cdf = self.targeth[respHisto].GetBinContent(int(origRes_/self.xBinWidth))
+		cdf = self.targeth[respHisto].GetBinContent(int(origRes_/self.xBinWidth) + 1)
 		#print "CDF", cdf
 		minProb, maxProb, minRes, maxRes = self.getScaledWindowAndProb(self.targeth[respHisto],origRes_,self.minWindow,self.maxWindow)
 		if minProb - maxProb == 0 : continue
