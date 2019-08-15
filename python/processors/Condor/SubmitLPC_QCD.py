@@ -205,8 +205,8 @@ def my_process(args):
 
         #define output directory
         if args.outputdir == "": outdir = sample["Outpath__"]
-	#else: outdir = args.outputdir + "/" + name + "/"
-	else: outdir = args.outputdir + "/"
+	else: outdir = args.outputdir + "/" + name + "/"
+	#else: outdir = args.outputdir + "/"
 
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"

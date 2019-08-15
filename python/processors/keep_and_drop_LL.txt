@@ -1,15 +1,3 @@
-# this is a comment
-# drop *btagCSVV2*
-## Input for Track TauMVA
-#drop PFcand_*
-## Input for DeepResolved
-#drop Jet_deepFlavour*
-#drop Jet_deepCSV*
-#drop Jet_qg*
-#drop Jet_Cvs*
-#drop Jet_btagDeepFlavB
-#drop Jet_*Mult 
-#drop Jet_*EF
 # Drop added by Matt
 drop HLT*
 drop Flag_*
@@ -19,6 +7,4 @@ drop Photon_*
 drop Pileup_*
 drop *LHE*
 drop *Gen*
-drop Electron_*
-drop Muon_*
 drop *SubJet*
