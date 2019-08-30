@@ -39,8 +39,8 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
     
-    if process=='jetres':   p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_res.txt",typeofprocess="resp",modules=mods,provenance=False)
-    elif process=='smear':  p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_QCD.txt", outputbranchselsmear="keep_and_drop_QCD.txt",typeofprocess="smear",modules=mods,provenance=False)
+    if process=='jetres':   p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_res.txt",typeofprocess="resp",modules=mods,provenance=False,maxEvents=args.maxEvents)
+    elif process=='smear':  p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_QCD.txt", outputbranchselsmear="keep_and_drop_QCD.txt",typeofprocess="smear",modules=mods,provenance=False,maxEvents=args.maxEvents)
     elif process=='qcdsf':  p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_EventFilter & Pass_JetID", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     elif process=='sfcalc': p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()

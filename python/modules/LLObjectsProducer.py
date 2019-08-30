@@ -61,12 +61,16 @@ class LLObjectsProducer(Module):
 	self.out.branch("Pass_dPhiMETMedDM", 			"O")
 	self.out.branch("Pass_dPhiQCD",				"O")
 	self.out.branch("Pass_dPhiQCDSF",			"O")
+	self.out.branch("Pass_dPhiQCD_UCSB",			"O")
+	self.out.branch("Pass_dPhiQCDSF_UCSB",			"O")
 	self.out.branch("Stop0l_dPhiISRMET",			"F")
 	self.out.branch("Stop0l_TauPOG",			"I")
 	self.out.branch("Pass_HT30", 				"O")
 	self.out.branch("Pass_dPhiMET30", 			"O")
 	self.out.branch("Pass_dPhiMETLowDM30", 			"O")
 	self.out.branch("Pass_dPhiMETHighDM30", 		"O")
+	self.out.branch("Jet_nsortedIdx", 			"I")
+	self.out.branch("Jet_sortedIdx", 			"I", lenVar="Jet_nsortedIdx")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -102,21 +106,22 @@ class LLObjectsProducer(Module):
             return True
         return False
 
-    def GetJetSortedIdx(self, jets, jetpt = 20):
+    def GetJetSortedIdx(self, jets, jetpt = 20, jeteta = 4.7):
         ptlist = []
 	etalist = []
         dphiMET = []
         for j in jets:
-            if math.fabs(j.eta) > 4.7 or j.pt < jetpt:
+            if math.fabs(j.eta) > jeteta or j.pt < jetpt:
                 pass
             else:
-                ptlist.append(j.pt)
+		ptlist.append(-j.pt)
 		etalist.append(math.fabs(j.eta))
                 dphiMET.append(j.dPhiMET)
 
-	sortIdx = np.lexsort((etalist, ptlist[::-1]))
+	sortIdx = np.lexsort((etalist, ptlist))
 
 	return sortIdx, [dphiMET[j] for j in sortIdx]
+
 
     def PassdPhiVal(self, sortedPhi, dPhiCutsLow, dPhiCutsHigh):
 	return all( (a < b and b < c) for a, b, c in zip(dPhiCutsLow, sortedPhi, dPhiCutsHigh))
@@ -178,10 +183,13 @@ class LLObjectsProducer(Module):
 	countEle	     = sum([e.Stop0l for e in electrons])
 	countMuon	     = sum([m.Stop0l for m in muons])
 	noMuonJet	     = self.SelNoMuon(jets, met)
-	sortIdx, sortedPhi   = self.GetJetSortedIdx(jets)
+	sortedIdx, sortedPhi = self.GetJetSortedIdx(jets)
 	PassdPhiMedDM        = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
 	PassdPhiQCD          = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 	PassdPhiQCDSF        = self.PassdPhi(sortedPhi, [0.1, 0.1], invertdPhi =True)
+	sortedIdxQCD, sortedPhiQCD = self.GetJetSortedIdx(jets, 20, 2.4)
+	PassdPhiQCD_UCSB     = self.PassdPhi(sortedPhiQCD, [0.1, 0.1, 0.1], invertdPhi =True)
+	PassdPhiQCDSF_UCSB   = self.PassdPhi(sortedPhiQCD, [0.1, 0.1], invertdPhi =True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 	#self.Tau_Stop0l     = map(self.SelTauPOG, tau)
 	#countTauPOG	     = sum(self.Tau_Stop0l)
@@ -207,12 +215,16 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Pass_dPhiMETMedDM", 	PassdPhiMedDM)
 	self.out.fillBranch("Pass_dPhiQCD",		PassdPhiQCD)
 	self.out.fillBranch("Pass_dPhiQCDSF",		PassdPhiQCDSF)
+	self.out.fillBranch("Pass_dPhiQCD_UCSB",	PassdPhiQCD_UCSB)
+	self.out.fillBranch("Pass_dPhiQCDSF_UCSB",	PassdPhiQCDSF_UCSB)
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
 	#self.out.fillBranch("Stop0l_TauPOG",		countTauPOG)
 	self.out.fillBranch("Pass_HT30",		PassHT30)
 	self.out.fillBranch("Pass_dPhiMET30", 		PassdPhiLowDM30)
 	self.out.fillBranch("Pass_dPhiMETLowDM30", 	PassdPhiLowDM30)
 	self.out.fillBranch("Pass_dPhiMETHighDM30", 	PassdPhiHighDM30)
+	self.out.fillBranch("Jet_nsortedIdx", 		len(sortedIdx))
+	self.out.fillBranch("Jet_sortedIdx", 		sortedIdx)
 	return True
 
 

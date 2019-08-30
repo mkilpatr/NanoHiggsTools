@@ -8,3 +8,7 @@ drop Pileup_*
 drop *LHE*
 drop *Gen*
 drop *SubJet*
+drop Electron_cutBased*
+drop Electron_vidNestedWPBitmap*
+drop METFixEE2017_*
+drop Electron_eCorr
