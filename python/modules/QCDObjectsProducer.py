@@ -11,12 +11,10 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, clo
 #2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
 
 class QCDObjectsProducer(Module):
-    def __init__(self, isQCD = False, isData = False, isQCDOrig = False):
+    def __init__(self, isQCD = False, isData = False):
         self.metBranchName = "MET"
 	self.isQCD       = isQCD
 	self.isData	 = isData
-	self.isQCDOrig	 = isQCDOrig
-	self.nBootstraps = 50
 
     def beginJob(self):
         pass
@@ -32,9 +30,6 @@ class QCDObjectsProducer(Module):
 	self.out.branch("pseudoRespCSV"        , "F")
 	self.out.branch("pseudoRespPseudoGenPT", "F")
 	self.out.branch("pseudoRespPassFilter" , "O")
-	#if self.isQCDOrig:
-	#	self.out.branch("nBootstrapWeight",        "I")
-	#	self.out.branch("bootstrapWeight",         "I", lenVar="nBootstrapWeight")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -56,7 +51,7 @@ class QCDObjectsProducer(Module):
       	resp = -1
 	mmout = []
 	for iG in range(1,len(genJets)):
-		if iG > 2: break
+		if iG == 3: break
         	if genJets[iG].pt == 0: break
         	fpt = -1
 		for rJ in xrange(len(jets)):
@@ -66,7 +61,7 @@ class QCDObjectsProducer(Module):
 				break
         	if fpt < 0: fpt = 9.5 #for the cases with no reco jet due to being below thresh
         	if(MM < 0 or abs(fpt - genJets[iG].pt) > MM):
-			ind = iG
+			ind = iG #Could have some error here. Need to find out what the function index() does in UCSB code.
 			resp =  fpt/genJets[iG].pt
 			MM = abs(fpt - genJets[iG].pt)
 			flv = abs(genJets[iG].partonFlavour)
@@ -93,7 +88,7 @@ class QCDObjectsProducer(Module):
 
 	jetNearMETInd, MMJetDPhi = -1, -1
 	for iJ in range(1,len(jets)):
-		if iJ > 2 : continue
+		if iJ == 3 : break
 		if not jets[iJ].Stop0l: continue
 		dPhi = abs(deltaPhi(jets[iJ].phi, met.phi))
 		if(MMJetDPhi < 0 or dPhi < MMJetDPhi):
@@ -103,35 +98,24 @@ class QCDObjectsProducer(Module):
 	if jetNearMETInd < 0 : return True
 
 	pJ = jets[jetNearMETInd]
-	passFilter = len(jets) > jetNearMETInd
+	passFilter = len(jets) > jetNearMETInd #Could have error here
 	pseudoGenPT = self.addFourVec(met, pJ).Pt()
 	MMPseudoResp = pJ.pt/pseudoGenPT if pseudoGenPT > 0 else 999
 
-	# True response info
-	#print "isQCD: ", self.isQCD
 	mmOut = []
 	if self.isQCD == True:
 		mmOut = self.getQCDRespTailCorrector(jets, genjets, met) 
 	else:
 		mmOut = [-1, -1.0, -1]
 	trueRespInd, trueResp = mmOut[0], mmOut[1]
-	#print "trueResp: ", trueRespInd, trueResp
 	trueRespFlv = 99
 	trueRespGenPT = -1.0
 	if trueRespInd >= 0:
 		for iG in xrange(len(genjets)):
-			gjet = genjets[iG]
 			if iG != trueRespInd: continue
-			trueRespGenPT = gjet.pt
-			trueRespFlv = abs(gjet.partonFlavour)
+			trueRespGenPT = genjets[iG].pt
+			trueRespFlv = abs(genjets[iG].partonFlavour)
 			break
-	
-	#if self.isQCDOrig:
-	#	b = []
-	#	for iB in xrange(self.nBootstraps):
-	#	        b.append(1)
-	#	self.out.fillBranch("nBootstrapWeight",        self.nBootstraps)
-	#	self.out.fillBranch("bootstrapWeight",         b)
 	
         ### Store output
 	self.out.fillBranch("pseudoResp"           , MMPseudoResp)

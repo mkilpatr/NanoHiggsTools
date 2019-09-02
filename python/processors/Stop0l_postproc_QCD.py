@@ -14,8 +14,8 @@ from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
 
 def main(args):
     isdata = len(args.dataEra) > 0
-    isqcd = args.sampleName.startswith("QCD_")
-    isqcdorig = "ORIG" in args.sampleName
+    isqcd = True
+    #isqcd = args.sampleName.startswith("QCD_")
     process = args.process
 
     mods = []
@@ -25,7 +25,7 @@ def main(args):
 	mods.append(UpdateEvtWeightSmear(isdata, args.crossSection, args.nEvents, args.sampleName))
 	mods.append(qcdSmearProducer())
     elif process == 'qcdsf':
-	mods.append(QCDObjectsProducer(isQCD=isqcd, isData=isdata, isQCDOrig=isqcdorig))
+	mods.append(QCDObjectsProducer(isQCD=isqcd, isData=isdata))
 	mods.append(LLObjectsProducer(args.era, isData=isdata))
     elif process == 'sfcalc':
 	mods.append(qcdSFProducer(args.era))
