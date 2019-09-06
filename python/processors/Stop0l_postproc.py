@@ -220,7 +220,7 @@ def main(args):
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
              SoftBDeepAK8SFProducer(args.era, isData=isdata, isFastSim=isfastsim),
              Stop0l_trigger(args.era, isData=isdata),
-             UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
+             #UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
 
     #~~~~~ Modules for MC Only ~~~~~

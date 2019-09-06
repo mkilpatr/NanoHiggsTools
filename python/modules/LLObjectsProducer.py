@@ -48,7 +48,6 @@ class LLObjectsProducer(Module):
         self.out = wrappedOutputTree
 	self.out.branch("Stop0l_nbtags_Loose",  		"I")
 	self.out.branch("Stop0l_MtLepMET", 			"F")
-	self.out.branch("nLeptonVeto",    			"I")
 	self.out.branch("Stop0l_nVetoElecMuon", 		"I")
 	self.out.branch("Stop0l_noMuonJet",			"O")
 	self.out.branch("Pass_dPhiMETMedDM", 			"O")
@@ -162,7 +161,6 @@ class LLObjectsProducer(Module):
         ### Store output
 	self.out.fillBranch("Stop0l_nbtags_Loose",   	sum(self.BJet_Stop0l))
 	self.out.fillBranch("Stop0l_MtLepMET",  	mt)
-	self.out.fillBranch("nLeptonVeto",    		countMuon + countEle + countIskLep)
 	self.out.fillBranch("Stop0l_nVetoElecMuon", 	countEle + countMuon)
 	self.out.fillBranch("Stop0l_noMuonJet",		noMuonJet)
 	self.out.fillBranch("Pass_dPhiMETMedDM", 	PassdPhiMedDM)
