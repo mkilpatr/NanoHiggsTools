@@ -1,4 +1,15 @@
 # this is a comment
+drop SV_*
+drop TrigObj_*
+drop TkMET_*
+drop RawMET_*
+#drop CaloMET_*
+drop ChsMET_*
+drop PuppiMET_*
+drop GenDressedLepton_*
+drop SoftActivity*
+drop fixedGridRho*
+drop Electron_mva*
 # drop *btagCSVV2*
 ## Input for Track TauMVA
 #drop PFcand_*

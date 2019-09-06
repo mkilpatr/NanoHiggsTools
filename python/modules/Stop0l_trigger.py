@@ -18,8 +18,9 @@ class Stop0l_trigger(Module):
         self.tf = ROOT.TFile.Open(eff_file)
 
         ## Keep the TGraph in memory
-        histo_name_list = ["MET_loose_baseline", "MET_high_dm", "MET_low_dm", "MET_high_dm_QCD", 
-                           "MET_low_dm_QCD", "Electron_pt", "Electron_eta", "Muon_pt", "Muon_eta", 
+        histo_name_list = ["MET_loose_baseline", "MET_high_dm", "MET_low_dm",
+			   "MET_loose_baseline_QCD", "MET_high_dm_QCD", "MET_low_dm_QCD",
+			   "Electron_pt", "Electron_eta", "Muon_pt", "Muon_eta", 
                            "Photon_pt", "Photon_eta", "Zmumu_pt", "Zee_pt"]
         self.effs = { }
         for histo_name in histo_name_list:
@@ -46,6 +47,10 @@ class Stop0l_trigger(Module):
         self.out.branch("Stop0l_trigger_eff_MET_high_dm", "F")
         self.out.branch("Stop0l_trigger_eff_MET_high_dm_down", "F")
         self.out.branch("Stop0l_trigger_eff_MET_high_dm_up", "F")
+
+        self.out.branch("Stop0l_trigger_eff_MET_loose_baseline_QCD", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_loose_baseline_QCD_down", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_loose_baseline_QCD_up", "F")
         self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD", "F")
         self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD_down", "F")
         self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD_up", "F")
@@ -106,18 +111,6 @@ class Stop0l_trigger(Module):
 		print findbix
 		print eff.GetN()
         return eff.GetY()[findbix], eff.GetY()[findbix] - eff.GetErrorYlow(findbix), eff.GetY()[findbix] + eff.GetErrorYhigh(findbix)
-
-    def SelPhotons(self, photon):
-        if photon.pt < 200:
-            return False
-        abeta = math.fabs(photon.eta)
-        if (abeta > 1.442 and abeta < 1.566) or (abeta > 2.5):
-            return False
-        ## cut-base ID, 2^0 loose ID
-        cutbase =  photon.cutBasedBitmap  if self.era != "2016" else photon.cutBased
-        if not cutbase & 0b1:
-            return False
-        return True
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -243,15 +236,28 @@ class Stop0l_trigger(Module):
 			zmumu_mid.append(zmumu_cand)
 	n_zmumu = len(zmumu_mid)
 
-	photon_loose = []
-	for photon in photons:
-		if (self.SelPhotons(photon)):
-			photon_loose.append(photon)
-	n_photon = len(photon_loose)
+        photon_loose = []
+        photon_mid = []
+        for photon in photons:
+                if (abs(photon.eta) < 1.442 or (1.566 < abs(photon.eta) and abs(photon.eta) < 2.5)):
+                        #cutbase =  photon.cutBasedBitmap if self.era != "2016" else photon.cutBased
+                        #if(cutbase >=1):
+                        #        photon_loose.append(photon)
+                        #if(cutbase >=2):
+                        #        photon_mid.append(photon)
+			if self.era == "2016":
+				if photon.cutBased >=1: photon_loose.append(photon)
+				if photon.cutBased >=2: photon_mid.append(photon)
+			else:
+				if bool(photon.cutBasedBitmap & 1): photon_loose.append(photon)
+				if bool(photon.cutBasedBitmap & 2): photon_mid.append(photon)
+        n_photon = len(photon_loose)
+        n_photon_mid = len(photon_mid)
 
 	MET_trigger_eff_loose_baseline = MET_trigger_eff_loose_baseline_down = MET_trigger_eff_loose_baseline_up = 0
 	MET_trigger_eff_high_dm = MET_trigger_eff_high_dm_down = MET_trigger_eff_high_dm_up = 0
 	MET_trigger_eff_low_dm = MET_trigger_eff_low_dm_down = MET_trigger_eff_low_dm_up = 0
+	MET_trigger_eff_loose_baseline_QCD = MET_trigger_eff_loose_baseline_QCD_down = MET_trigger_eff_loose_baseline_QCD_up = 0
 	MET_trigger_eff_high_dm_QCD = MET_trigger_eff_high_dm_QCD_down = MET_trigger_eff_high_dm_QCD_up = 0
 	MET_trigger_eff_low_dm_QCD = MET_trigger_eff_low_dm_QCD_down = MET_trigger_eff_low_dm_QCD_up = 0
 
@@ -259,6 +265,7 @@ class Stop0l_trigger(Module):
 		MET_trigger_eff_loose_baseline, MET_trigger_eff_loose_baseline_down, MET_trigger_eff_loose_baseline_up = self.get_efficiency("MET_loose_baseline", met.pt)
 		MET_trigger_eff_high_dm, MET_trigger_eff_high_dm_down, MET_trigger_eff_high_dm_up = self.get_efficiency("MET_high_dm", met.pt)
 		MET_trigger_eff_low_dm, MET_trigger_eff_low_dm_down, MET_trigger_eff_low_dm_up = self.get_efficiency("MET_low_dm", met.pt)
+		MET_trigger_eff_loose_baseline_QCD, MET_trigger_eff_loose_baseline_QCD_down, MET_trigger_eff_loose_baseline_QCD_up = self.get_efficiency("MET_loose_baseline_QCD", met.pt)
 		MET_trigger_eff_high_dm_QCD, MET_trigger_eff_high_dm_QCD_down, MET_trigger_eff_high_dm_QCD_up = self.get_efficiency("MET_high_dm_QCD", met.pt)
 		MET_trigger_eff_low_dm_QCD, MET_trigger_eff_low_dm_QCD_down, MET_trigger_eff_low_dm_QCD_up = self.get_efficiency("MET_low_dm_QCD", met.pt)
 
@@ -273,9 +280,9 @@ class Stop0l_trigger(Module):
 	if (n_mu_mid >=1): Muon_trigger_eff_eta, Muon_trigger_eff_eta_down, Muon_trigger_eff_eta_up = self.get_efficiency("Muon_eta", mu_mid[0].eta)
 
 	Photon_trigger_eff_pt = Photon_trigger_eff_pt_down = Photon_trigger_eff_pt_up = 0
-	if (n_photon >=1): Photon_trigger_eff_pt, Photon_trigger_eff_pt_down, Photon_trigger_eff_pt_up = self.get_efficiency("Photon_pt", photon_loose[0].pt)
+	if (n_photon_mid >=1): Photon_trigger_eff_pt, Photon_trigger_eff_pt_down, Photon_trigger_eff_pt_up = self.get_efficiency("Photon_pt", photon_mid[0].pt)
 	Photon_trigger_eff_eta = Photon_trigger_eff_eta_down = Photon_trigger_eff_eta_up = 0
-	if (n_photon >=1): Photon_trigger_eff_eta, Photon_trigger_eff_eta_down, Photon_trigger_eff_eta_up = self.get_efficiency("Photon_eta", photon_loose[0].eta)
+	if (n_photon_mid >=1): Photon_trigger_eff_eta, Photon_trigger_eff_eta_down, Photon_trigger_eff_eta_up = self.get_efficiency("Photon_eta", photon_mid[0].eta)
 
 	Zee_trigger_eff_pt = Zee_trigger_eff_pt_down = Zee_trigger_eff_pt_up = 0
 	if (n_zee ==1): Zee_trigger_eff_pt, Zee_trigger_eff_pt_down, Zee_trigger_eff_pt_up = self.get_efficiency("Zee_pt", zee_mid[0].Pt())
@@ -297,6 +304,10 @@ class Stop0l_trigger(Module):
         self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm", MET_trigger_eff_high_dm)
         self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_down", MET_trigger_eff_high_dm_down)
         self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_up", MET_trigger_eff_high_dm_up)
+
+        self.out.fillBranch("Stop0l_trigger_eff_MET_loose_baseline_QCD", MET_trigger_eff_loose_baseline_QCD)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_loose_baseline_QCD_down", MET_trigger_eff_loose_baseline_QCD_down)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_loose_baseline_QCD_up", MET_trigger_eff_loose_baseline_QCD_up)
         self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD", MET_trigger_eff_low_dm_QCD)
         self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD_down", MET_trigger_eff_low_dm_QCD_down)
         self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD_up", MET_trigger_eff_low_dm_QCD_up)
