@@ -181,7 +181,6 @@ class qcdSmearProducer(Module):
         jets      = Collection(event, "Jet")
         genjets   = Collection(event, "GenJet")
         met       = Object(event,     self.metBranchName)
-	#weight    = event.genWeight
 	weight    = event.Stop0l_evtWeight
 	eventNum  = event.event
 
@@ -198,8 +197,6 @@ class qcdSmearProducer(Module):
         #begin smearing
         smearWeight = 1
 	SmearJets = []
-	#if met.pt > 200: 
-	#print met.pt
 
 	for iJ in xrange(len(genjets)) :
 		if iJ == self.nSmearJets: break
