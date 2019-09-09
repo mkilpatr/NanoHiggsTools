@@ -14,8 +14,7 @@ from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
 
 def main(args):
     isdata = len(args.dataEra) > 0
-    isqcd = True
-    #isqcd = args.sampleName.startswith("QCD_")
+    isqcd = args.sampleName.startswith("QCD_")
     process = args.process
 
     mods = []
@@ -41,7 +40,7 @@ def main(args):
     
     if process=='jetres':   p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_res.txt",typeofprocess="resp",modules=mods,provenance=False,maxEvents=args.maxEvents)
     elif process=='smear':  p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_QCD.txt", outputbranchselsmear="keep_and_drop_QCD.txt",typeofprocess="smear",modules=mods,provenance=False,maxEvents=args.maxEvents)
-    elif process=='qcdsf':  p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_EventFilter & Pass_HT & Pass_JetID", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    elif process=='qcdsf':  p=PostProcessor(args.outputfile,files,cut="Pass_MET & Pass_NJets20 & Pass_EventFilter & Pass_HT & Pass_JetID", branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     elif process=='sfcalc': p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
