@@ -26,6 +26,7 @@ class QCDObjectsProducer(Module):
 	self.out.branch("trueResp"             , "F")
 	self.out.branch("trueRespFlv"          , "I")
 	self.out.branch("trueRespGenPT"        , "F")
+	self.out.branch("trueRespMM" 	       , "F")
 	self.out.branch("pseudoResp"           , "F")
 	self.out.branch("pseudoRespCSV"        , "F")
 	self.out.branch("pseudoRespPseudoGenPT", "F")
@@ -50,22 +51,26 @@ class QCDObjectsProducer(Module):
       	flv = -1
       	resp = -1
 	mmout = []
-	for iG in range(1,len(genJets)):
-		if iG == 3: break
+	for iG in range(0,len(genJets)):
+		#if iG == 3: break
         	if genJets[iG].pt == 0: break
         	fpt = -1
+
 		for rJ in xrange(len(jets)):
 			if not jets[rJ].Stop0l: continue
-			if jets[rJ].genJetIdx == iG:
-				fpt = jets[rJ].pt
-				break
+			if jets[rJ].genJetIdx != iG: continue
+			fpt = jets[rJ].pt
+			break
+
         	if fpt < 0: fpt = 9.5 #for the cases with no reco jet due to being below thresh
-        	if(MM < 0 or abs(fpt - genJets[iG].pt) > MM):
+
+        	if((MM < 0) or (abs(fpt - genJets[iG].pt) > MM)):
 			ind = iG #Could have some error here. Need to find out what the function index() does in UCSB code.
 			resp =  fpt/genJets[iG].pt
 			MM = abs(fpt - genJets[iG].pt)
 			flv = abs(genJets[iG].partonFlavour)
-    
+   
+	#if flv == 5: print("Jet index: %i, resp: %f, MM: %f, flv: %i" % (ind, resp, MM, flv)) 
 	if ind >= 0:
 		mmResp = resp
 		mmInd = ind
@@ -75,7 +80,7 @@ class QCDObjectsProducer(Module):
 		mmInd = -1
 		mmFlv = -1
 
-	mmout = [mmInd, mmResp, mmFlv]
+	mmout = [mmInd, mmResp, mmFlv, MM]
 	return mmout     		
 
     def analyze(self, event):
@@ -86,9 +91,31 @@ class QCDObjectsProducer(Module):
 		genjets = Collection(event, "GenJet")
         met       = Object(event, self.metBranchName)
 
+	mmOut = []
+	if self.isQCD == True:
+		mmOut = self.getQCDRespTailCorrector(jets, genjets, met) 
+	else:
+		mmOut = [-1, -1.0, -1, -1]
+	trueRespInd, trueResp = mmOut[0], mmOut[1]
+	trueRespFlv = 99
+	trueRespGenPT = -1.0
+	if trueRespInd >= 0:
+		for iG in xrange(len(genjets)):
+			if iG != trueRespInd: continue
+			trueRespGenPT = genjets[iG].pt
+			trueRespFlv = abs(genjets[iG].partonFlavour)
+			break
+
+		if trueRespGenPT < 0: return True
+
+	self.out.fillBranch("trueResp"     	   , trueResp if trueRespInd >= 0 else -1)
+	self.out.fillBranch("trueRespFlv"  	   , trueRespFlv)
+	self.out.fillBranch("trueRespGenPT"	   , trueRespGenPT)
+	self.out.fillBranch("trueRespMM"	   , mmOut[3])
+
 	jetNearMETInd, MMJetDPhi = -1, -1
-	for iJ in range(1,len(jets)):
-		if iJ == 3 : break
+	for iJ in range(0,len(jets)):
+		#if iJ == 3 : break
 		if not jets[iJ].Stop0l: continue
 		dPhi = abs(deltaPhi(jets[iJ].phi, met.phi))
 		if(MMJetDPhi < 0 or dPhi < MMJetDPhi):
@@ -102,29 +129,11 @@ class QCDObjectsProducer(Module):
 	pseudoGenPT = self.addFourVec(met, pJ).Pt()
 	MMPseudoResp = pJ.pt/pseudoGenPT if pseudoGenPT > 0 else 999
 
-	mmOut = []
-	if self.isQCD == True:
-		mmOut = self.getQCDRespTailCorrector(jets, genjets, met) 
-	else:
-		mmOut = [-1, -1.0, -1]
-	trueRespInd, trueResp = mmOut[0], mmOut[1]
-	trueRespFlv = 99
-	trueRespGenPT = -1.0
-	if trueRespInd >= 0:
-		for iG in xrange(len(genjets)):
-			if iG != trueRespInd: continue
-			trueRespGenPT = genjets[iG].pt
-			trueRespFlv = abs(genjets[iG].partonFlavour)
-			break
-	
         ### Store output
 	self.out.fillBranch("pseudoResp"           , MMPseudoResp)
 	self.out.fillBranch("pseudoRespCSV"        , pJ.btagDeepB)
 	self.out.fillBranch("pseudoRespPseudoGenPT", pseudoGenPT)
 	self.out.fillBranch("pseudoRespPassFilter" , passFilter)
-	self.out.fillBranch("trueResp"     	   , trueResp if trueRespInd >= 0 else -1)
-	self.out.fillBranch("trueRespFlv"  	   , trueRespFlv)
-	self.out.fillBranch("trueRespGenPT"	   , trueRespGenPT)
 	return True
 
 

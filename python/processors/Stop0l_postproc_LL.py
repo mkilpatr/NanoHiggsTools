@@ -8,6 +8,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import Pos
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
+from PhysicsTools.NanoSUSYTools.modules.updateEvtWeight import *
 
 def main(args):
     isdata = len(args.dataEra) > 0
@@ -20,6 +21,7 @@ def main(args):
 
     mods = [
 	LLObjectsProducer(args.era, isData=isdata),
+	UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
     ]
 
     files = []
