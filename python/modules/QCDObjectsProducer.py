@@ -26,7 +26,10 @@ class QCDObjectsProducer(Module):
 	self.out.branch("trueResp"             , "F")
 	self.out.branch("trueRespFlv"          , "I")
 	self.out.branch("trueRespGenPT"        , "F")
+	self.out.branch("trueRespRecoPT"       , "F")
 	self.out.branch("trueRespMM" 	       , "F")
+	self.out.branch("trueRespGenIdx"       , "I")
+	self.out.branch("trueRespRecoIdx"      , "I")
 	self.out.branch("pseudoResp"           , "F")
 	self.out.branch("pseudoRespCSV"        , "F")
 	self.out.branch("pseudoRespPseudoGenPT", "F")
@@ -46,41 +49,53 @@ class QCDObjectsProducer(Module):
 
     def getQCDRespTailCorrector(self, jets, genJets, met):
     
-      	MM = -1
+      	MM = 0
       	ind = -1
       	flv = -1
       	resp = -1
 	mmout = []
+	recoInd = -1
+	recoInd_ = -1
+	recopt = -1
 	for iG in range(0,len(genJets)):
-		#if iG == 3: break
+		if iG == 4: break
         	if genJets[iG].pt == 0: break
         	fpt = -1
 
 		for rJ in xrange(len(jets)):
 			if not jets[rJ].Stop0l: continue
 			if jets[rJ].genJetIdx != iG: continue
+			#if deltaR(jets[rJ].eta, jets[rJ].phi, genJets[iG].eta, genJets[iG].phi) > 0.2: continue
 			fpt = jets[rJ].pt
+			recoInd = rJ
 			break
 
         	if fpt < 0: fpt = 9.5 #for the cases with no reco jet due to being below thresh
 
-        	if((MM < 0) or (abs(fpt - genJets[iG].pt) > MM)):
+		#print("MM: %f, diff: %f, fpt: %f, genpt: %f" % (MM, abs(fpt - genJets[iG].pt), fpt, genJets[iG].pt))
+        	if abs(fpt - genJets[iG].pt) > MM:
 			ind = iG #Could have some error here. Need to find out what the function index() does in UCSB code.
-			resp =  fpt/genJets[iG].pt
-			MM = abs(fpt - genJets[iG].pt)
+			recoInd_ = recoInd
+			resp =  float(fpt)/float(genJets[iG].pt)
+			MM = abs(float(fpt - genJets[iG].pt))
 			flv = abs(genJets[iG].partonFlavour)
+			recopt = fpt
    
-	#if flv == 5: print("Jet index: %i, resp: %f, MM: %f, flv: %i" % (ind, resp, MM, flv)) 
+	#if flv == 5 and resp > 1: print("Jet index: %i, resp: %f, MM: %f, flv: %i, fpt: %f, genpt: %f, recopt: %f, MM_manual: %f" % (ind, resp, MM, flv, fpt, genJets[ind].pt, jets[recoInd_].pt))
 	if ind >= 0:
 		mmResp = resp
 		mmInd = ind
 		mmFlv = flv
+		mmRecoInd = recoInd_
+		mmrecopt = recopt
 	else:
 		mmResp = -1
 		mmInd = -1
 		mmFlv = -1
+		mmRecoInd = -1
+		mmrecopt = -1
 
-	mmout = [mmInd, mmResp, mmFlv, MM]
+	mmout = [mmInd, mmResp, mmFlv, MM, mmRecoInd, mmrecopt]
 	return mmout     		
 
     def analyze(self, event):
@@ -92,30 +107,29 @@ class QCDObjectsProducer(Module):
         met       = Object(event, self.metBranchName)
 
 	mmOut = []
+      	MM = []
+      	ind = []
+      	flv = []
+      	resp = []
+	recoInd_ = []
 	if self.isQCD == True:
 		mmOut = self.getQCDRespTailCorrector(jets, genjets, met) 
 	else:
 		mmOut = [-1, -1.0, -1, -1]
-	trueRespInd, trueResp = mmOut[0], mmOut[1]
-	trueRespFlv = 99
-	trueRespGenPT = -1.0
-	if trueRespInd >= 0:
-		for iG in xrange(len(genjets)):
-			if iG != trueRespInd: continue
-			trueRespGenPT = genjets[iG].pt
-			trueRespFlv = abs(genjets[iG].partonFlavour)
-			break
+	if mmOut[0] >= 0: trueRespGenPT = genjets[mmOut[0]].pt
+	else: trueRespGenPT = 0
 
-		if trueRespGenPT < 0: return True
-
-	self.out.fillBranch("trueResp"     	   , trueResp if trueRespInd >= 0 else -1)
-	self.out.fillBranch("trueRespFlv"  	   , trueRespFlv)
+	self.out.fillBranch("trueResp"     	   , mmOut[1] if (mmOut[0] >= 0) else -1)
+	self.out.fillBranch("trueRespFlv"  	   , mmOut[2])
 	self.out.fillBranch("trueRespGenPT"	   , trueRespGenPT)
+	self.out.fillBranch("trueRespRecoPT"	   , mmOut[5])
 	self.out.fillBranch("trueRespMM"	   , mmOut[3])
+	self.out.fillBranch("trueRespGenIdx"	   , mmOut[0])
+	self.out.fillBranch("trueRespRecoIdx"	   , mmOut[4])
 
 	jetNearMETInd, MMJetDPhi = -1, -1
 	for iJ in range(0,len(jets)):
-		#if iJ == 3 : break
+		if iJ == 4 : break
 		if not jets[iJ].Stop0l: continue
 		dPhi = abs(deltaPhi(jets[iJ].phi, met.phi))
 		if(MMJetDPhi < 0 or dPhi < MMJetDPhi):
