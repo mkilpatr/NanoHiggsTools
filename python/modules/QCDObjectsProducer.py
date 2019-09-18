@@ -67,8 +67,8 @@ class QCDObjectsProducer(Module):
 		for rJ in xrange(len(jets)):
 			if not jets[rJ].Stop0l: continue
 			if jets[rJ].genJetIdx != iG: continue
-			#fpt = jets[rJ].pt
-			fpt = jets[rJ].pt*(1-jets[rJ].rawFactor)
+			fpt = jets[rJ].pt
+			#fpt = jets[rJ].pt*(1-jets[rJ].rawFactor)
 			recoInd = rJ
 			break
 
