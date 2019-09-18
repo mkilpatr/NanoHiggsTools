@@ -2,6 +2,8 @@ import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import math
 import numpy as np
+from functools import reduce
+import operator
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -50,13 +52,21 @@ class LLObjectsProducer(Module):
 	self.out.branch("Stop0l_MtLepMET", 			"F")
 	self.out.branch("Stop0l_nVetoElecMuon", 		"I")
 	self.out.branch("Stop0l_noMuonJet",			"O")
-	self.out.branch("Pass_dPhiMETMedDM", 			"O")
 	self.out.branch("Pass_dPhiQCD",				"O")
 	self.out.branch("Pass_dPhiQCDSF",			"O")
 	self.out.branch("Stop0l_dPhiISRMET",			"F")
-	#self.out.branch("Stop0l_TauPOG",			"I")
-	self.out.branch("Jet_nsortedIdx", 			"I")
-	self.out.branch("Jet_sortedIdx", 			"I", lenVar="Jet_nsortedIdx")
+	self.out.branch("ElectronSF",				"F")
+	self.out.branch("ElectronSFErr",			"F")
+	self.out.branch("MuonSF",				"F")
+	self.out.branch("MuonSFErr",				"F")
+	self.out.branch("TauSF",				"F")
+	self.out.branch("TauSFUp",				"F")
+	self.out.branch("TauSFDown",				"F")
+	self.out.branch("WSF",					"F")
+	self.out.branch("WSFErr",				"F")
+	self.out.branch("TopSF",				"F")
+	self.out.branch("TopSFErr",				"F")
+	self.out.branch("restopSF",				"F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -98,21 +108,11 @@ class LLObjectsProducer(Module):
 
 	return sortIdx, [dphiMET[j] for j in sortIdx]
 
-
-    def PassdPhiVal(self, sortedPhi, dPhiCutsLow, dPhiCutsHigh):
-	return all( (a < b and b < c) for a, b, c in zip(dPhiCutsLow, sortedPhi, dPhiCutsHigh))
-
-
     def PassdPhi(self, sortedPhi, dPhiCuts, invertdPhi =False):
         if invertdPhi:
             return any( a < b for a, b in zip(sortedPhi, dPhiCuts))
         else:
             return all( a > b for a, b in zip(sortedPhi, dPhiCuts))
-
-    def SelTauPOG(self, tau):
-	if tau.pt < 20 or abs(tau.eta) > 2.4 or not tau.idDecayMode or not (tau.idMVAoldDM2017v2 & 8):
-		return False
-	return True
 
     def SelGenTau(self, gentau):
 	if gentau.pt < 10 or abs(gentau.eta) > 2.4:
@@ -132,15 +132,15 @@ class LLObjectsProducer(Module):
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
-	muons     = Collection(event, "Muon")
-	electrons = Collection(event, "Electron")
 	jets      = Collection(event, "Jet")
 	met       = Object(event, self.metBranchName)
-	#tau	  = Collection(event, "Tau")
+	taus	  = Collection(event, "Tau")
 	if not self.isData:
 		gentau	  = Collection(event, "GenVisTau")
 	stop0l    = Object(event, "Stop0l")
 	fatjets   = Collection(event, "FatJet")
+	restop	  = Collection(event, "ResolvedTopCandidate")
+	res	  = Collection(event, "ResolvedTop", lenVar="nResolvedTopCandidate")
 
         ## Selecting objects
 	self.Jet_Stop0l      = map(self.SelJets, jets)
@@ -151,25 +151,45 @@ class LLObjectsProducer(Module):
 	countMuon	     = sum([m.Stop0l for m in muons])
 	noMuonJet	     = self.SelNoMuon(jets, met)
 	sortedIdx, sortedPhi = self.GetJetSortedIdx(jets)
-	PassdPhiMedDM        = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
 	PassdPhiQCD          = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 	PassdPhiQCDSF        = self.PassdPhi(sortedPhi, [0.1, 0.1], invertdPhi =True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
-	#self.Tau_Stop0l     = map(self.SelTauPOG, tau)
-	#countTauPOG	     = sum(self.Tau_Stop0l)
+
+	electronSF 	     = reduce(operator.mul, (e.MediumSF for e in electrons if e.Stop0l), 1)
+	electronSFErr 	     = reduce(operator.mul, (e.MediumSFErr for e in electrons if e.Stop0l), 1)
+	muonSF     	     = reduce(operator.mul, (m.LooseSF for m in muons if m.Stop0l), 1)
+	muonSFErr     	     = reduce(operator.mul, (m.LooseSFErr for m in muons if m.Stop0l), 1)
+	tauSF		     = reduce(operator.mul, (t.MediumSF for t in taus if t.Stop0l), 1)
+	tauSFUp		     = reduce(operator.mul, (t.MediumSF_Up for t in taus if t.Stop0l), 1)
+	tauSFDown	     = reduce(operator.mul, (t.MediumSF_Down for t in taus if t.Stop0l), 1)
+	## type W = 1, top = 2, restop = 3, else 0
+	WSF		     = reduce(operator.mul, (f.SF for f in fatjets if (f.Stop0l == 1)), 1)
+	WSFErr	     	     = reduce(operator.mul, (f.SFerr for f in fatjets if (f.Stop0l == 1)), 1)
+	topSF		     = reduce(operator.mul, (f.SF for f in fatjets if (f.Stop0l == 2)), 1)
+	topSFErr	     = reduce(operator.mul, (f.SFerr for f in fatjets if (f.Stop0l == 2)), 1)
+	resSF		     = reduce(operator.mul, (restop[rt].sf for rt in xrange(len(restop)) if res[rt].Stop0l), 1)
+	
 
         ### Store output
 	self.out.fillBranch("Stop0l_nbtags_Loose",   	sum(self.BJet_Stop0l))
 	self.out.fillBranch("Stop0l_MtLepMET",  	mt)
 	self.out.fillBranch("Stop0l_nVetoElecMuon", 	countEle + countMuon)
 	self.out.fillBranch("Stop0l_noMuonJet",		noMuonJet)
-	self.out.fillBranch("Pass_dPhiMETMedDM", 	PassdPhiMedDM)
 	self.out.fillBranch("Pass_dPhiQCD",		PassdPhiQCD)
 	self.out.fillBranch("Pass_dPhiQCDSF",		PassdPhiQCDSF)
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
-	#self.out.fillBranch("Stop0l_TauPOG",		countTauPOG)
-	self.out.fillBranch("Jet_nsortedIdx", 		len(sortedIdx))
-	self.out.fillBranch("Jet_sortedIdx", 		sortedIdx)
+	self.out.fillBranch("ElectronSF",		electronSF)
+	self.out.fillBranch("ElectronSFErr",		electronSFErr)
+	self.out.fillBranch("MuonSF",			muonSF)
+	self.out.fillBranch("MuonSFErr",		muonSFErr)
+	self.out.fillBranch("TauSF",			tauSF)
+	self.out.fillBranch("TauSFUp",			tauSFUp)
+	self.out.fillBranch("TauSFDown",		tauSFDown)
+	self.out.fillBranch("WSF",			WSF)
+	self.out.fillBranch("WSFErr",			WSFErr)
+	self.out.fillBranch("TopSF",			topSF)
+	self.out.fillBranch("TopSFErr",			topSFErr)
+	self.out.fillBranch("restopSF",			resSF)
 	return True
 
 

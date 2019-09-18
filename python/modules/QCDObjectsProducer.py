@@ -25,6 +25,7 @@ class QCDObjectsProducer(Module):
         self.out = wrappedOutputTree
 	self.out.branch("trueResp"             , "F")
 	self.out.branch("trueRespFlv"          , "I")
+	self.out.branch("trueRespFlvReco"      , "I")
 	self.out.branch("trueRespGenPT"        , "F")
 	self.out.branch("trueRespRecoPT"       , "F")
 	self.out.branch("trueRespMM" 	       , "F")
@@ -52,6 +53,7 @@ class QCDObjectsProducer(Module):
       	MM = 0
       	ind = -1
       	flv = -1
+      	recoflv = -1
       	resp = -1
 	mmout = []
 	recoInd = -1
@@ -65,8 +67,8 @@ class QCDObjectsProducer(Module):
 		for rJ in xrange(len(jets)):
 			if not jets[rJ].Stop0l: continue
 			if jets[rJ].genJetIdx != iG: continue
-			#if deltaR(jets[rJ].eta, jets[rJ].phi, genJets[iG].eta, genJets[iG].phi) > 0.2: continue
-			fpt = jets[rJ].pt
+			#fpt = jets[rJ].pt
+			fpt = jets[rJ].pt*(1-jets[rJ].rawFactor)
 			recoInd = rJ
 			break
 
@@ -78,7 +80,8 @@ class QCDObjectsProducer(Module):
 			recoInd_ = recoInd
 			resp =  float(fpt)/float(genJets[iG].pt)
 			MM = abs(float(fpt - genJets[iG].pt))
-			flv = abs(genJets[iG].partonFlavour)
+			flv = abs(genJets[iG].hadronFlavour)
+			if recoInd != -1: recoflv = abs(jets[recoInd].hadronFlavour)
 			recopt = fpt
    
 	#if flv == 5 and resp > 1: print("Jet index: %i, resp: %f, MM: %f, flv: %i, fpt: %f, genpt: %f, recopt: %f, MM_manual: %f" % (ind, resp, MM, flv, fpt, genJets[ind].pt, jets[recoInd_].pt))
@@ -86,16 +89,18 @@ class QCDObjectsProducer(Module):
 		mmResp = resp
 		mmInd = ind
 		mmFlv = flv
+		mmRecoFlv = recoflv
 		mmRecoInd = recoInd_
 		mmrecopt = recopt
 	else:
 		mmResp = -1
 		mmInd = -1
 		mmFlv = -1
+		mmRecoFlv = -1
 		mmRecoInd = -1
 		mmrecopt = -1
 
-	mmout = [mmInd, mmResp, mmFlv, MM, mmRecoInd, mmrecopt]
+	mmout = [mmInd, mmResp, mmFlv, MM, mmRecoInd, mmrecopt, mmRecoFlv]
 	return mmout     		
 
     def analyze(self, event):
@@ -115,12 +120,13 @@ class QCDObjectsProducer(Module):
 	if self.isQCD == True:
 		mmOut = self.getQCDRespTailCorrector(jets, genjets, met) 
 	else:
-		mmOut = [-1, -1.0, -1, -1]
+		mmOut = [-1, -1.0, -1, -1, -1, -1, -1]
 	if mmOut[0] >= 0: trueRespGenPT = genjets[mmOut[0]].pt
 	else: trueRespGenPT = 0
 
 	self.out.fillBranch("trueResp"     	   , mmOut[1] if (mmOut[0] >= 0) else -1)
 	self.out.fillBranch("trueRespFlv"  	   , mmOut[2])
+	self.out.fillBranch("trueRespFlvReco"  	   , mmOut[6])
 	self.out.fillBranch("trueRespGenPT"	   , trueRespGenPT)
 	self.out.fillBranch("trueRespRecoPT"	   , mmOut[5])
 	self.out.fillBranch("trueRespMM"	   , mmOut[3])

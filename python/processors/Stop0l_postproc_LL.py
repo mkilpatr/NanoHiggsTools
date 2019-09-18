@@ -21,7 +21,6 @@ def main(args):
 
     mods = [
 	LLObjectsProducer(args.era, isData=isdata),
-	#UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
     ]
 
     files = []
