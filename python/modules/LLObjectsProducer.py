@@ -67,6 +67,8 @@ class LLObjectsProducer(Module):
 	self.out.branch("TopSF",				"F")
 	self.out.branch("TopSFErr",				"F")
 	self.out.branch("restopSF",				"F")
+	self.out.branch("SoftBSF",				"F")
+	self.out.branch("SoftBSFErr",				"F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -141,6 +143,7 @@ class LLObjectsProducer(Module):
 	fatjets   = Collection(event, "FatJet")
 	restop	  = Collection(event, "ResolvedTopCandidate")
 	res	  = Collection(event, "ResolvedTop", lenVar="nResolvedTopCandidate")
+	SB	  = Collection(event, "SB")
 
         ## Selecting objects
 	self.Jet_Stop0l      = map(self.SelJets, jets)
@@ -162,13 +165,14 @@ class LLObjectsProducer(Module):
 	tauSF		     = reduce(operator.mul, (t.MediumSF for t in taus if t.Stop0l), 1)
 	tauSFUp		     = reduce(operator.mul, (t.MediumSF_Up for t in taus if t.Stop0l), 1)
 	tauSFDown	     = reduce(operator.mul, (t.MediumSF_Down for t in taus if t.Stop0l), 1)
-	## type W = 1, top = 2, restop = 3, else 0
-	WSF		     = reduce(operator.mul, (f.SF for f in fatjets if (f.Stop0l == 1)), 1)
-	WSFErr	     	     = reduce(operator.mul, (f.SFerr for f in fatjets if (f.Stop0l == 1)), 1)
-	topSF		     = reduce(operator.mul, (f.SF for f in fatjets if (f.Stop0l == 2)), 1)
-	topSFErr	     = reduce(operator.mul, (f.SFerr for f in fatjets if (f.Stop0l == 2)), 1)
+	## type top = 1, W = 2, else 0
+	WSF		     = reduce(operator.mul, (f.SF for f in fatjets if (f.Stop0l == 2)), 1)
+	WSFErr	     	     = reduce(operator.mul, (f.SFerr for f in fatjets if (f.Stop0l == 2)), 1)
+	topSF		     = reduce(operator.mul, (f.SF for f in fatjets if (f.Stop0l == 1)), 1)
+	topSFErr	     = reduce(operator.mul, (f.SFerr for f in fatjets if (f.Stop0l == 1)), 1)
 	resSF		     = reduce(operator.mul, (restop[rt].sf for rt in xrange(len(restop)) if res[rt].Stop0l), 1)
-	
+	softSF		     = reduce(operator.mul, (s.SF for s in SB if s.Stop0l), 1)	
+	softSFErr	     = reduce(operator.mul, (s.SFerr for s in SB if s.Stop0l), 1)	
 
         ### Store output
 	self.out.fillBranch("Stop0l_nbtags_Loose",   	sum(self.BJet_Stop0l))
@@ -190,6 +194,8 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("TopSF",			topSF)
 	self.out.fillBranch("TopSFErr",			topSFErr)
 	self.out.fillBranch("restopSF",			resSF)
+	self.out.fillBranch("SoftBSF",			softSF)
+	self.out.fillBranch("SoftBSFErr",		softSFErr)
 	return True
 
 
