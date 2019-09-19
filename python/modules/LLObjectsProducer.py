@@ -55,20 +55,21 @@ class LLObjectsProducer(Module):
 	self.out.branch("Pass_dPhiQCD",				"O")
 	self.out.branch("Pass_dPhiQCDSF",			"O")
 	self.out.branch("Stop0l_dPhiISRMET",			"F")
-	self.out.branch("ElectronSF",				"F")
-	self.out.branch("ElectronSFErr",			"F")
-	self.out.branch("MuonSF",				"F")
-	self.out.branch("MuonSFErr",				"F")
-	self.out.branch("TauSF",				"F")
-	self.out.branch("TauSFUp",				"F")
-	self.out.branch("TauSFDown",				"F")
-	self.out.branch("WSF",					"F")
-	self.out.branch("WSFErr",				"F")
-	self.out.branch("TopSF",				"F")
-	self.out.branch("TopSFErr",				"F")
-	self.out.branch("restopSF",				"F")
-	self.out.branch("SoftBSF",				"F")
-	self.out.branch("SoftBSFErr",				"F")
+	if not self.isData:
+		self.out.branch("ElectronSF",			"F")
+		self.out.branch("ElectronSFErr",		"F")
+		self.out.branch("MuonSF",			"F")
+		self.out.branch("MuonSFErr",			"F")
+		self.out.branch("TauSF",			"F")
+		self.out.branch("TauSFUp",			"F")
+		self.out.branch("TauSFDown",			"F")
+		self.out.branch("WSF",				"F")
+		self.out.branch("WSFErr",			"F")
+		self.out.branch("TopSF",			"F")
+		self.out.branch("TopSFErr",			"F")
+		self.out.branch("restopSF",			"F")
+		self.out.branch("SoftBSF",			"F")
+		self.out.branch("SoftBSFErr",			"F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -210,14 +211,15 @@ class LLObjectsProducer(Module):
 	PassdPhiQCDSF        = self.PassdPhi(sortedPhi, [0.1, 0.1], invertdPhi =True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 
-	electronSF, electronSFErr = self.ScaleFactorErrElectron(electrons)
-	muonSF, muonSFErr    = self.ScaleFactorErrMuon(muons)
-	tauSF, tauSFUp, tauSFDown = self.ScaleFactorErrTau(taus)
-	## type top = 1, W = 2, else 0
-	WSF, WSFErr	     = self.ScaleFactorErrFatjet(fatjets, 2)
-	topSF, topSFErr	     = self.ScaleFactorErrFatjet(fatjets, 1)
-	resSF		     = reduce(operator.mul, (restop[rt].sf for rt in xrange(len(restop)) if res[rt].Stop0l), 1)
-	softSF, softSFErr    = self.ScaleFactorErrSoftB(SB)
+	if not self.isData:
+		electronSF, electronSFErr = self.ScaleFactorErrElectron(electrons)
+		muonSF, muonSFErr    = self.ScaleFactorErrMuon(muons)
+		tauSF, tauSFUp, tauSFDown = self.ScaleFactorErrTau(taus)
+		## type top = 1, W = 2, else 0
+		WSF, WSFErr	     = self.ScaleFactorErrFatjet(fatjets, 2)
+		topSF, topSFErr	     = self.ScaleFactorErrFatjet(fatjets, 1)
+		resSF		     = reduce(operator.mul, (restop[rt].sf for rt in xrange(len(restop)) if res[rt].Stop0l), 1)
+		softSF, softSFErr    = self.ScaleFactorErrSoftB(SB)
 
         ### Store output
 	self.out.fillBranch("Stop0l_nbtags_Loose",   	sum(self.BJet_Stop0l))
@@ -227,20 +229,22 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Pass_dPhiQCD",		PassdPhiQCD)
 	self.out.fillBranch("Pass_dPhiQCDSF",		PassdPhiQCDSF)
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
-	self.out.fillBranch("ElectronSF",		electronSF)
-	self.out.fillBranch("ElectronSFErr",		electronSFErr)
-	self.out.fillBranch("MuonSF",			muonSF)
-	self.out.fillBranch("MuonSFErr",		muonSFErr)
-	self.out.fillBranch("TauSF",			tauSF)
-	self.out.fillBranch("TauSFUp",			tauSFUp)
-	self.out.fillBranch("TauSFDown",		tauSFDown)
-	self.out.fillBranch("WSF",			WSF)
-	self.out.fillBranch("WSFErr",			WSFErr)
-	self.out.fillBranch("TopSF",			topSF)
-	self.out.fillBranch("TopSFErr",			topSFErr)
-	self.out.fillBranch("restopSF",			resSF)
-	self.out.fillBranch("SoftBSF",			softSF)
-	self.out.fillBranch("SoftBSFErr",		softSFErr)
+	
+	if not self.isData:
+		self.out.fillBranch("ElectronSF",	electronSF)
+		self.out.fillBranch("ElectronSFErr",	electronSFErr)
+		self.out.fillBranch("MuonSF",		muonSF)
+		self.out.fillBranch("MuonSFErr",	muonSFErr)
+		self.out.fillBranch("TauSF",		tauSF)
+		self.out.fillBranch("TauSFUp",		tauSFUp)
+		self.out.fillBranch("TauSFDown",	tauSFDown)
+		self.out.fillBranch("WSF",		WSF)
+		self.out.fillBranch("WSFErr",		WSFErr)
+		self.out.fillBranch("TopSF",		topSF)
+		self.out.fillBranch("TopSFErr",		topSFErr)
+		self.out.fillBranch("restopSF",		resSF)
+		self.out.fillBranch("SoftBSF",		softSF)
+		self.out.fillBranch("SoftBSFErr",	softSFErr)
 	return True
 
 
