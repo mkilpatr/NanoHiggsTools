@@ -128,6 +128,58 @@ class LLObjectsProducer(Module):
 			noMuonJet = False
 	return noMuonJet
 
+    def ScaleFactorErrElectron(self, obj):
+	sf = 1
+	sfErr = 0
+	for s in obj:
+		if not s.Stop0l: continue
+		sf *= s.MediumSF
+		sfErr += ((s.MediumSFErr)**2)*((s.MediumSF)**2)
+
+	return sf, math.sqrt(sfErr)
+
+    def ScaleFactorErrMuon(self, obj):
+	sf = 1
+	sfErr = 0
+	for s in obj:
+		if not s.Stop0l: continue
+		sf *= s.LooseSF
+		sfErr += ((s.LooseSFErr)**2)*((s.LooseSF)**2)
+
+	return sf, math.sqrt(sfErr)
+
+    def ScaleFactorErrTau(self, obj):
+	sf = 1
+	sfUp = 0
+	sfDown = 0
+	for s in obj:
+		if not s.Stop0l: continue
+		sf *= s.MediumSF
+		sfUp += ((s.MediumSF_Up)**2)*((s.MediumSF)**2)
+		sfDown += ((s.MediumSF_Down)**2)*((s.MediumSF)**2)
+
+	return sf, math.sqrt(sfUp), math.sqrt(sfDown)
+
+    def ScaleFactorErrFatjet(self, obj, objType):
+	sf = 1
+	sfErr = 0
+	for s in obj:
+		if not (s.Stop0l == objType): continue
+		sf *= s.SF
+		sfErr += ((s.SFerr)**2)*((s.SF)**2)
+
+	return sf, math.sqrt(sfErr)
+
+    def ScaleFactorErrSoftB(self, obj):
+	sf = 1
+	sfErr = 0
+	for s in obj:
+		if not s.Stop0l: continue
+		sf *= s.SF
+		sfErr += ((s.SFerr)**2)*((s.SF)**2)
+
+	return sf, math.sqrt(sfErr)
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
@@ -158,21 +210,14 @@ class LLObjectsProducer(Module):
 	PassdPhiQCDSF        = self.PassdPhi(sortedPhi, [0.1, 0.1], invertdPhi =True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 
-	electronSF 	     = reduce(operator.mul, (e.MediumSF for e in electrons if e.Stop0l), 1)
-	electronSFErr 	     = reduce(operator.mul, (e.MediumSFErr for e in electrons if e.Stop0l), 1)
-	muonSF     	     = reduce(operator.mul, (m.LooseSF for m in muons if m.Stop0l), 1)
-	muonSFErr     	     = reduce(operator.mul, (m.LooseSFErr for m in muons if m.Stop0l), 1)
-	tauSF		     = reduce(operator.mul, (t.MediumSF for t in taus if t.Stop0l), 1)
-	tauSFUp		     = reduce(operator.mul, (t.MediumSF_Up for t in taus if t.Stop0l), 1)
-	tauSFDown	     = reduce(operator.mul, (t.MediumSF_Down for t in taus if t.Stop0l), 1)
+	electronSF, electronSFErr = self.ScaleFactorErrElectron(electrons)
+	muonSF, muonSFErr    = self.ScaleFactorErrMuon(muons)
+	tauSF, tauSFUp, tauSFDown = self.ScaleFactorErrTau(taus)
 	## type top = 1, W = 2, else 0
-	WSF		     = reduce(operator.mul, (f.SF for f in fatjets if (f.Stop0l == 2)), 1)
-	WSFErr	     	     = reduce(operator.mul, (f.SFerr for f in fatjets if (f.Stop0l == 2)), 1)
-	topSF		     = reduce(operator.mul, (f.SF for f in fatjets if (f.Stop0l == 1)), 1)
-	topSFErr	     = reduce(operator.mul, (f.SFerr for f in fatjets if (f.Stop0l == 1)), 1)
+	WSF, WSFErr	     = self.ScaleFactorErrFatjet(fatjets, 2)
+	topSF, topSFErr	     = self.ScaleFactorErrFatjet(fatjets, 1)
 	resSF		     = reduce(operator.mul, (restop[rt].sf for rt in xrange(len(restop)) if res[rt].Stop0l), 1)
-	softSF		     = reduce(operator.mul, (s.SF for s in SB if s.Stop0l), 1)	
-	softSFErr	     = reduce(operator.mul, (s.SFerr for s in SB if s.Stop0l), 1)	
+	softSF, softSFErr    = self.ScaleFactorErrSoftB(SB)
 
         ### Store output
 	self.out.fillBranch("Stop0l_nbtags_Loose",   	sum(self.BJet_Stop0l))
@@ -183,19 +228,19 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Pass_dPhiQCDSF",		PassdPhiQCDSF)
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
 	self.out.fillBranch("ElectronSF",		electronSF)
-	self.out.fillBranch("ElectronSFErr",		electronSFErr if electronSFErr != 1 else 0)
+	self.out.fillBranch("ElectronSFErr",		electronSFErr)
 	self.out.fillBranch("MuonSF",			muonSF)
-	self.out.fillBranch("MuonSFErr",		muonSFErr if muonSFErr != 1 else 0)
+	self.out.fillBranch("MuonSFErr",		muonSFErr)
 	self.out.fillBranch("TauSF",			tauSF)
-	self.out.fillBranch("TauSFUp",			tauSFUp if tauSFUp != 1 else 0)
-	self.out.fillBranch("TauSFDown",		tauSFDown if tauSFDown != 1 else 0)
+	self.out.fillBranch("TauSFUp",			tauSFUp)
+	self.out.fillBranch("TauSFDown",		tauSFDown)
 	self.out.fillBranch("WSF",			WSF)
-	self.out.fillBranch("WSFErr",			WSFErr if WSFErr != 1 else 0)
+	self.out.fillBranch("WSFErr",			WSFErr)
 	self.out.fillBranch("TopSF",			topSF)
-	self.out.fillBranch("TopSFErr",			topSFErr if topSFErr != 1 else 0)
+	self.out.fillBranch("TopSFErr",			topSFErr)
 	self.out.fillBranch("restopSF",			resSF)
 	self.out.fillBranch("SoftBSF",			softSF)
-	self.out.fillBranch("SoftBSFErr",		softSFErr if softSFErr != 1 else 0)
+	self.out.fillBranch("SoftBSFErr",		softSFErr)
 	return True
 
 
