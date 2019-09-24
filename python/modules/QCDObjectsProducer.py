@@ -60,7 +60,7 @@ class QCDObjectsProducer(Module):
 	recoInd_ = -1
 	recopt = -1
 	for iG in range(0,len(genJets)):
-		if iG == 4: break
+		#if iG == 4: break
         	if genJets[iG].pt == 0: break
         	fpt = -1
 
@@ -135,7 +135,7 @@ class QCDObjectsProducer(Module):
 
 	jetNearMETInd, MMJetDPhi = -1, -1
 	for iJ in range(0,len(jets)):
-		if iJ == 4 : break
+		#if iJ == 4 : break
 		if not jets[iJ].Stop0l: continue
 		dPhi = abs(deltaPhi(jets[iJ].phi, met.phi))
 		if(MMJetDPhi < 0 or dPhi < MMJetDPhi):
