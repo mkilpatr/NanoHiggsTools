@@ -12,7 +12,6 @@ from PhysicsTools.NanoSUSYTools.modules.updateEvtWeight import *
 
 def main(args):
     isdata = len(args.dataEra) > 0
-    isfastsim = args.isFastSim
     process = args.process
 
     #if isdata and isfastsim:
@@ -32,7 +31,7 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    p=PostProcessor(args.outputfile,files,cut="Pass_MET && Pass_NJets20", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    p=PostProcessor(args.outputfile,files,cut="Pass_MET && Pass_NJets20 && Pass_EventFilter && Pass_HT && Pass_JetID", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     #p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 

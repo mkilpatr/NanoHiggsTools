@@ -119,7 +119,8 @@ def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
 #for small ht samples use 2**15
-def SplitPro(key, file, lineperfile=10, eventsplit=2**18, TreeName=None):
+#for large ht samples use 2**18
+def SplitPro(key, file, lineperfile=10, eventsplit=2**20, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -169,7 +170,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_skim_091219_test"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_SBv4_sig_v2"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -205,8 +206,8 @@ def my_process(args):
 
         #define output directory
         if args.outputdir == "": outdir = sample["Outpath__"]
-        else: outdir = args.outputdir + "/" + name + "/"
-        #else: outdir = args.outputdir + "/"
+        #else: outdir = args.outputdir + "/" + name + "/"
+        else: outdir = args.outputdir + "/"
 
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"

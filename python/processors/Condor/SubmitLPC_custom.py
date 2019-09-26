@@ -108,7 +108,7 @@ def Condor_Sub(condor_file):
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-def SplitPro(key, file, lineperfile=20):
+def SplitPro(key, file, lineperfile=10):
     splitedfiles = []
     filelistdir = tempdir + '/' + "FileList"
     try:
@@ -149,7 +149,7 @@ def my_process(args):
     global tempdir
     global ProjectName
     ProjectName = time.strftime('%b%d') + ShortProjectName
-    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_skim2018_data/"
+    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_skim2018/"
     try:
         os.makedirs(tempdir)
     except OSError:
