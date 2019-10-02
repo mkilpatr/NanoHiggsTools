@@ -63,10 +63,14 @@ class LLObjectsProducer(Module):
 	self.out.branch("Pass_dPhiQCDSF",			"O")
 	self.out.branch("Stop0l_dPhiISRMET",			"F")
 	if not self.isData:
-		self.out.branch("ElectronSF",			"F")
-		self.out.branch("ElectronSFErr",		"F")
-		self.out.branch("MuonSF",			"F")
-		self.out.branch("MuonSFErr",			"F")
+		self.out.branch("ElectronMedSF",		"F")
+		self.out.branch("ElectronMedSFErr",		"F")
+		self.out.branch("ElectronVetoSF",		"F")
+		self.out.branch("ElectronVetoSFErr",		"F")
+		self.out.branch("MuonLooseSF",			"F")
+		self.out.branch("MuonLooseSFErr",		"F")
+		self.out.branch("MuonMedSF",			"F")
+		self.out.branch("MuonMedSFErr",			"F")
 		self.out.branch("TauSF",			"F")
 		self.out.branch("TauSF_Up",			"F")
 		self.out.branch("TauSF_Down",			"F")
@@ -112,23 +116,31 @@ class LLObjectsProducer(Module):
 			noMuonJet = False
 	return noMuonJet
 
-    def ScaleFactorErrElectron(self, obj):
+    def ScaleFactorErrElectron(self, obj, kind="Medium"):
 	sf = 1
 	sfErr = 0
 	for s in obj:
 		if not s.Stop0l: continue
-		sf *= s.MediumSF
-		sfErr += ((s.MediumSFErr)**2)
+		if kind == "Medium":
+			sf *= s.MediumSF
+			sfErr += ((s.MediumSFErr)**2)
+		elif kind == "Veto":
+			sf *= s.VetoSF
+			sfErr += ((s.VetoSFErr)**2)
 
 	return sf, math.sqrt(sfErr)
 
-    def ScaleFactorErrMuon(self, obj):
+    def ScaleFactorErrMuon(self, obj, kind="Loose"):
 	sf = 1
 	sfErr = 0
 	for s in obj:
 		if not s.Stop0l: continue
-		sf *= s.LooseSF
-		sfErr += ((s.LooseSFErr)**2)
+		if kind == "Loose":
+			sf *= s.LooseSF
+			sfErr += ((s.LooseSFErr)**2)
+		elif kind == "Medium":
+			sf *= s.MediumSF
+			sfErr += ((s.MediumSFErr)**2)
 
 	return sf, math.sqrt(sfErr)
 
@@ -208,7 +220,7 @@ class LLObjectsProducer(Module):
 
 
         ## Selecting objects
-	mt		     = sum([ e.MtW for e in electrons if e.Stop0l ] + [ m.MtW for m in muons if m.Stop0l ]) < 100
+	mt		     = sum([ e.MtW for e in electrons if e.Stop0l ] + [ m.MtW for m in muons if m.Stop0l ])
 	countEle	     = sum([e.Stop0l for e in electrons])
 	countMuon	     = sum([m.Stop0l for m in muons])
 	noMuonJet	     = self.SelNoMuon(jets, met)
@@ -218,8 +230,10 @@ class LLObjectsProducer(Module):
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 
 	if not self.isData:
-		electronSF, electronSFErr 	= self.ScaleFactorErrElectron(electrons)
-		muonSF, muonSFErr    		= self.ScaleFactorErrMuon(muons)
+		electronMedSF, electronMedSFErr = self.ScaleFactorErrElectron(electrons, "Medium")
+		electronVetoSF, electronVetoSFErr = self.ScaleFactorErrElectron(electrons, "Veto")
+		muonLooseSF, muonLooseSFErr    	= self.ScaleFactorErrMuon(muons, "Loose")
+		muonMedSF, muonMedSFErr    	= self.ScaleFactorErrMuon(muons, "Medium")
 		tauSF, tauSFUp, tauSFDown 	= self.ScaleFactorErrTau(taus)
 		## type top = 1, W = 2, else 0
 		WtagSF, WtagSFErr	     	= self.ScaleFactorErrFatjet(fatjets, 2)
@@ -236,10 +250,14 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
 	
 	if not self.isData:
-		self.out.fillBranch("ElectronSF",	electronSF)
-		self.out.fillBranch("ElectronSFErr",	electronSFErr)
-		self.out.fillBranch("MuonSF",		muonSF)
-		self.out.fillBranch("MuonSFErr",	muonSFErr)
+		self.out.fillBranch("ElectronMedSF",	electronMedSF)
+		self.out.fillBranch("ElectronMedSFErr",	electronMedSFErr)
+		self.out.fillBranch("ElectronVetoSF",	electronVetoSF)
+		self.out.fillBranch("ElectronVetoSFErr",electronVetoSFErr)
+		self.out.fillBranch("MuonLooseSF",	muonLooseSF)
+		self.out.fillBranch("MuonLooseSFErr",	muonLooseSFErr)
+		self.out.fillBranch("MuonMedSF",	muonMedSF)
+		self.out.fillBranch("MuonMedSFErr",	muonMedSFErr)
 		self.out.fillBranch("TauSF",		tauSF)
 		self.out.fillBranch("TauSF_Up",		tauSFUp)
 		self.out.fillBranch("TauSF_Down",	tauSFDown)
