@@ -62,6 +62,12 @@ class LLObjectsProducer(Module):
 	self.out.branch("Pass_dPhiQCD",				"O")
 	self.out.branch("Pass_dPhiQCDSF",			"O")
 	self.out.branch("Stop0l_dPhiISRMET",			"F")
+	self.out.branch("Pass_HT30",				"O")
+	self.out.branch("Pass_NJets30", 			"O")
+	self.out.branch("Pass_dPhiMET30", 			"O")
+        self.out.branch("Pass_dPhiMETLowDM30", 			"O")
+        self.out.branch("Pass_dPhiMETMedDM30", 			"O")
+        self.out.branch("Pass_dPhiMETHighDM30", 		"O")
 	if not self.isData:
 		self.out.branch("ElectronMedSF",		"F")
 		self.out.branch("ElectronMedSFErr",		"F")
@@ -109,12 +115,23 @@ class LLObjectsProducer(Module):
         else:
             return all( a > b for a, b in zip(sortedPhi, dPhiCuts))
 
+    def PassdPhiVal(self, sortedPhi, dPhiCutsLow, dPhiCutsHigh):
+            return all( (a < b and b < c) for a, b, c in zip(dPhiCutsLow, sortedPhi, dPhiCutsHigh))
+
     def SelNoMuon(self, jets, met):
 	noMuonJet = True
 	for j in jets:
 		if j.pt > 200 and j.muEF > 0.5 and abs(deltaPhi(j.phi, met.phi)) > (math.pi - 0.4):
 			noMuonJet = False
 	return noMuonJet
+
+    def CalHT(self, jets, jetpt = 20.):
+        HT = sum([j.pt for j in jets if (j.Stop0l and j.pt >= jetpt)])
+        return HT
+
+    def PassNjets(self, jets, jetpt = 20.):
+        countJets = sum([j.Stop0l for j in jets if j.pt >= jetpt])
+        return countJets >= 2
 
     def ScaleFactorErrElectron(self, obj, kind="Medium"):
 	sf = 1
@@ -228,6 +245,14 @@ class LLObjectsProducer(Module):
 	PassdPhiQCD          = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 	PassdPhiQCDSF        = self.PassdPhi(sortedPhi, [0.1, 0.1], invertdPhi =True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
+	
+	HT30		     = self.CalHT(jets, 30.) >= 300
+	PassNjets30	     = self.PassNjets(jets, 30.)
+	sortedIdx, sortedPhi = self.GetJetSortedIdx(jets, 30.)
+        PassdPhiLowDM30      = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
+	PassdPhiMedDM30      = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
+        PassdPhiHighDM30     = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
+        PassdPhiQCD30        = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 
 	if not self.isData:
 		electronMedSF, electronMedSFErr = self.ScaleFactorErrElectron(electrons, "Medium")
@@ -248,6 +273,12 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Pass_dPhiQCD",		PassdPhiQCD)
 	self.out.fillBranch("Pass_dPhiQCDSF",		PassdPhiQCDSF)
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
+	self.out.fillBranch("Pass_HT30",		HT30)
+	self.out.fillBranch("Pass_NJets30", 		PassNjets30)
+	self.out.fillBranch("Pass_dPhiMET30", 		PassdPhiLowDM30)
+        self.out.fillBranch("Pass_dPhiMETLowDM30", 	PassdPhiLowDM30)
+        self.out.fillBranch("Pass_dPhiMETMedDM30", 	PassdPhiMedDM30)
+        self.out.fillBranch("Pass_dPhiMETHighDM30", 	PassdPhiHighDM30)
 	
 	if not self.isData:
 		self.out.fillBranch("ElectronMedSF",	electronMedSF)
