@@ -64,6 +64,7 @@ class LLObjectsProducer(Module):
 	self.out.branch("Stop0l_dPhiISRMET",			"F")
 	self.out.branch("Pass_HT30",				"O")
 	self.out.branch("Pass_NJets30", 			"O")
+	self.out.branch("Stop0l_nJets30",			"I")
 	self.out.branch("Pass_dPhiMET30", 			"O")
         self.out.branch("Pass_dPhiMETLowDM30", 			"O")
         self.out.branch("Pass_dPhiMETMedDM30", 			"O")
@@ -131,7 +132,7 @@ class LLObjectsProducer(Module):
 
     def PassNjets(self, jets, jetpt = 20.):
         countJets = sum([j.Stop0l for j in jets if j.pt >= jetpt])
-        return countJets >= 2
+        return countJets
 
     def ScaleFactorErrElectron(self, obj, kind="Medium"):
 	sf = 1
@@ -247,7 +248,8 @@ class LLObjectsProducer(Module):
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 	
 	HT30		     = self.CalHT(jets, 30.) >= 300
-	PassNjets30	     = self.PassNjets(jets, 30.)
+	PassNjets30	     = self.PassNjets(jets, 30.) >= 2
+	nJets30		     = self.PassNjets(jets, 30.)
 	sortedIdx, sortedPhi = self.GetJetSortedIdx(jets, 30.)
         PassdPhiLowDM30      = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
 	PassdPhiMedDM30      = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
@@ -275,6 +277,7 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
 	self.out.fillBranch("Pass_HT30",		HT30)
 	self.out.fillBranch("Pass_NJets30", 		PassNjets30)
+	self.out.fillBranch("Stop0l_nJets30",		nJets30)
 	self.out.fillBranch("Pass_dPhiMET30", 		PassdPhiLowDM30)
         self.out.fillBranch("Pass_dPhiMETLowDM30", 	PassdPhiLowDM30)
         self.out.fillBranch("Pass_dPhiMETMedDM30", 	PassdPhiMedDM30)
