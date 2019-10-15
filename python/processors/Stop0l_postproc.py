@@ -29,6 +29,7 @@ from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
+from PhysicsTools.NanoSUSYTools.modules.qcdBootstrapProducer import qcdBootstrapProducer
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -221,7 +222,8 @@ def main(args):
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
              SoftBDeepAK8SFProducer(args.era, isData=isdata, isFastSim=isfastsim),
              Stop0l_trigger(args.era, isData=isdata),
-             UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
+	     qcdBootstrapProducer(),
+             #UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
 
     #~~~~~ Modules for MC Only ~~~~~
