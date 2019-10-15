@@ -149,7 +149,7 @@ def my_process(args):
     global tempdir
     global ProjectName
     ProjectName = time.strftime('%b%d') + ShortProjectName
-    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_skim2018_fix/"
+    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_skimSig/"
     try:
         os.makedirs(tempdir)
     except OSError:
