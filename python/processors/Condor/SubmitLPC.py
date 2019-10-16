@@ -118,8 +118,9 @@ def Condor_Sub(condor_file):
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-#for small ht samples use 2**15
-#for large ht samples use 2**18
+#for QCD smearing postprocess lineperfile=1
+#some QCD smeared files have zero event and that gives and error when running on multiple files
+#Separate them out to 1 file per job
 def SplitPro(key, file, lineperfile=1, eventsplit=2**20, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
@@ -204,7 +205,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_smear_post2018"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_smear_post2018_"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
