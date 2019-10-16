@@ -120,7 +120,7 @@ def GetNEvent(file):
 
 #for small ht samples use 2**15
 #for large ht samples use 2**18
-def SplitPro(key, file, lineperfile=10, eventsplit=2**20, TreeName=None):
+def SplitPro(key, file, lineperfile=1, eventsplit=2**20, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -141,7 +141,8 @@ def SplitPro(key, file, lineperfile=10, eventsplit=2**20, TreeName=None):
     	    splitedfiles.append(os.path.abspath("%s/%s.0.list" % (filelistdir, key)))
     	    return splitedfiles
     	
-    	fraction = len(lines) / lineperfile
+    	#fraction = len(lines) / lineperfile
+    	fraction = len(lines)
     	if len(lines) % lineperfile > 0:
     	    fraction += 1
     	
@@ -203,7 +204,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_SBv4_sig_v2"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_smear_post2018"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -239,8 +240,8 @@ def my_process(args):
 
         #define output directory
         if args.outputdir == "": outdir = sample["Outpath__"]
-        #else: outdir = args.outputdir + "/" + name + "/"
-        else: outdir = args.outputdir + "/"
+        else: outdir = args.outputdir + "/" + name + "/"
+        #else: outdir = args.outputdir + "/"
 
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"
