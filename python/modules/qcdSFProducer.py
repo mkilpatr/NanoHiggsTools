@@ -75,7 +75,7 @@ class qcdSFProducer(Module):
 		mmFlv = -1
 
 	#mmout = [mmInd, mmResp, mmFlv]
-	return mmResp	
+	return mmResp, mmInd, mmFlv
 
 
     def analyze(self, event):
@@ -84,19 +84,17 @@ class qcdSFProducer(Module):
 	met       = Object(event,     	self.metBranchName)
         stop0l 	  = Object(event, 	"Stop0l")
 
-	B_ratio = 0.
-	if stop0l.nbtags != 0: 
-		B_ratio = float((stop0l.nJets - stop0l.nbtags)/stop0l.nbtags)
-	mmResp = self.getQCDRespTailCorrector(jets, genjets, met) 
+	mmResp, mmInd, mmFlv = self.getQCDRespTailCorrector(jets, genjets, met) 
+	B_ratio = 1 if genjets[mmInd].partonFlavour != 5 else 2
 
 	qcdresptailweight = self.corrhist.GetBinContent(self.corrhist.GetXaxis().FindBin(mmResp),self.corrhist.GetYaxis().FindBin(B_ratio))
-	if self.debug and qcdresptailweight == 1:
+	
+	if self.debug:
 		print "xbin: ", self.corrhist.GetXaxis().FindBin(mmResp)
 		print "ybin: ", self.corrhist.GetYaxis().FindBin(B_ratio)
 		print "B ratio: ", B_ratio
 		print "Response: ", mmResp
 		print 'qcdrespTailWeight: ', qcdresptailweight 
-	if qcdresptailweight == 0: qcdresptailweight = 1.
         self.out.fillBranch("qcdRespTailWeight", qcdresptailweight)
 
 
