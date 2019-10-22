@@ -20,6 +20,10 @@ def main(args):
 
     mods = [
 	LLObjectsProducer(args.era, isData=isdata),
+	LLObjectsProducer(args.era, isData=isdata, "JESUp"),
+	LLObjectsProducer(args.era, isData=isdata, "JESDown"),
+	LLObjectsProducer(args.era, isData=isdata, "METUnClustUp"),
+	LLObjectsProducer(args.era, isData=isdata, "METUnClustDown"),
     ]
 
     files = []

@@ -45,9 +45,13 @@ class LLObjectsProducer(Module):
 	self.suffix = ""
 	
 	if self.applyUncert == "JESUp":
-	    self.suffix = "_JESUp"
-	elif self.applyUncert == "JESDown":
-	    self.suffix = "_JESDown"
+            self.suffix = "_JESUp"
+        elif self.applyUncert == "METUnClustUp":
+            self.suffix = "_METUnClustUp"
+        elif self.applyUncert == "JESDown":
+            self.suffix = "_JESDown"
+        elif self.applyUncert == "METUnClustDown":
+            self.suffix = "_METUnClustDown"
 
     def beginJob(self):
         pass
@@ -56,40 +60,40 @@ class LLObjectsProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	self.out.branch("Stop0l_MtLepMET", 			"F")
-	self.out.branch("Stop0l_nVetoElecMuon", 		"I")
-	self.out.branch("Stop0l_noMuonJet",			"O")
-	self.out.branch("Pass_dPhiQCD",				"O")
-	self.out.branch("Pass_dPhiQCDSF",			"O")
-	self.out.branch("Stop0l_dPhiISRMET",			"F")
-	self.out.branch("Pass_HT30",				"O")
-	self.out.branch("Pass_NJets30", 			"O")
-	self.out.branch("Stop0l_nJets30",			"I")
-	self.out.branch("Pass_dPhiMET30", 			"O")
-        self.out.branch("Pass_dPhiMETLowDM30", 			"O")
-        self.out.branch("Pass_dPhiMETMedDM30", 			"O")
-        self.out.branch("Pass_dPhiMETHighDM30", 		"O")
+	self.out.branch("Stop0l_MtLepMET"		+ self.suffix, 	"F")
+	self.out.branch("Stop0l_nVetoElecMuon"		+ self.suffix, 	"I")
+	self.out.branch("Stop0l_noMuonJet"		+ self.suffix,	"O")
+	self.out.branch("Pass_dPhiQCD"			+ self.suffix,	"O")
+	self.out.branch("Pass_dPhiQCDSF"		+ self.suffix,	"O")
+	self.out.branch("Stop0l_dPhiISRMET"		+ self.suffix,	"F")
+	self.out.branch("Pass_HT30"			+ self.suffix,	"O")
+	self.out.branch("Pass_NJets30"			+ self.suffix, 	"O")
+	self.out.branch("Stop0l_nJets30"		+ self.suffix,	"I")
+	self.out.branch("Pass_dPhiMET30"		+ self.suffix, 	"O")
+        self.out.branch("Pass_dPhiMETLowDM30"		+ self.suffix, 	"O")
+        self.out.branch("Pass_dPhiMETMedDM30"		+ self.suffix, 	"O")
+        self.out.branch("Pass_dPhiMETHighDM30"		+ self.suffix, 	"O")
 	if not self.isData:
-		self.out.branch("ElectronMedSF",		"F")
-		self.out.branch("ElectronMedSFErr",		"F")
-		self.out.branch("ElectronVetoSF",		"F")
-		self.out.branch("ElectronVetoSFErr",		"F")
-		self.out.branch("MuonLooseSF",			"F")
-		self.out.branch("MuonLooseSFErr",		"F")
-		self.out.branch("MuonMedSF",			"F")
-		self.out.branch("MuonMedSFErr",			"F")
-		self.out.branch("TauSF",			"F")
-		self.out.branch("TauSF_Up",			"F")
-		self.out.branch("TauSF_Down",			"F")
-		self.out.branch("WtagSF",			"F")
-		self.out.branch("WtagSFErr",			"F")
-		self.out.branch("TopSF",			"F")
-		self.out.branch("TopSFErr",			"F")
-		self.out.branch("restopSF",			"F")
-		self.out.branch("restopSF_Up",			"F")
-		self.out.branch("restopSF_Down",		"F")
-		self.out.branch("SoftBSF",			"F")
-		self.out.branch("SoftBSFErr",			"F")
+		self.out.branch("ElectronMedSF"		+ self.suffix,	"F")
+		self.out.branch("ElectronMedSFErr"	+ self.suffix,	"F")
+		self.out.branch("ElectronVetoSF"	+ self.suffix,	"F")
+		self.out.branch("ElectronVetoSFErr"	+ self.suffix,	"F")
+		self.out.branch("MuonLooseSF"		+ self.suffix,	"F")
+		self.out.branch("MuonLooseSFErr"	+ self.suffix,	"F")
+		self.out.branch("MuonMedSF"		+ self.suffix,	"F")
+		self.out.branch("MuonMedSFErr"		+ self.suffix,	"F")
+		self.out.branch("TauSF"			+ self.suffix,	"F")
+		self.out.branch("TauSF_Up"		+ self.suffix,	"F")
+		self.out.branch("TauSF_Down"		+ self.suffix,	"F")
+		self.out.branch("WtagSF"		+ self.suffix,	"F")
+		self.out.branch("WtagSFErr"		+ self.suffix,	"F")
+		self.out.branch("TopSF"			+ self.suffix,	"F")
+		self.out.branch("TopSFErr"		+ self.suffix,	"F")
+		self.out.branch("restopSF"		+ self.suffix,	"F")
+		self.out.branch("restopSF_Up"		+ self.suffix,	"F")
+		self.out.branch("restopSF_Down"		+ self.suffix,	"F")
+		self.out.branch("SoftBSF"		+ self.suffix,	"F")
+		self.out.branch("SoftBSFErr"		+ self.suffix,	"F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -230,6 +234,12 @@ class LLObjectsProducer(Module):
 	    res	      = Collection(event, "ResolvedTop_JESDown", lenVar="nResolvedTopCandidate_JESDown")
 	    jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalDown", "mass":"mass_jesTotalDown"})
 	    met       = ObjectRemapped(event, self.metBranchName, replaceMap={"pt":"pt_jesTotalDown", "phi":"phi_jesTotalDown"})
+	elif self.applyUncert == "METUnClustUp":
+            jets      = Collection(event, "Jet")
+            met       = ObjectRemapped(event, self.metBranchName, replaceMap={"pt":"pt_unclustEnUp", "phi":"phi_unclustEnUp"})
+        elif self.applyUncert == "METUnClustDown":
+            jets      = Collection(event, "Jet")
+            met       = ObjectRemapped(event, self.metBranchName, replaceMap={"pt":"pt_unclustEnDown", "phi":"phi_unclustEnDown"})
 	else:
 	    restop    = Collection(event, "ResolvedTopCandidate")
 	    res	      = Collection(event, "ResolvedTop", lenVar="nResolvedTopCandidate")
@@ -269,41 +279,41 @@ class LLObjectsProducer(Module):
 		softBSF, softBSFErr    		= self.ScaleFactorErrSoftB(SB)
 
         ### Store output
-	self.out.fillBranch("Stop0l_MtLepMET",  	mt)
-	self.out.fillBranch("Stop0l_nVetoElecMuon", 	countEle + countMuon)
-	self.out.fillBranch("Stop0l_noMuonJet",		noMuonJet)
-	self.out.fillBranch("Pass_dPhiQCD",		PassdPhiQCD)
-	self.out.fillBranch("Pass_dPhiQCDSF",		PassdPhiQCDSF)
-	self.out.fillBranch("Stop0l_dPhiISRMET",	dphiISRMet)
-	self.out.fillBranch("Pass_HT30",		HT30)
-	self.out.fillBranch("Pass_NJets30", 		PassNjets30)
-	self.out.fillBranch("Stop0l_nJets30",		nJets30)
-	self.out.fillBranch("Pass_dPhiMET30", 		PassdPhiLowDM30)
-        self.out.fillBranch("Pass_dPhiMETLowDM30", 	PassdPhiLowDM30)
-        self.out.fillBranch("Pass_dPhiMETMedDM30", 	PassdPhiMedDM30)
-        self.out.fillBranch("Pass_dPhiMETHighDM30", 	PassdPhiHighDM30)
+	self.out.fillBranch("Stop0l_MtLepMET"		+ self.suffix,  mt)
+	self.out.fillBranch("Stop0l_nVetoElecMuon"	+ self.suffix, 	countEle + countMuon)
+	self.out.fillBranch("Stop0l_noMuonJet"		+ self.suffix,	noMuonJet)
+	self.out.fillBranch("Pass_dPhiQCD"		+ self.suffix,	PassdPhiQCD)
+	self.out.fillBranch("Pass_dPhiQCDSF"		+ self.suffix,	PassdPhiQCDSF)
+	self.out.fillBranch("Stop0l_dPhiISRMET"		+ self.suffix,	dphiISRMet)
+	self.out.fillBranch("Pass_HT30"			+ self.suffix,	HT30)
+	self.out.fillBranch("Pass_NJets30"		+ self.suffix, 	PassNjets30)
+	self.out.fillBranch("Stop0l_nJets30"		+ self.suffix,	nJets30)
+	self.out.fillBranch("Pass_dPhiMET30"		+ self.suffix, 	PassdPhiLowDM30)
+        self.out.fillBranch("Pass_dPhiMETLowDM30"	+ self.suffix, 	PassdPhiLowDM30)
+        self.out.fillBranch("Pass_dPhiMETMedDM30"	+ self.suffix, 	PassdPhiMedDM30)
+        self.out.fillBranch("Pass_dPhiMETHighDM30"	+ self.suffix, 	PassdPhiHighDM30)
 	
 	if not self.isData:
-		self.out.fillBranch("ElectronMedSF",	electronMedSF)
-		self.out.fillBranch("ElectronMedSFErr",	electronMedSFErr)
-		self.out.fillBranch("ElectronVetoSF",	electronVetoSF)
-		self.out.fillBranch("ElectronVetoSFErr",electronVetoSFErr)
-		self.out.fillBranch("MuonLooseSF",	muonLooseSF)
-		self.out.fillBranch("MuonLooseSFErr",	muonLooseSFErr)
-		self.out.fillBranch("MuonMedSF",	muonMedSF)
-		self.out.fillBranch("MuonMedSFErr",	muonMedSFErr)
-		self.out.fillBranch("TauSF",		tauSF)
-		self.out.fillBranch("TauSF_Up",		tauSFUp)
-		self.out.fillBranch("TauSF_Down",	tauSFDown)
-		self.out.fillBranch("WtagSF",		WtagSF)
-		self.out.fillBranch("WtagSFErr",	WtagSFErr)
-		self.out.fillBranch("TopSF",		topSF)
-		self.out.fillBranch("TopSFErr",		topSFErr)
-		self.out.fillBranch("restopSF",		resSF)
-		self.out.fillBranch("restopSF_Up",	resSFUp)
-		self.out.fillBranch("restopSF_Down",	resSFDown)
-		self.out.fillBranch("SoftBSF",		softBSF)
-		self.out.fillBranch("SoftBSFErr",	softBSFErr)
+		self.out.fillBranch("ElectronMedSF"	+ self.suffix,	electronMedSF)
+		self.out.fillBranch("ElectronMedSFErr"	+ self.suffix,	electronMedSFErr)
+		self.out.fillBranch("ElectronVetoSF"	+ self.suffix,	electronVetoSF)
+		self.out.fillBranch("ElectronVetoSFErr"	+ self.suffix,  electronVetoSFErr)
+		self.out.fillBranch("MuonLooseSF"	+ self.suffix,	muonLooseSF)
+		self.out.fillBranch("MuonLooseSFErr"	+ self.suffix,	muonLooseSFErr)
+		self.out.fillBranch("MuonMedSF"		+ self.suffix,	muonMedSF)
+		self.out.fillBranch("MuonMedSFErr"	+ self.suffix,	muonMedSFErr)
+		self.out.fillBranch("TauSF"		+ self.suffix,	tauSF)
+		self.out.fillBranch("TauSF_Up"		+ self.suffix,	tauSFUp)
+		self.out.fillBranch("TauSF_Down"	+ self.suffix,	tauSFDown)
+		self.out.fillBranch("WtagSF"		+ self.suffix,	WtagSF)
+		self.out.fillBranch("WtagSFErr"		+ self.suffix,	WtagSFErr)
+		self.out.fillBranch("TopSF"		+ self.suffix,	topSF)
+		self.out.fillBranch("TopSFErr"		+ self.suffix,	topSFErr)
+		self.out.fillBranch("restopSF"		+ self.suffix,	resSF)
+		self.out.fillBranch("restopSF_Up"	+ self.suffix,	resSFUp)
+		self.out.fillBranch("restopSF_Down"	+ self.suffix,	resSFDown)
+		self.out.fillBranch("SoftBSF"		+ self.suffix,	softBSF)
+		self.out.fillBranch("SoftBSFErr"	+ self.suffix,	softBSFErr)
 	return True
 
 
