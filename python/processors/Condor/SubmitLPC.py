@@ -19,7 +19,7 @@ from multiprocessing import Pool
 #DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v3'
+VersionNumber = '_v4'
 argument = "--inputFiles=%s.$(Process).list "
 #sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
 sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
@@ -118,9 +118,10 @@ def Condor_Sub(condor_file):
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-#for small ht samples use 2**15
-#for large ht samples use 2**18
-def SplitPro(key, file, lineperfile=10, eventsplit=2**20, TreeName=None):
+#for QCD smearing postprocess lineperfile=1
+#some QCD smeared files have zero event and that gives and error when running on multiple files
+#Separate them out to 1 file per job
+def SplitPro(key, file, lineperfile=10, eventsplit=2**17, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -141,7 +142,8 @@ def SplitPro(key, file, lineperfile=10, eventsplit=2**20, TreeName=None):
     	    splitedfiles.append(os.path.abspath("%s/%s.0.list" % (filelistdir, key)))
     	    return splitedfiles
     	
-    	fraction = len(lines) / lineperfile
+    	#fraction = len(lines) / lineperfile
+    	fraction = len(lines)
     	if len(lines) % lineperfile > 0:
     	    fraction += 1
     	
@@ -203,7 +205,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_SBv4_sig_v2"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_smear_post2018"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -239,8 +241,8 @@ def my_process(args):
 
         #define output directory
         if args.outputdir == "": outdir = sample["Outpath__"]
-        #else: outdir = args.outputdir + "/" + name + "/"
-        else: outdir = args.outputdir + "/"
+        else: outdir = args.outputdir + "/" + name + "/"
+        #else: outdir = args.outputdir + "/"
 
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"

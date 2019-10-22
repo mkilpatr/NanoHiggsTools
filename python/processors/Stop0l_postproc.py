@@ -29,6 +29,7 @@ from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
+from PhysicsTools.NanoSUSYTools.modules.qcdBootstrapProducer import qcdBootstrapProducer
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -53,8 +54,8 @@ DataDepInputs = {
                  },
         "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
                   "pileup_MC": "pileup_profile_2018.root",
-                  "JERMC": "Autumn18_V1_MC",
-                  "JECMC": "Autumn18_V8_MC",
+                  "JERMC": "Autumn18_V7_MC",
+                  "JECMC": "Autumn18_V19_MC",
                   "redoJEC": True,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                  }
@@ -78,7 +79,7 @@ DataDepInputs = {
         "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
                   "pileup_MC": "pileup_profile_2018.root",
                   "JERMC": "Autumn18_V1_MC",
-                  "JECMC": "Fall17_FastsimV1_MC",
+                  "JECMC": "Autumn18_FastSimV1_MC",
                   "redoJEC": True,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                  }
@@ -135,19 +136,20 @@ DataDepInputs = {
                     "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
                    },
 
-        "2018A" : { "JEC": "Autumn18_RunA_V8_DATA",
+        "2018A" : { "JEC": "Autumn18_RunA_V19_DATA",
                     "redoJEC": True,
                     "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                    },
-        "2018B" : { "JEC": "Autumn18_RunB_V8_DATA",
+        "2018B" : { "JEC": "Autumn18_RunB_V19_DATA",
                     "redoJEC": True,
                     "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                    },
-        "2018C" : { "JEC": "Autumn18_RunC_V8_DATA",
+        "2018C" : { "JEC": "Autumn18_RunC_V19_DATA",
                     "redoJEC": True,
                     "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                    },
-        "2018D" : { "JEC": "Autumn18_RunD_V8_DATA",
+
+        "2018D" : { "JEC": "Autumn18_RunD_V19_DATA",
                     "redoJEC": True,
                     "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                    },
@@ -221,7 +223,8 @@ def main(args):
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
              SoftBDeepAK8SFProducer(args.era, isData=isdata, isFastSim=isfastsim),
              Stop0l_trigger(args.era, isData=isdata),
-             UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
+	     qcdBootstrapProducer(),
+             #UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
 
     #~~~~~ Modules for MC Only ~~~~~
