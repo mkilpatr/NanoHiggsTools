@@ -85,7 +85,7 @@ class qcdSFProducer(Module):
         stop0l 	  = Object(event, 	"Stop0l")
 
 	mmResp, mmInd, mmFlv = self.getQCDRespTailCorrector(jets, genjets, met) 
-	B_ratio = 1 if genjets[mmInd].partonFlavour != 5 else 2
+	B_ratio = 1 if abs(genjets[mmInd].partonFlavour) != 5 else 2
 
 	qcdresptailweight = self.corrhist.GetBinContent(self.corrhist.GetXaxis().FindBin(mmResp),self.corrhist.GetYaxis().FindBin(B_ratio))
 	
