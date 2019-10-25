@@ -19,12 +19,16 @@ def main(args):
 
     mods = [
 	LLObjectsProducer(args.era, isData=isdata),
-	LLObjectsProducer(args.era, isData=isdata, applyUncert="JESUp"),
-	LLObjectsProducer(args.era, isData=isdata, applyUncert="JESDown"),
-	LLObjectsProducer(args.era, isData=isdata, applyUncert="METUnClustUp"),
-	LLObjectsProducer(args.era, isData=isdata, applyUncert="METUnClustDown"),
-	qcdSFProducer(args.era),
     ]
+
+    if not isdata:
+	mods.append(LLObjectsProducer(args.era, isData=isdata, applyUncert="JESUp"))
+	mods.append(LLObjectsProducer(args.era, isData=isdata, applyUncert="JESDown"))
+	mods.append(LLObjectsProducer(args.era, isData=isdata, applyUncert="METUnClustUp"))
+	mods.append(LLObjectsProducer(args.era, isData=isdata, applyUncert="METUnClustDown"))
+
+    if "QCD" in args.sampleName:
+	mods.append(qcdSFProducer(args.era))
 
     if "SMS" in args.sampleName:
 	mods.append(UpdateEvtWeightFastsim(isdata, args.nEvents, args.sampleName))
