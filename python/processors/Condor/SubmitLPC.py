@@ -126,78 +126,44 @@ def SplitPro(key, file, lineperfile=10, eventsplit=2**17, TreeName=None):
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
     filelistdir = tempdir + '/' + "FileList"
-    if lineperfile == 1:
-    	try:
-    	    os.makedirs(filelistdir)
-    	except OSError:
-    	    pass
-    	
-    	filename = os.path.abspath(file)
-    	
-    	f = open(filename, 'r')
-    	lines = f.readlines()
-    	
-    	if len(lines) <= lineperfile:
-    	    shutil.copy2(os.path.abspath(filename), "%s/%s.0.list" % (filelistdir, key))
-    	    splitedfiles.append(os.path.abspath("%s/%s.0.list" % (filelistdir, key)))
-    	    return splitedfiles
-    	
-    	#fraction = len(lines) / lineperfile
-    	fraction = len(lines)
-    	if len(lines) % lineperfile > 0:
-    	    fraction += 1
-    	
-    	for i in range(0, fraction):
-    	    wlines = []
-    	    if i == fraction - 1 :
-    	        wlines = lines[lineperfile*i :]
-    	    else:
-    	        wlines = lines[lineperfile*i : lineperfile*(i+1)]
-    	    if len(wlines) > 0:
-    	        outf = open("%s/%s.%d.list" % (filelistdir, key, i), 'w')
-    	        outf.writelines(wlines)
-    	        splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, i)))
-    	    outf.close()
+    try:
+        os.makedirs(filelistdir)
+    except OSError:
+        pass
 
+    if "/store/" in file:
+        subprocess.call("xrdcp root://cmseos.fnal.gov/%s %s/%s_all.list" % (file, filelistdir, key), shell=True)
+        filename = os.path.abspath( "%s/%s_all.list" % (filelistdir, key))
     else:
-    	try:
-    	    os.makedirs(filelistdir)
-    	except OSError:
-    	    pass
+        filename = os.path.abspath(file)
 
-    	if "/store/" in file:
-    	    subprocess.call("xrdcp root://cmseos.fnal.gov/%s %s/%s_all.list" % (file, filelistdir, key), shell=True)
-    	    filename = os.path.abspath( "%s/%s_all.list" % (filelistdir, key))
-    	else:
-    	    filename = os.path.abspath(file)
+    filecnt = 0
+    eventcnt  = 0
+    filemap = defaultdict(list)
+    if TreeName is None:
+        print("Need Tree name to get number of entries")
+        return splitedfiles
 
-    	filecnt = 0
-    	eventcnt  = 0
-    	filemap = defaultdict(list)
-    	if TreeName is None:
-    	    print("Need Tree name to get number of entries")
-    	    return splitedfiles
+    f = open(filename, 'r')
+    filelist = [l.strip() for l in f.readlines()]
+    r = None
+    pool = Pool(processes=NProcess)
+    r = pool.map(GetNEvent, filelist)
+    pool.close()
+    filedict = dict(r)
+    for l in filelist:
+        n = filedict[l]
+        eventcnt += n
+        if eventcnt > eventsplit:
+            filecnt += 1
+            eventcnt = n
+        filemap[filecnt].append(l)
 
-    	f = open(filename, 'r')
-    	filelist = [l.strip() for l in f.readlines()]
-    	r = None
-    	pool = Pool(processes=NProcess)
-    	r = pool.map(GetNEvent, filelist)
-    	pool.close()
-    	filedict = dict(r)
-    	for l in filelist:
-    	    n = filedict[l]
-    	    eventcnt += n
-    	    if eventcnt > eventsplit:
-    	        filecnt += 1
-    	        eventcnt = n
-    	    filemap[filecnt].append(l)
-
-    	for k,v in filemap.items():
-    	    outf = open("%s/%s.%d.list" % (filelistdir, key, k), 'w')
-    	    outf.write("\n".join(v))
-    	    splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, k)))
-    	    outf.close()
+    for k,v in filemap.items():
+        outf = open("%s/%s.%d.list" % (filelistdir, key, k), 'w')
+        outf.write("\n".join(v))
+        splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, k)))
+        outf.close()
 
     return splitedfiles
 
@@ -205,7 +171,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_smear_post2018"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_smear_post2016"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:

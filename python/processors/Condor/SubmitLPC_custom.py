@@ -19,7 +19,7 @@ from multiprocessing import Pool
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess_v1'
 argument = "--inputFiles=%s.$(Process).list "
-sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
+sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_limits.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -149,7 +149,7 @@ def my_process(args):
     global tempdir
     global ProjectName
     ProjectName = time.strftime('%b%d') + ShortProjectName
-    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_skimSig/"
+    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "_skim2016/"
     try:
         os.makedirs(tempdir)
     except OSError:

@@ -14,7 +14,7 @@ class qcdSFProducer(Module):
     def __init__(self, era):
 	self.writeHistFile=True
 	self.metBranchName="MET"
-	self.debug = True
+	self.debug = False 
 	if era == "2016":
         	self.correctionfile=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/qcdJetRes/2016/qcdJetRespTailCorr.root"
 	elif era == "2017":
@@ -38,6 +38,7 @@ class qcdSFProducer(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
         self.out.branch("qcdRespTailWeight","F")
+        self.out.branch("qcdRespTailWeight_Err","F")
         self.corrhist=self.loadhisto(self.correctionfile,self.correctionhist)
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
@@ -74,7 +75,6 @@ class qcdSFProducer(Module):
 		mmInd = -1
 		mmFlv = -1
 
-	#mmout = [mmInd, mmResp, mmFlv]
 	return mmResp, mmInd, mmFlv
 
 
@@ -86,9 +86,9 @@ class qcdSFProducer(Module):
 
 	mmResp, mmInd, mmFlv = self.getQCDRespTailCorrector(jets, genjets, met) 
 	B_ratio = 1 if mmFlv != 5 else 2
-	#B_ratio = 1 if abs(genjets[mmInd].partonFlavour) != 5 else 2
 
 	qcdresptailweight = self.corrhist.GetBinContent(self.corrhist.GetXaxis().FindBin(mmResp),self.corrhist.GetYaxis().FindBin(B_ratio))
+	qcdresptailweight_Err = self.corrhist.GetBinError(self.corrhist.GetXaxis().FindBin(mmResp),self.corrhist.GetYaxis().FindBin(B_ratio))
 	
 	if self.debug:
 		print "xbin: ", self.corrhist.GetXaxis().FindBin(mmResp)
@@ -96,7 +96,9 @@ class qcdSFProducer(Module):
 		print "B ratio: ", B_ratio
 		print "Response: ", mmResp
 		print 'qcdrespTailWeight: ', qcdresptailweight 
+		print 'qcdrespTailWeight Err: ', qcdresptailweight_Err
         self.out.fillBranch("qcdRespTailWeight", qcdresptailweight)
+        self.out.fillBranch("qcdRespTailWeight_Err", qcdresptailweight_Err)
 
 
         return True

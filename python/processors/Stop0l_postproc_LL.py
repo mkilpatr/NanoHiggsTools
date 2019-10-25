@@ -5,10 +5,9 @@ import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from importlib import import_module
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
-from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
-from PhysicsTools.NanoSUSYTools.modules.updateEvtWeight import *
+from PhysicsTools.NanoSUSYTools.modules.qcdSFProducer import *
+from PhysicsTools.NanoSUSYTools.modules.updateEvtWeightFastsim import *
 
 def main(args):
     isdata = len(args.dataEra) > 0
@@ -20,11 +19,15 @@ def main(args):
 
     mods = [
 	LLObjectsProducer(args.era, isData=isdata),
-	LLObjectsProducer(args.era, isData=isdata, "JESUp"),
-	LLObjectsProducer(args.era, isData=isdata, "JESDown"),
-	LLObjectsProducer(args.era, isData=isdata, "METUnClustUp"),
-	LLObjectsProducer(args.era, isData=isdata, "METUnClustDown"),
+	LLObjectsProducer(args.era, isData=isdata, applyUncert="JESUp"),
+	LLObjectsProducer(args.era, isData=isdata, applyUncert="JESDown"),
+	LLObjectsProducer(args.era, isData=isdata, applyUncert="METUnClustUp"),
+	LLObjectsProducer(args.era, isData=isdata, applyUncert="METUnClustDown"),
+	qcdSFProducer(args.era),
     ]
+
+    if "SMS" in args.sampleName:
+	mods.append(UpdateEvtWeightFastsim(isdata, args.nEvents, args.sampleName))
 
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
@@ -35,7 +38,8 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    p=PostProcessor(args.outputfile,files,cut="Pass_MET && Pass_NJets20", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    if process=="limits": p=PostProcessor(args.outputfile,files,cut="Pass_MET && Pass_NJets30", branchsel=None, outputbranchsel="keep_and_drop_limits.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    else: 		  p=PostProcessor(args.outputfile,files,cut="Pass_MET && Pass_NJets30", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
 if __name__ == "__main__":

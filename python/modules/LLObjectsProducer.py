@@ -7,6 +7,7 @@ import operator
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, closest
 
 #2016 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Data_MC_Scale_Factors_period_dep
@@ -223,15 +224,15 @@ class LLObjectsProducer(Module):
 	stop0l    = Object(event, "Stop0l")
 	fatjets   = Collection(event, "FatJet")
 	SB	  = Collection(event, "SB")
+	restop    = Collection(event, "ResolvedTopCandidate")
+	res	  = Collection(event, "ResolvedTop", lenVar="nResolvedTopCandidate")
+	jets      = Collection(event, "Jet")
+	met       = Object(event, self.metBranchName)
 
 	if self.applyUncert == "JESUp":
-	    restop    = Collection(event, "ResolvedTopCandidate_JESUp")
-	    res	      = Collection(event, "ResolvedTop_JESUp", lenVar="nResolvedTopCandidate_JESUp")
 	    jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
 	    met       = ObjectRemapped(event, self.metBranchName, replaceMap={"pt":"pt_jesTotalUp", "phi":"phi_jesTotalUp"})
 	elif self.applyUncert == "JESDown":
-	    restop    = Collection(event, "ResolvedTopCandidate_JESDown")
-	    res	      = Collection(event, "ResolvedTop_JESDown", lenVar="nResolvedTopCandidate_JESDown")
 	    jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalDown", "mass":"mass_jesTotalDown"})
 	    met       = ObjectRemapped(event, self.metBranchName, replaceMap={"pt":"pt_jesTotalDown", "phi":"phi_jesTotalDown"})
 	elif self.applyUncert == "METUnClustUp":
@@ -240,12 +241,6 @@ class LLObjectsProducer(Module):
         elif self.applyUncert == "METUnClustDown":
             jets      = Collection(event, "Jet")
             met       = ObjectRemapped(event, self.metBranchName, replaceMap={"pt":"pt_unclustEnDown", "phi":"phi_unclustEnDown"})
-	else:
-	    restop    = Collection(event, "ResolvedTopCandidate")
-	    res	      = Collection(event, "ResolvedTop", lenVar="nResolvedTopCandidate")
-	    jets      = Collection(event, "Jet")
-	    met       = Object(event, self.metBranchName)
-
 
         ## Selecting objects
 	mt		     = sum([ e.MtW for e in electrons if e.Stop0l ] + [ m.MtW for m in muons if m.Stop0l ])
