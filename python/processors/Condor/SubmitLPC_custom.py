@@ -36,7 +36,7 @@ def tar_cmssw():
         if tarinfo.size > 100*1024*1024:
             tarinfo = None
             return tarinfo
-        exclude_patterns = ['/.git/', '/tmp/', '/jobs.*/', '/logs/', '/.SCRAM/', '.pyc']
+        exclude_patterns = ['/.git/', '/tmp/', '/jobs.*/', '/logs/', '/.SCRAM/', '.pyc', '/Limits/*']
         for pattern in exclude_patterns:
             if re.search(pattern, tarinfo.name):
                 # print('ignoring %s in the tarball', tarinfo.name)

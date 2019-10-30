@@ -41,7 +41,7 @@ def tar_cmssw():
         if tarinfo.size > 100*1024*1024:
             tarinfo = None
             return tarinfo
-        exclude_patterns = ['/.git/', '/tmp/', '/jobs.*/', '/logs/', '/.SCRAM/', '.pyc']
+        exclude_patterns = ['/.git/', '/tmp/', '/jobs.*/', '/logs/', '/.SCRAM/', '.pyc', '/Limits/*', '/HiggsAnalysis/*', '/CombineHarvester/*', '/TauMVATraining/*']
         for pattern in exclude_patterns:
             if re.search(pattern, tarinfo.name):
                 # print('ignoring %s in the tarball', tarinfo.name)
@@ -121,7 +121,7 @@ def GetNEvent(file):
 #for QCD smearing postprocess lineperfile=1
 #some QCD smeared files have zero event and that gives and error when running on multiple files
 #Separate them out to 1 file per job
-def SplitPro(key, file, lineperfile=10, eventsplit=2**17, TreeName=None):
+def SplitPro(key, file, lineperfile=10, eventsplit=2**18, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -171,7 +171,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_smear_post2016"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_skim2018"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -207,8 +207,8 @@ def my_process(args):
 
         #define output directory
         if args.outputdir == "": outdir = sample["Outpath__"]
-        else: outdir = args.outputdir + "/" + name + "/"
-        #else: outdir = args.outputdir + "/"
+        #else: outdir = args.outputdir + "/" + name + "/"
+        else: outdir = args.outputdir + "/"
 
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"

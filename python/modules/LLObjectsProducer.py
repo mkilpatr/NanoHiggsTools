@@ -37,11 +37,6 @@ class LLObjectsProducer(Module):
         self.era = era
 	self.isData = isData
         self.metBranchName = "MET"
-        # EE noise mitigation in PF MET
-        # https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1865.html
-        if self.era == "2017":
-            self.metBranchName = "METFixEE2017"
-
 	self.applyUncert = applyUncert
 	self.suffix = ""
 	
@@ -67,13 +62,6 @@ class LLObjectsProducer(Module):
 	self.out.branch("Pass_dPhiQCD"			+ self.suffix,	"O")
 	self.out.branch("Pass_dPhiQCDSF"		+ self.suffix,	"O")
 	self.out.branch("Stop0l_dPhiISRMET"		+ self.suffix,	"F")
-	self.out.branch("Pass_HT30"			+ self.suffix,	"O")
-	self.out.branch("Pass_NJets30"			+ self.suffix, 	"O")
-	self.out.branch("Stop0l_nJets30"		+ self.suffix,	"I")
-	self.out.branch("Pass_dPhiMET30"		+ self.suffix, 	"O")
-        self.out.branch("Pass_dPhiMETLowDM30"		+ self.suffix, 	"O")
-        self.out.branch("Pass_dPhiMETMedDM30"		+ self.suffix, 	"O")
-        self.out.branch("Pass_dPhiMETHighDM30"		+ self.suffix, 	"O")
 	if not self.isData:
 		self.out.branch("ElectronMedSF"		+ self.suffix,	"F")
 		self.out.branch("ElectronMedSFErr"	+ self.suffix,	"F")
@@ -130,14 +118,6 @@ class LLObjectsProducer(Module):
 		if j.pt > 200 and j.muEF > 0.5 and abs(deltaPhi(j.phi, met.phi)) > (math.pi - 0.4):
 			noMuonJet = False
 	return noMuonJet
-
-    def CalHT(self, jets, jetpt = 20.):
-        HT = sum([j.pt for j in jets if (j.Stop0l and j.pt >= jetpt)])
-        return HT
-
-    def PassNjets(self, jets, jetpt = 20.):
-        countJets = sum([j.Stop0l for j in jets if j.pt >= jetpt])
-        return countJets
 
     def ScaleFactorErrElectron(self, obj, kind="Medium"):
 	sf = 1
@@ -252,15 +232,6 @@ class LLObjectsProducer(Module):
 	PassdPhiQCDSF        = self.PassdPhi(sortedPhi, [0.1, 0.1], invertdPhi =True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 	
-	HT30		     = self.CalHT(jets, 30.) >= 300
-	PassNjets30	     = self.PassNjets(jets, 30.) >= 2
-	nJets30		     = self.PassNjets(jets, 30.)
-	sortedIdx, sortedPhi = self.GetJetSortedIdx(jets, 30.)
-        PassdPhiLowDM30      = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
-	PassdPhiMedDM30      = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
-        PassdPhiHighDM30     = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
-        PassdPhiQCD30        = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
-
 	if not self.isData:
 		electronMedSF, electronMedSFErr = self.ScaleFactorErrElectron(electrons, "Medium")
 		electronVetoSF, electronVetoSFErr = self.ScaleFactorErrElectron(electrons, "Veto")
@@ -280,13 +251,6 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Pass_dPhiQCD"		+ self.suffix,	PassdPhiQCD)
 	self.out.fillBranch("Pass_dPhiQCDSF"		+ self.suffix,	PassdPhiQCDSF)
 	self.out.fillBranch("Stop0l_dPhiISRMET"		+ self.suffix,	dphiISRMet)
-	self.out.fillBranch("Pass_HT30"			+ self.suffix,	HT30)
-	self.out.fillBranch("Pass_NJets30"		+ self.suffix, 	PassNjets30)
-	self.out.fillBranch("Stop0l_nJets30"		+ self.suffix,	nJets30)
-	self.out.fillBranch("Pass_dPhiMET30"		+ self.suffix, 	PassdPhiLowDM30)
-        self.out.fillBranch("Pass_dPhiMETLowDM30"	+ self.suffix, 	PassdPhiLowDM30)
-        self.out.fillBranch("Pass_dPhiMETMedDM30"	+ self.suffix, 	PassdPhiMedDM30)
-        self.out.fillBranch("Pass_dPhiMETHighDM30"	+ self.suffix, 	PassdPhiHighDM30)
 	
 	if not self.isData:
 		self.out.fillBranch("ElectronMedSF"	+ self.suffix,	electronMedSF)

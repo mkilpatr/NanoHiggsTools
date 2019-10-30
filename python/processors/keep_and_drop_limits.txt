@@ -10,3 +10,6 @@ keep *Weight*
 keep MET_pt
 keep event
 keep run
+drop HLT*
+drop LHE*
+drop METFixEE2017_*
