@@ -22,7 +22,7 @@ ShortProjectName = 'PostProcess'
 VersionNumber = '_v4'
 argument = "--inputFiles=%s.$(Process).list "
 #sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
-sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
+sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_limits.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
 TTreeName = "Events"
 NProcess = 10
 
@@ -121,7 +121,7 @@ def GetNEvent(file):
 #for QCD smearing postprocess lineperfile=1
 #some QCD smeared files have zero event and that gives and error when running on multiple files
 #Separate them out to 1 file per job
-def SplitPro(key, file, lineperfile=10, eventsplit=2**18, TreeName=None):
+def SplitPro(key, file, lineperfile=10, eventsplit=2**20, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -171,7 +171,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_skim2018"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_skim"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:

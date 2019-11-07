@@ -63,17 +63,20 @@ class LLObjectsProducer(Module):
 	self.out.branch("Pass_dPhiQCDSF"		+ self.suffix,	"O")
 	self.out.branch("Stop0l_dPhiISRMET"		+ self.suffix,	"F")
 	if not self.isData:
-		self.out.branch("ElectronMedSF"		+ self.suffix,	"F")
-		self.out.branch("ElectronMedSFErr"	+ self.suffix,	"F")
-		self.out.branch("ElectronVetoSF"	+ self.suffix,	"F")
-		self.out.branch("ElectronVetoSFErr"	+ self.suffix,	"F")
-		self.out.branch("MuonLooseSF"		+ self.suffix,	"F")
-		self.out.branch("MuonLooseSFErr"	+ self.suffix,	"F")
-		self.out.branch("MuonMedSF"		+ self.suffix,	"F")
-		self.out.branch("MuonMedSFErr"		+ self.suffix,	"F")
-		self.out.branch("TauSF"			+ self.suffix,	"F")
-		self.out.branch("TauSF_Up"		+ self.suffix,	"F")
-		self.out.branch("TauSF_Down"		+ self.suffix,	"F")
+		self.out.branch("ElectronVetoCRSF"	+ self.suffix,	"F")
+		self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
+		self.out.branch("ElectronVetoSRSF"	+ self.suffix,	"F")
+		self.out.branch("ElectronVetoSRSFErr"	+ self.suffix,  "F")
+		self.out.branch("MuonLooseCRSF"		+ self.suffix,	"F")
+		self.out.branch("MuonLooseCRSFErr"	+ self.suffix,	"F")
+		self.out.branch("MuonLooseSRSF"		+ self.suffix,	"F")
+		self.out.branch("MuonLooseSRSFErr"	+ self.suffix,	"F")
+		self.out.branch("TauCRSF"		+ self.suffix,	"F")
+		self.out.branch("TauCRSF_Up"		+ self.suffix,	"F")
+		self.out.branch("TauCRSF_Down"		+ self.suffix,	"F")
+		self.out.branch("TauSRSF"		+ self.suffix,	"F")
+		self.out.branch("TauSRSF_Up"		+ self.suffix,	"F")
+		self.out.branch("TauSRSF_Down"		+ self.suffix,	"F")
 		self.out.branch("WtagSF"		+ self.suffix,	"F")
 		self.out.branch("WtagSFErr"		+ self.suffix,	"F")
 		self.out.branch("TopSF"			+ self.suffix,	"F")
@@ -119,43 +122,60 @@ class LLObjectsProducer(Module):
 			noMuonJet = False
 	return noMuonJet
 
-    def ScaleFactorErrElectron(self, obj, kind="Medium"):
+    def ScaleFactorErrElectron(self, obj, kind="Veto", region="CR"):
 	sf = 1
 	sfErr = 0
+	pt_comp = 99999.
 	for s in obj:
 		if not s.Stop0l: continue
-		if kind == "Medium":
-			sf *= s.MediumSF
-			sfErr += ((s.MediumSFErr)**2)
-		elif kind == "Veto":
-			sf *= s.VetoSF
-			sfErr += ((s.VetoSFErr)**2)
+		if region == "CR":
+			if kind == "Medium":
+				sf *= s.MediumSF
+				sfErr += ((s.MediumSFErr)**2)
+			elif kind == "Veto":
+				sf *= s.VetoSF
+				sfErr += ((s.VetoSFErr)**2)
+		if s.pt < pt_comp and region == "SR":
+			pt_comp = s.pt
+			sf = s.VetoSF
+			sfErr = ((s.VetoSFErr)**2)
 
 	return sf, math.sqrt(sfErr)
 
-    def ScaleFactorErrMuon(self, obj, kind="Loose"):
+    def ScaleFactorErrMuon(self, obj, kind="Loose", region="CR"):
 	sf = 1
 	sfErr = 0
+	pt_comp = 99999.
 	for s in obj:
 		if not s.Stop0l: continue
-		if kind == "Loose":
-			sf *= s.LooseSF
-			sfErr += ((s.LooseSFErr)**2)
-		elif kind == "Medium":
-			sf *= s.MediumSF
-			sfErr += ((s.MediumSFErr)**2)
+		if region == "CR":
+			if kind == "Loose":
+				sf *= s.LooseSF
+				sfErr += ((s.LooseSFErr)**2)
+			elif kind == "Medium":
+				sf *= s.MediumSF
+				sfErr += ((s.MediumSFErr)**2)
+		if s.pt < pt_comp and region == "SR":
+			sf = s.LooseSF
+			sfErr = ((s.LooseSFErr)**2)
 
 	return sf, math.sqrt(sfErr)
 
-    def ScaleFactorErrTau(self, obj):
+    def ScaleFactorErrTau(self, obj, region = "CR"):
 	sf = 1
 	sfUp = 0
 	sfDown = 0
+	pt_comp = 99999.
 	for s in obj:
 		if not s.Stop0l: continue
-		sf *= s.MediumSF
-		sfUp += ((s.MediumSF_Up)**2)
-		sfDown += ((s.MediumSF_Down)**2)
+		if region == "CR":
+			sf *= s.MediumSF
+			sfUp += ((s.MediumSF_Up)**2)
+			sfDown += ((s.MediumSF_Down)**2)
+		if s.pt < pt_comp and region == "SR":
+			sf = s.MediumSF
+			sfUp = ((s.MediumSF_Up)**2)
+			sfDown = ((s.MediumSF_Down)**2)
 
 	return sf, math.sqrt(sfUp), math.sqrt(sfDown)
 
@@ -233,16 +253,17 @@ class LLObjectsProducer(Module):
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 	
 	if not self.isData:
-		electronMedSF, electronMedSFErr = self.ScaleFactorErrElectron(electrons, "Medium")
-		electronVetoSF, electronVetoSFErr = self.ScaleFactorErrElectron(electrons, "Veto")
-		muonLooseSF, muonLooseSFErr    	= self.ScaleFactorErrMuon(muons, "Loose")
-		muonMedSF, muonMedSFErr    	= self.ScaleFactorErrMuon(muons, "Medium")
-		tauSF, tauSFUp, tauSFDown 	= self.ScaleFactorErrTau(taus)
+		electronVetoCRSF, electronVetoCRSFErr 	= self.ScaleFactorErrElectron(electrons, "Veto", "CR")
+		electronVetoSRSF, electronVetoSRSFErr 	= self.ScaleFactorErrElectron(electrons, "Veto", "SR")
+		muonLooseCRSF, muonLooseCRSFErr    	= self.ScaleFactorErrMuon(muons, "Loose", "CR")
+		muonLooseSRSF, muonLooseSRSFErr    	= self.ScaleFactorErrMuon(muons, "Loose", "SR")
+		tauCRSF, tauCRSFUp, tauCRSFDown 	= self.ScaleFactorErrTau(taus, "CR")
+		tauSRSF, tauSRSFUp, tauSRSFDown 	= self.ScaleFactorErrTau(taus, "SR")
 		## type top = 1, W = 2, else 0
-		WtagSF, WtagSFErr	     	= self.ScaleFactorErrFatjet(fatjets, 2)
-		topSF, topSFErr	     		= self.ScaleFactorErrFatjet(fatjets, 1)
-		resSF, resSFUp, resSFDown 	= self.ScaleFactorErrResTop(restop, res)
-		softBSF, softBSFErr    		= self.ScaleFactorErrSoftB(SB)
+		WtagSF, WtagSFErr	     		= self.ScaleFactorErrFatjet(fatjets, 2)
+		topSF, topSFErr	     			= self.ScaleFactorErrFatjet(fatjets, 1)
+		resSF, resSFUp, resSFDown 		= self.ScaleFactorErrResTop(restop, res)
+		softBSF, softBSFErr    			= self.ScaleFactorErrSoftB(SB)
 
         ### Store output
 	self.out.fillBranch("Stop0l_MtLepMET"		+ self.suffix,  mt)
@@ -253,23 +274,26 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Stop0l_dPhiISRMET"		+ self.suffix,	dphiISRMet)
 	
 	if not self.isData:
-		self.out.fillBranch("ElectronMedSF"	+ self.suffix,	electronMedSF)
-		self.out.fillBranch("ElectronMedSFErr"	+ self.suffix,	electronMedSFErr)
-		self.out.fillBranch("ElectronVetoSF"	+ self.suffix,	electronVetoSF)
-		self.out.fillBranch("ElectronVetoSFErr"	+ self.suffix,  electronVetoSFErr)
-		self.out.fillBranch("MuonLooseSF"	+ self.suffix,	muonLooseSF)
-		self.out.fillBranch("MuonLooseSFErr"	+ self.suffix,	muonLooseSFErr)
-		self.out.fillBranch("MuonMedSF"		+ self.suffix,	muonMedSF)
-		self.out.fillBranch("MuonMedSFErr"	+ self.suffix,	muonMedSFErr)
-		self.out.fillBranch("TauSF"		+ self.suffix,	tauSF)
-		self.out.fillBranch("TauSF_Up"		+ self.suffix,	tauSFUp)
-		self.out.fillBranch("TauSF_Down"	+ self.suffix,	tauSFDown)
-		self.out.fillBranch("WtagSF"		+ self.suffix,	WtagSF)
-		self.out.fillBranch("WtagSFErr"		+ self.suffix,	WtagSFErr)
-		self.out.fillBranch("TopSF"		+ self.suffix,	topSF)
-		self.out.fillBranch("TopSFErr"		+ self.suffix,	topSFErr)
-		self.out.fillBranch("restopSF"		+ self.suffix,	resSF)
-		self.out.fillBranch("restopSF_Up"	+ self.suffix,	resSFUp)
+		self.out.fillBranch("ElectronVetoCRSF"		+ self.suffix,	electronVetoCRSF)
+		self.out.fillBranch("ElectronVetoCRSFErr"	+ self.suffix,  electronVetoCRSFErr)
+		self.out.fillBranch("ElectronVetoSRSF"		+ self.suffix,	electronVetoSRSF)
+		self.out.fillBranch("ElectronVetoSRSFErr"	+ self.suffix,  electronVetoSRSFErr)
+		self.out.fillBranch("MuonLooseCRSF"		+ self.suffix,	muonLooseCRSF)
+		self.out.fillBranch("MuonLooseCRSFErr"		+ self.suffix,	muonLooseCRSFErr)
+		self.out.fillBranch("MuonLooseSRSF"		+ self.suffix,	muonLooseSRSF)
+		self.out.fillBranch("MuonLooseSRSFErr"		+ self.suffix,	muonLooseSRSFErr)
+		self.out.fillBranch("TauCRSF"			+ self.suffix,	tauCRSF)
+		self.out.fillBranch("TauCRSF_Up"		+ self.suffix,	tauCRSFUp)
+		self.out.fillBranch("TauCRSF_Down"		+ self.suffix,	tauCRSFDown)
+		self.out.fillBranch("TauSRSF"			+ self.suffix,	tauSRSF)
+		self.out.fillBranch("TauSRSF_Up"		+ self.suffix,	tauSRSFUp)
+		self.out.fillBranch("TauSRSF_Down"		+ self.suffix,	tauSRSFDown)
+		self.out.fillBranch("WtagSF"			+ self.suffix,	WtagSF)
+		self.out.fillBranch("WtagSFErr"			+ self.suffix,	WtagSFErr)
+		self.out.fillBranch("TopSF"			+ self.suffix,	topSF)
+		self.out.fillBranch("TopSFErr"			+ self.suffix,	topSFErr)
+		self.out.fillBranch("restopSF"			+ self.suffix,	resSF)
+		self.out.fillBranch("restopSF_Up"		+ self.suffix,	resSFUp)
 		self.out.fillBranch("restopSF_Down"	+ self.suffix,	resSFDown)
 		self.out.fillBranch("SoftBSF"		+ self.suffix,	softBSF)
 		self.out.fillBranch("SoftBSFErr"	+ self.suffix,	softBSFErr)
