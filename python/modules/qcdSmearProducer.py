@@ -49,6 +49,7 @@ class qcdSmearProducer(Module):
         self.outsmear = outputTreeSmear
         self.out.branch("nBootstrapWeight",        "I")
         self.out.branch("bootstrapWeight",         "I", lenVar="nBootstrapWeight")
+        self.out.branch("uniqueID", "l")
         self.outsmear.branch("Jet_pt", "F", lenVar="nJet")
         self.outsmear.branch("Jet_eta", "F", lenVar="nJet")
         self.outsmear.branch("Jet_phi", "F", lenVar="nJet")
@@ -57,6 +58,8 @@ class qcdSmearProducer(Module):
         self.outsmear.branch("MET_phi", "F")
         self.outsmear.branch("genWeight", "F")
         self.outsmear.branch("Stop0l_evtWeight", "F")
+        self.outsmear.branch("smearWeight", "F")
+        self.outsmear.branch("uniqueID", "l")
         self.outsmear.branch("nBootstrapWeight",        "I")
         self.outsmear.branch("bootstrapWeight",         "I", lenVar="nBootstrapWeight")
         self.targeth = self.loadHisto(self.respFileName,self.respHistName)
@@ -183,9 +186,15 @@ class qcdSmearProducer(Module):
         met       = Object(event,     self.metBranchName)
         weight    = event.Stop0l_evtWeight
         eventNum  = event.event
+        # This gives us a 64-bit number that uniquely identifies each event,
+        # even if the event number is the same as another event, unless the
+        # event number AND the MET are the same, which is very unlikely
+        uniqueID  = hash((eventNum, met.Pt()))
 
-        #Need to initialize a random seed
-        ROOT.gRandom.SetSeed(123456)
+        # Need to initialize a random seed.  Use the event number so that we
+        # have a different seed for every event, but we will get the same
+        # smearing each time if we run multiple times.
+        ROOT.gRandom.SetSeed(eventNum)
 
         b = []
 
@@ -215,6 +224,7 @@ class qcdSmearProducer(Module):
                 testMet = self.testMetCalc(met, jets[rJI], gJ).Pt()
 
             deltamet = testMet - met.pt
+            # JSW: what is the purpose of this check?
             if deltamet > met.pt + 100 and deltamet > 0.55 *gJ.pt: continue
 
             recoJet = jets[rJI]
@@ -264,6 +274,11 @@ class qcdSmearProducer(Module):
                     newResProb = ROOT.gRandom.Uniform(info[4], info[5])
                     newResValue=self.interpolateProbToRes(info[3], newResProb)
 
+                # JSW: What is the purpose of the "Contribution Window"?  It
+                # seems to be a window that is a little bit larger than the
+                # original window, and is centered, not on the new response
+                # value, but a little bit closer to 1 than the new response
+                # value.  Why do we divide by the probability in this window?
                 minProb2, maxProb2, minRes2, maxRes2 = self.getContributionScaledWindowAndProb(info[3], newResValue, self.minWindow, self.maxWindow)
                 contribProb = maxProb2 - minProb2
                 if contribProb == 0 : continue
@@ -318,7 +333,6 @@ class qcdSmearProducer(Module):
                     #print "combine: ", combine
                     recoJets_pt, recoJets_eta, recoJets_phi, recoJets_mass = zip(*combine)
                     smearWeight /= float(self.nSmears)
-                    weight *= smearWeight
                     self.outsmear.fillBranch("Jet_pt", recoJets_pt)
                     self.outsmear.fillBranch("Jet_eta", recoJets_eta)
                     self.outsmear.fillBranch("Jet_phi", recoJets_phi)
@@ -327,6 +341,8 @@ class qcdSmearProducer(Module):
                     self.outsmear.fillBranch("MET_phi", met.Phi())
                     self.outsmear.fillBranch("genWeight", weight)
                     self.outsmear.fillBranch("Stop0l_evtWeight", weight)
+                    self.outsmear.fillBranch("smearWeight", smearWeight)
+                    self.outsmear.fillBranch("uniqueID", uniqueID)
                     self.outsmear.fillBranch("nBootstrapWeight", self.nBootstraps)
                     self.outsmear.fillBranch("bootstrapWeight", b)
                     self.outsmear.fill()
@@ -339,4 +355,5 @@ class qcdSmearProducer(Module):
 
         self.out.fillBranch("nBootstrapWeight",        self.nBootstraps)
         self.out.fillBranch("bootstrapWeight",         b)
+        self.out.fillBranch("uniqueID",                uniqueID)
         return True
