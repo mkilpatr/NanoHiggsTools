@@ -13,7 +13,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.treeReaderArrayTools imp
 from rootpy.tree import Tree, TreeModel, IntCol, FloatArrayCol
 
 
-class qcdSmearProducer(Module): 
+class qcdSmearProducer(Module):
     def __init__(self):
         self.writeHistFile=True
         self.metBranchName="MET"
@@ -32,7 +32,7 @@ class qcdSmearProducer(Module):
         pass
 
     def endJob(self):
-        pass 
+        pass
 
     def loadHisto(self,filename,hname):
         tf = ROOT.TFile.Open(filename)
@@ -62,19 +62,19 @@ class qcdSmearProducer(Module):
         self.targeth = self.loadHisto(self.respFileName,self.respHistName)
 
     def ptmapping(self, recojet, vecKind):
-        ptrange = [0, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500, 700, 1000, 4000]  
+        ptrange = [0, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500, 700, 1000, 4000]
         pt_index = -1
-        if vecKind : 
+        if vecKind :
             jetpt = recojet.Pt()
-        else:        
+        else:
             jetpt = recojet.pt
         for i in xrange(len(ptrange)):
-            if jetpt < float(ptrange[i]): 
+            if jetpt < float(ptrange[i]):
                 pt_index = i - 1
                 break
             else:
                 pt_index = len(ptrange) - 1
-        
+
         if vecKind :
             return pt_index
         else:
@@ -97,7 +97,7 @@ class qcdSmearProducer(Module):
         return resp * m + b
 
     def interpolteProbToRes(self,cdf,probe):
-        binAbove = cdf.FindFirstBinAbove(probe) 
+        binAbove = cdf.FindFirstBinAbove(probe)
         if binAbove <= 1 :return 0
         deltaProb = cdf.GetBinContent(binAbove) - cdf.GetBinContent(binAbove -1)
         newResValue = cdf.GEtBinCenter(binAbove)
@@ -106,13 +106,13 @@ class qcdSmearProducer(Module):
             m = cdf.GetBinWidth(binAbove) / deltaProb
             newResValue = m* probe + b
         return newResValue
-     
+
     def getScaledWindow(self,resp,minW,maxW):
         if resp < 1 :
             return (minW - maxW)*resp + maxW
         else :
-            return -1 * (minW - maxW) * resp + 2 * minW - maxW 
-        
+            return -1 * (minW - maxW) * resp + 2 * minW - maxW
+
     def getUpIntegratedScaledWindow(self,resp,minW,maxW):
         if resp < 1 - self.getScaledWindow(1,minW,maxW):
             return (resp + maxW)/(1-(minW - maxW))
@@ -128,7 +128,7 @@ class qcdSmearProducer(Module):
     def getWindowProb(self,cdf,minRes,maxRes):
         minRes = max(0.0001,minRes)
         maxRes = min(1.9999,maxRes)
-        if minRes >= maxRes : 
+        if minRes >= maxRes :
             minProb=0
             maxProb=0
             return
@@ -162,12 +162,12 @@ class qcdSmearProducer(Module):
         v3.SetPtEtaPhiM(obj3.pt, 0, obj3.phi, 0)
         tot = (v1 + (v2 - v3))
         return tot
-    
+
     def addTLorentzVector(self,obj1,obj2):
         tot = ROOT.TLorentzVector()
         tot = obj1 + obj2
         return tot
-    
+
     def subFourVector(self,obj1,obj2):
         tot = ROOT.TLorentzVector()
         v1 = ROOT.TLorentzVector()
@@ -176,7 +176,7 @@ class qcdSmearProducer(Module):
         v2.SetPtEtaPhiM(obj2.pt, 0, obj2.phi, 0)
         tot = v1-v2
         return tot
-    
+
     def analyze(self, event):
         jets      = Collection(event, "Jet")
         genjets   = Collection(event, "GenJet")
@@ -187,7 +187,7 @@ class qcdSmearProducer(Module):
         #Need to initialize a random seed
         ROOT.gRandom.SetSeed(123456)
 
-        b = []        
+        b = []
 
         for iB in xrange(self.nBootstraps) :
             b.append(min(255,ROOT.gRandom.Poisson(1)))
@@ -213,10 +213,10 @@ class qcdSmearProducer(Module):
                 testMet = self.subFourVector(met, gJ).Pt()
             else:
                 testMet = self.testMetCalc(met, jets[rJI], gJ).Pt()
-            
+
             deltamet = testMet - met.pt
             if deltamet > met.pt + 100 and deltamet > 0.55 *gJ.pt: continue
-            
+
             recoJet = jets[rJI]
             vecKind = False
             if rJI < 0 :
@@ -228,17 +228,17 @@ class qcdSmearProducer(Module):
 
             origRes_ = self.jetResFunction(recoJet, gJ, vecKind)
             if origRes_ < 0 or origRes_ > 2 : continue
-            
+
             respHisto = self.ptmapping(recoJet, vecKind)
             cdf = self.targeth[respHisto].GetBinContent(int(origRes_/self.xBinWidth) + 1)
             #print "CDF", cdf
             minProb, maxProb, minRes, maxRes = self.getScaledWindowAndProb(self.targeth[respHisto],origRes_,self.minWindow,self.maxWindow)
             if minProb - maxProb == 0 : continue
 
-            recoJetLVec = ROOT.TLorentzVector()     
+            recoJetLVec = ROOT.TLorentzVector()
             if vecKind:  recoJetLVec = recoJet
             else:        recoJetLVec.SetPtEtaPhiM(recoJet.pt, recoJet.eta, recoJet.phi, recoJet.mass)
-            SmearJets_buff = [gJ,recoJetLVec,rJI,self.targeth[respHisto],minProb,maxProb,minRes,maxRes] 
+            SmearJets_buff = [gJ,recoJetLVec,rJI,self.targeth[respHisto],minProb,maxProb,minRes,maxRes]
             SmearJets.append(SmearJets_buff)
 
         if len(SmearJets) != 2: return True
@@ -249,7 +249,7 @@ class qcdSmearProducer(Module):
         canSmear = False
         SmearedJets = []
         for iS in xrange(self.nSmears) :
-            
+
             recoJets_pt = []
             recoJets_eta = []
             recoJets_phi = []
@@ -259,12 +259,12 @@ class qcdSmearProducer(Module):
                 #if info[1].Pt() < 20: continue
                 newResValue = 1
                 if self.doFlatSampling :
-                    newResValue = ROOT.gRandom.Uniform(info[6], info[7]) 
+                    newResValue = ROOT.gRandom.Uniform(info[6], info[7])
                 else :
-                    newResProb = ROOT.gRandom.Uniform(info[4], info[5])   
+                    newResProb = ROOT.gRandom.Uniform(info[4], info[5])
                     newResValue=self.interpolateProbToRes(info[3], newResProb)
 
-                minProb2, maxProb2, minRes2, maxRes2 = self.getContributionScaledWindowAndProb(info[3], newResValue, self.minWindow, self.maxWindow) 
+                minProb2, maxProb2, minRes2, maxRes2 = self.getContributionScaledWindowAndProb(info[3], newResValue, self.minWindow, self.maxWindow)
                 contribProb = maxProb2 - minProb2
                 if contribProb == 0 : continue
                 canSmear = True
@@ -339,4 +339,4 @@ class qcdSmearProducer(Module):
 
         self.out.fillBranch("nBootstrapWeight",        self.nBootstraps)
         self.out.fillBranch("bootstrapWeight",         b)
-        return True    
+        return True
