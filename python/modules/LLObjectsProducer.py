@@ -62,6 +62,9 @@ class LLObjectsProducer(Module):
 	self.out.branch("Pass_dPhiQCD"			+ self.suffix,	"O")
 	self.out.branch("Pass_dPhiQCDSF"		+ self.suffix,	"O")
 	self.out.branch("Stop0l_dPhiISRMET"		+ self.suffix,	"F")
+	self.out.branch("Pass_exHEMVetoElec30"		+ self.suffix,  "O")
+	self.out.branch("Pass_exHEMVetoPho30"		+ self.suffix,  "O")
+	self.out.branch("Pass_exHEMVetoJet30"		+ self.suffix,  "O")
 	if not self.isData:
 		self.out.branch("ElectronVetoCRSF"	+ self.suffix,	"F")
 		self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
@@ -214,14 +217,40 @@ class LLObjectsProducer(Module):
 
 	return sf, math.sqrt(sfErr)
 
+    def PassObjectVeto(self, lep, eta_low, eta_high, phi_low, phi_high, pt_low):
+	for l in lep:
+	    if not l.Stop0l: continue
+	    if l.eta >= eta_low and l.eta <= eta_high and l.phi >= phi_low and l.phi <= phi_high and l.pt > pt_low:
+		return False
+	return True
+
+    def HEMVetoLepton(self, ele, pho, jet):
+	narrow_eta_low  = -3.0
+    	narrow_eta_high = -1.4
+    	narrow_phi_low  = -1.57
+    	narrow_phi_high = -0.87
+    	wide_eta_low    = -3.2
+    	wide_eta_high   = -1.2
+    	wide_phi_low    = -1.77
+    	wide_phi_high   = -0.67
+    	min_electron_pt =  20.0
+    	min_photon_pt   = 220.0
+    	min_jet_pt      = 30.0
+
+	Pass_HEMveto_ele = self.PassObjectVeto(ele, narrow_eta_low, narrow_eta_high, narrow_phi_low, narrow_phi_high, min_electron_pt)
+	Pass_HEMveto_pho = self.PassObjectVeto(pho, narrow_eta_low, narrow_eta_high, narrow_phi_low, narrow_phi_high, min_photon_pt)
+	Pass_HEMveto_jet = self.PassObjectVeto(jet, wide_eta_low, wide_eta_high, wide_phi_low, wide_phi_high, min_jet_pt)
+	return Pass_HEMveto_ele, Pass_HEMveto_pho, Pass_HEMveto_jet
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
         electrons = Collection(event, "Electron")
+        photons   = Collection(event, "Photon")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
 	taus	  = Collection(event, "Tau")
-	stop0l    = Object(event, "Stop0l")
+	stop0l    = Object(event,     "Stop0l")
 	fatjets   = Collection(event, "FatJet")
 	SB	  = Collection(event, "SB")
 	restop    = Collection(event, "ResolvedTopCandidate")
@@ -251,7 +280,8 @@ class LLObjectsProducer(Module):
 	PassdPhiQCD          = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 	PassdPhiQCDSF        = self.PassdPhi(sortedPhi, [0.1, 0.1], invertdPhi =True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
-	
+	Pass_HEMElec, Pass_HEMPho, Pass_HEMJet = self.HEMVetoLepton(electrons, photons, jets)
+
 	if not self.isData:
 		electronVetoCRSF, electronVetoCRSFErr 	= self.ScaleFactorErrElectron(electrons, "Veto", "CR")
 		electronVetoSRSF, electronVetoSRSFErr 	= self.ScaleFactorErrElectron(electrons, "Veto", "SR")
@@ -272,6 +302,9 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Pass_dPhiQCD"		+ self.suffix,	PassdPhiQCD)
 	self.out.fillBranch("Pass_dPhiQCDSF"		+ self.suffix,	PassdPhiQCDSF)
 	self.out.fillBranch("Stop0l_dPhiISRMET"		+ self.suffix,	dphiISRMet)
+	self.out.fillBranch("Pass_exHEMVetoElec30"	+ self.suffix,  Pass_HEMElec)
+	self.out.fillBranch("Pass_exHEMVetoPho30"	+ self.suffix,  Pass_HEMPho)
+	self.out.fillBranch("Pass_exHEMVetoJet30"	+ self.suffix,  Pass_HEMJet)
 	
 	if not self.isData:
 		self.out.fillBranch("ElectronVetoCRSF"		+ self.suffix,	electronVetoCRSF)
