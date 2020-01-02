@@ -33,8 +33,9 @@ CSVv2MediumWP = {
 
 
 class LLObjectsProducer(Module):
-    def __init__(self, era, isData = False, applyUncert=None):
+    def __init__(self, era, Process, isData = False, applyUncert=None):
         self.era = era
+	self.process = Process
 	self.isData = isData
         self.metBranchName = "MET"
 	self.applyUncert = applyUncert
@@ -65,6 +66,7 @@ class LLObjectsProducer(Module):
 	self.out.branch("Pass_exHEMVetoElec30"		+ self.suffix,  "O")
 	self.out.branch("Pass_exHEMVetoPho30"		+ self.suffix,  "O")
 	self.out.branch("Pass_exHEMVetoJet30"		+ self.suffix,  "O")
+	self.out.branch("Pass_LHETTbar"			+ self.suffix,  "O")
 	if not self.isData:
 		self.out.branch("ElectronVetoCRSF"	+ self.suffix,	"F")
 		self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
@@ -217,10 +219,10 @@ class LLObjectsProducer(Module):
 
 	return sf, math.sqrt(sfErr)
 
-    def PassObjectVeto(self, lep, eta_low, eta_high, phi_low, phi_high, pt_low):
+    def PassObjectVeto(self, lep, eta_low, eta_high, phi_low, phi_high):
 	for l in lep:
 	    if not l.Stop0l: continue
-	    if l.eta >= eta_low and l.eta <= eta_high and l.phi >= phi_low and l.phi <= phi_high and l.pt > pt_low:
+	    if l.eta >= eta_low and l.eta <= eta_high and l.phi >= phi_low and l.phi <= phi_high:
 		return False
 	return True
 
@@ -233,13 +235,10 @@ class LLObjectsProducer(Module):
     	wide_eta_high   = -1.2
     	wide_phi_low    = -1.77
     	wide_phi_high   = -0.67
-    	min_electron_pt =  20.0
-    	min_photon_pt   = 220.0
-    	min_jet_pt      = 30.0
 
-	Pass_HEMveto_ele = self.PassObjectVeto(ele, narrow_eta_low, narrow_eta_high, narrow_phi_low, narrow_phi_high, min_electron_pt)
-	Pass_HEMveto_pho = self.PassObjectVeto(pho, narrow_eta_low, narrow_eta_high, narrow_phi_low, narrow_phi_high, min_photon_pt)
-	Pass_HEMveto_jet = self.PassObjectVeto(jet, wide_eta_low, wide_eta_high, wide_phi_low, wide_phi_high, min_jet_pt)
+	Pass_HEMveto_ele = self.PassObjectVeto(ele, narrow_eta_low, narrow_eta_high, narrow_phi_low, narrow_phi_high)
+	Pass_HEMveto_pho = self.PassObjectVeto(pho, narrow_eta_low, narrow_eta_high, narrow_phi_low, narrow_phi_high)
+	Pass_HEMveto_jet = self.PassObjectVeto(jet, wide_eta_low, wide_eta_high, wide_phi_low, wide_phi_high)
 	return Pass_HEMveto_ele, Pass_HEMveto_pho, Pass_HEMveto_jet
 
     def analyze(self, event):
@@ -257,6 +256,7 @@ class LLObjectsProducer(Module):
 	res	  = Collection(event, "ResolvedTop", lenVar="nResolvedTopCandidate")
 	jets      = Collection(event, "Jet")
 	met       = Object(event, self.metBranchName)
+	lhe	  = Object(event, "LHE")
 
 	if self.applyUncert == "JESUp":
 	    jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
@@ -281,6 +281,7 @@ class LLObjectsProducer(Module):
 	PassdPhiQCDSF        = self.PassdPhi(sortedPhi, [0.1, 0.1], invertdPhi =True)
 	dphiISRMet	     = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
 	Pass_HEMElec, Pass_HEMPho, Pass_HEMJet = self.HEMVetoLepton(electrons, photons, jets)
+	PassLHE              = lhe.HTIncoming < 600 if (("DiLep" in self.process) or ("SingleLep" in self.process)) else True 
 
 	if not self.isData:
 		electronVetoCRSF, electronVetoCRSFErr 	= self.ScaleFactorErrElectron(electrons, "Veto", "CR")
@@ -305,6 +306,7 @@ class LLObjectsProducer(Module):
 	self.out.fillBranch("Pass_exHEMVetoElec30"	+ self.suffix,  Pass_HEMElec)
 	self.out.fillBranch("Pass_exHEMVetoPho30"	+ self.suffix,  Pass_HEMPho)
 	self.out.fillBranch("Pass_exHEMVetoJet30"	+ self.suffix,  Pass_HEMJet)
+	self.out.fillBranch("Pass_LHETTbar"		+ self.suffix,  PassLHE)
 	
 	if not self.isData:
 		self.out.fillBranch("ElectronVetoCRSF"		+ self.suffix,	electronVetoCRSF)

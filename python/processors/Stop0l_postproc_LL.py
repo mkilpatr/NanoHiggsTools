@@ -13,19 +13,15 @@ def main(args):
     isdata = len(args.dataEra) > 0
     process = args.process
 
-    #if isdata and isfastsim:
-    #    print "ERROR: It is impossible to have a dataset that is both data and fastsim"
-    #    exit(0)    
-
     mods = [
-	LLObjectsProducer(args.era, isData=isdata),
+	LLObjectsProducer(args.era, args.sampleName, isData=isdata),
     ]
 
     if not isdata:
-	mods.append(LLObjectsProducer(args.era, isData=isdata, applyUncert="JESUp"))
-	mods.append(LLObjectsProducer(args.era, isData=isdata, applyUncert="JESDown"))
-	mods.append(LLObjectsProducer(args.era, isData=isdata, applyUncert="METUnClustUp"))
-	mods.append(LLObjectsProducer(args.era, isData=isdata, applyUncert="METUnClustDown"))
+	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="JESUp"))
+	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="JESDown"))
+	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="METUnClustUp"))
+	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="METUnClustDown"))
 
     if "QCD" in args.sampleName:
 	mods.append(qcdSFProducer(args.era))
