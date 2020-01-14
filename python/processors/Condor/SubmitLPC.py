@@ -19,7 +19,7 @@ from multiprocessing import Pool
 #DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v4'
+VersionNumber = '_v5'
 argument = "--inputFiles=%s.$(Process).list "
 #sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
 sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_limits.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
