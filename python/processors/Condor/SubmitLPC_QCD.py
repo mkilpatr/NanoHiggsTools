@@ -119,7 +119,7 @@ def GetNEvent(file):
 
 #for smear 2**16
 #for qcd sf 2**18
-def SplitPro(key, file, lineperfile=10, eventsplit=2**18, TreeName=None):
+def SplitPro(key, file, lineperfile=1, eventsplit=2**18, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -152,7 +152,7 @@ def SplitPro(key, file, lineperfile=10, eventsplit=2**18, TreeName=None):
     for l in filelist:
         n = filedict[l]
         eventcnt += n
-        if eventcnt > eventsplit:
+        if eventcnt > eventsplit or lineperfile == 1:
             filecnt += 1
             eventcnt = n
         filemap[filecnt].append(l)
