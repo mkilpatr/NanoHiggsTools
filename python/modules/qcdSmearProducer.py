@@ -49,7 +49,7 @@ class qcdSmearProducer(Module):
         self.outsmear = outputTreeSmear
         self.out.branch("nBootstrapWeight",        "I")
         self.out.branch("bootstrapWeight",         "I", lenVar="nBootstrapWeight")
-        self.out.branch("uniqueID", "l")
+        self.out.branch("uniqueID", "L")
         self.outsmear.branch("Jet_pt", "F", lenVar="nJet")
         self.outsmear.branch("Jet_eta", "F", lenVar="nJet")
         self.outsmear.branch("Jet_phi", "F", lenVar="nJet")
@@ -59,7 +59,7 @@ class qcdSmearProducer(Module):
         self.outsmear.branch("genWeight", "F")
         self.outsmear.branch("Stop0l_evtWeight", "F")
         self.outsmear.branch("Stop0l_smearWeight", "F")
-        self.outsmear.branch("uniqueID", "l")
+        self.outsmear.branch("uniqueID", "L")
         self.outsmear.branch("nBootstrapWeight",        "I")
         self.outsmear.branch("bootstrapWeight",         "I", lenVar="nBootstrapWeight")
         self.targeth = self.loadHisto(self.respFileName,self.respHistName)
@@ -189,7 +189,7 @@ class qcdSmearProducer(Module):
         # This gives us a 64-bit number that uniquely identifies each event,
         # even if the event number is the same as another event, unless the
         # event number AND the MET are the same, which is very unlikely
-        uniqueID  = hash((eventNum, met.Pt()))
+        uniqueID  = hash((eventNum, met.pt))
 
         # Need to initialize a random seed.  Use the event number so that we
         # have a different seed for every event, but we will get the same

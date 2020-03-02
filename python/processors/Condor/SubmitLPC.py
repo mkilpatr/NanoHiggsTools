@@ -171,7 +171,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "postproc"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "postproc_ht2500toInf"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
