@@ -15,16 +15,18 @@ import argparse
 import uproot
 from collections import defaultdict
 from multiprocessing import Pool
+from itertools import izip_longest
 
 #DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v5'
+VersionNumber = '_v6'
 argument = "--inputFiles=%s.$(Process).list "
 #sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
 sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_limits.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
 TTreeName = "Events"
 NProcess = 10
+splitbyNevent = True
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -142,30 +144,35 @@ def SplitPro(key, file, lineperfile=10, eventsplit=2**20, TreeName=None):
     filemap = defaultdict(list)
     if TreeName is None:
         print("Need Tree name to get number of entries")
-        return splitedfiles
+        return splitedfiles, 0
 
     f = open(filename, 'r')
     filelist = [l.strip() for l in f.readlines()]
-    r = None
-    pool = Pool(processes=NProcess)
-    r = pool.map(GetNEvent, filelist)
-    pool.close()
-    filedict = dict(r)
-    for l in filelist:
-        n = filedict[l]
-        eventcnt += n
-        if eventcnt > eventsplit:
-            filecnt += 1
-            eventcnt = n
-        filemap[filecnt].append(l)
+    if splitbyNevent:
+        r = None
+        pool = Pool(processes=NProcess)
+        r = pool.map(GetNEvent, filelist)
+        pool.close()
+        filedict = dict(r)
+        for l in filelist:
+            n = filedict[l]
+            eventcnt += n
+            if eventcnt > eventsplit:
+                filecnt += 1
+                eventcnt = n
+            filemap[filecnt].append(l)
+    else:
+        g = izip_longest(fillvalue=None, *([iter(filelist)]*lineperfile))
+        filemap = {i:gg for i, gg in enumerate(g)}
+        filecnt = filemap.keys()[-1]
 
     for k,v in filemap.items():
         outf = open("%s/%s.%d.list" % (filelistdir, key, k), 'w')
-        outf.write("\n".join(v))
+        outf.write("\n".join(filter(None, v)))
         splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, k)))
         outf.close()
 
-    return splitedfiles
+    return splitedfiles, filecnt+1
 
 def my_process(args):
     ## temp dir for submit
@@ -190,9 +197,9 @@ def my_process(args):
     #Process = ConfigList(os.path.abspath(args.config), args.era)
     for key, sample in Process.items():
         print("Getting process: " + key + " " + sample['Filepath__'])
-        npro = SplitPro(key, sample['Filepath__'], TreeName=TTreeName)
+        npro, nque = SplitPro(key, sample['Filepath__'], TreeName=TTreeName)
         Tarfiles+= npro
-        NewNpro[key] = len(npro)
+        NewNpro[key] = nque
 
     Tarfiles.append(os.path.abspath(args.runfile))
     tarballname ="%s/%s.tar.gz" % (tempdir, ProjectName)
