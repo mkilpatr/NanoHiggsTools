@@ -10,6 +10,13 @@ keep *Weight*
 keep MET_pt
 keep event
 keep run
-keep LHE*
+keep FatJet_pt
+keep FatJet_eta
+keep FatJet_phi
+keep FatJet_mass
+keep Jet_pt
+keep Jet_eta
+keep Jet_phi
+keep Jet_mass
 drop HLT*
 drop METFixEE2017_*

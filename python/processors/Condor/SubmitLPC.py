@@ -178,7 +178,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "postproc_ht2500toInf"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "postproc"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -214,8 +214,8 @@ def my_process(args):
 
         #define output directory
         if args.outputdir == "": outdir = sample["Outpath__"]
-        else: outdir = args.outputdir + "/" + name + "/"
-        #else: outdir = args.outputdir + "/"
+        #else: outdir = args.outputdir + "/" + name + "/"
+        else: outdir = args.outputdir + "/"
 
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"
