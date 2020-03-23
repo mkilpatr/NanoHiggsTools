@@ -124,12 +124,12 @@ class LLObjectsProducer(Module):
     def topPTWeight(self, genparts):
         genTops = []
         for gp in genparts:
-            if gp.statusFlags & (1 << 13) == 0: continue
+            if gp.statusFlags & 8192 == 0: continue
             if abs(gp.pdgId) == 6:
                 genTops.append(gp)
         
             topptWeight = 1.
-        
+
             if len(genTops) == 2:
                 def wgt(pt):
                     return np.exp(0.0615 - 0.0005 * np.clip(pt, 0, 800))
@@ -274,7 +274,6 @@ class LLObjectsProducer(Module):
         PassLHE              = lhe.HTIncoming < 600 if (("DiLep" in self.process) or ("SingleLep" in self.process)) else True 
         
         if not self.isData:
-            topptWeight                                 = self.topPTWeight(genpart)
             electronVetoCRSF, electronVetoCRSFErr       = self.ScaleFactorErrElectron(electrons, "Veto", "CR")
             electronVetoSRSF, electronVetoSRSFErr       = self.ScaleFactorErrElectron(electrons, "Veto", "SR")
             muonLooseCRSF, muonLooseCRSFErr             = self.ScaleFactorErrMuon(muons, "Loose", "CR")
@@ -284,6 +283,8 @@ class LLObjectsProducer(Module):
             ## type top = 1, W = 2, else 0
             softBSF, softBSFErr                         = self.ScaleFactorErrSoftB(SB)
         
+        if not self.isData and self.applyUncert == None: 
+            self.out.fillBranch('topptWeight',                          self.topPTWeight(genpart))
         ### Store output
         self.out.fillBranch("Stop0l_MtLepMET"		+ self.suffix,  mt)
         self.out.fillBranch("Stop0l_nVetoElecMuon"	+ self.suffix, 	countEle + countMuon)
@@ -297,7 +298,6 @@ class LLObjectsProducer(Module):
         self.out.fillBranch("Pass_LHETTbar"		+ self.suffix,  PassLHE)
         
         if not self.isData:
-            self.out.fillBranch('topptWeight', 				topptWeight)
             self.out.fillBranch("ElectronVetoCRSF"	+ self.suffix,	electronVetoCRSF)
             self.out.fillBranch("ElectronVetoCRSFErr"	+ self.suffix,  electronVetoCRSFErr)
             self.out.fillBranch("ElectronVetoSRSF"	+ self.suffix,	electronVetoSRSF)

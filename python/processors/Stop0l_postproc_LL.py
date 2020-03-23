@@ -39,6 +39,7 @@ def main(args):
             files = [line.strip() for line in f]
 
     if process=="limits": p=PostProcessor(args.outputfile,files,cut="Pass_MET && Pass_NJets30", branchsel=None, outputbranchsel="keep_and_drop_limits.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    #if process=="limits": p=PostProcessor(args.outputfile,files,cut="Pass_MET", branchsel=None, outputbranchsel="keep_and_drop_limits.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     else: 		  p=PostProcessor(args.outputfile,files,cut="Pass_MET && Pass_NJets30", branchsel=None, outputbranchsel="keep_and_drop_LL.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
