@@ -40,6 +40,7 @@ class LLObjectsProducer(Module):
         self.metBranchName = "MET"
         self.applyUncert = applyUncert
         self.suffix = ""
+	self.xsRoot = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/topPT_MGPowheg_comp.root"
         
         if self.applyUncert == "JESUp":
             self.suffix = "_JESUp"
@@ -55,8 +56,15 @@ class LLObjectsProducer(Module):
     def endJob(self):
         pass
 
+    def loadhisto(self,filename,hname):
+        file =ROOT.TFile.Open(filename)
+        hist_ = file.Get(hname)
+        hist_.SetDirectory(0)
+        return hist_
+
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
+	self.topMGPowheg=self.loadhisto(self.xsRoot,self.era)
         self.out.branch("Stop0l_MtLepMET"		+ self.suffix, 	"F")
         self.out.branch("Stop0l_nVetoElecMuon"		+ self.suffix, 	"I")
         self.out.branch("Stop0l_noMuonJet"		+ self.suffix,	"O")
@@ -67,8 +75,14 @@ class LLObjectsProducer(Module):
         self.out.branch("Pass_exHEMVetoPho30"		+ self.suffix,  "O")
         self.out.branch("Pass_exHEMVetoJet30"		+ self.suffix,  "O")
         self.out.branch("Pass_LHETTbar"			+ self.suffix,  "O")
+        self.out.branch("Stop0l_nMatchTopPt"                         ,  "I")
+        self.out.branch("Stop0l_MatchTopPt"                          ,  "F", lenVar="Stop0l_nMatchTopPt") 
+        self.out.branch("Stop0l_nMatchWPt"                           ,  "I")
+        self.out.branch("Stop0l_MatchWPt"                            ,  "F", lenVar="Stop0l_nMatchTopPt") 
         if not self.isData:
             self.out.branch('topptWeight', 				"F")
+            #self.out.branch('topptWeight_Up', 				"F")
+            #self.out.branch('topptWeight_Down', 			"F")
             self.out.branch("ElectronVetoCRSF"		+ self.suffix,	"F")
             self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
             self.out.branch("ElectronVetoSRSF"		+ self.suffix,	"F")
@@ -85,9 +99,6 @@ class LLObjectsProducer(Module):
             self.out.branch("TauSRSF_Down"		+ self.suffix,	"F")
             self.out.branch("SoftBSF"			+ self.suffix,	"F")
             self.out.branch("SoftBSFErr"		+ self.suffix,	"F")
-
-    def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
-        pass
 
     def GetJetSortedIdx(self, jets, jetpt = 20, jeteta = 4.7):
         ptlist = []
@@ -123,23 +134,22 @@ class LLObjectsProducer(Module):
 
     def topPTWeight(self, genparts):
         genTops = []
+        mgpowheg = []
         for gp in genparts:
             if gp.statusFlags & 8192 == 0: continue
             if abs(gp.pdgId) == 6:
                 genTops.append(gp)
-        
-            topptWeight = 1.
+                mgpowheg.append(self.topMGPowheg.GetBinContent(self.topMGPowheg.GetXaxis().FindBin(gp.pt)))
+            if len(mgpowheg) != 0: topptWeight = 1.*mgpowheg[0]
+            else:                  topptWeight = 1.
 
             if len(genTops) == 2:
                 def wgt(pt):
                     return np.exp(0.0615 - 0.0005 * np.clip(pt, 0, 800))
         
-                topptWeight = np.sqrt(wgt(genTops[0].pt) * wgt(genTops[1].pt))
-            # accumulation hists        
-            #self.h_genwgt.Fill(0.5, event.genWeight)
-            #self.h_ttbar_topptwgt.Fill(0.5, topptWeight * event.genWeight)
-        
-            return topptWeight
+                topptWeight = np.sqrt(wgt(genTops[0].pt) * mgpowheg[0] * wgt(genTops[1].pt) * mgpowheg[1])
+
+        return topptWeight
 
     def ScaleFactorErrElectron(self, obj, kind="Veto", region="CR"):
         sf = 1
@@ -230,10 +240,18 @@ class LLObjectsProducer(Module):
         Pass_HEMveto_jet = self.PassObjectVeto(jet, wide_eta_low, wide_eta_high, wide_phi_low, wide_phi_high)
         return Pass_HEMveto_ele, Pass_HEMveto_pho, Pass_HEMveto_jet
 
+    def FatJetMatchedPt(self, obj, objType):
+	pt = []
+	for s in obj:
+		if not (s.Stop0l == objType): continue
+		pt.append(s.pt)
+
+	return pt
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
-        genpart   = Collection(event, "GenPart")
+        if not self.isData: genpart   = Collection(event, "GenPart")
         electrons = Collection(event, "Electron")
         photons   = Collection(event, "Photon")
         muons     = Collection(event, "Muon")
@@ -272,6 +290,9 @@ class LLObjectsProducer(Module):
         dphiISRMet           = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
         Pass_HEMElec, Pass_HEMPho, Pass_HEMJet = self.HEMVetoLepton(electrons, photons, jets)
         PassLHE              = lhe.HTIncoming < 600 if (("DiLep" in self.process) or ("SingleLep" in self.process)) else True 
+        ## Adding matched Fatjet pT
+        toppt                = self.FatJetMatchedPt(fatjets, 1)
+        wpt                  = self.FatJetMatchedPt(fatjets, 2)
         
         if not self.isData:
             electronVetoCRSF, electronVetoCRSFErr       = self.ScaleFactorErrElectron(electrons, "Veto", "CR")
@@ -282,9 +303,18 @@ class LLObjectsProducer(Module):
             tauSRSF, tauSRSFUp, tauSRSFDown             = self.ScaleFactorErrTau(taus, "SR")
             ## type top = 1, W = 2, else 0
             softBSF, softBSFErr                         = self.ScaleFactorErrSoftB(SB)
-        
+       
+        if self.applyUncert == None:
+            self.out.fillBranch("Stop0l_nMatchTopPt",                          len(toppt))
+            self.out.fillBranch("Stop0l_MatchTopPt",                           toppt)
+            self.out.fillBranch("Stop0l_nMatchWPt",                            len(wpt))
+            self.out.fillBranch("Stop0l_MatchWPt",                             wpt)
+ 
         if not self.isData and self.applyUncert == None: 
-            self.out.fillBranch('topptWeight',                          self.topPTWeight(genpart))
+            toppt  = self.topPTWeight(genpart)
+            self.out.fillBranch("topptWeight",                          toppt)
+            #self.out.fillBranch("topptWeight_Up",                       toppt_up)
+            #self.out.fillBranch("topptWeight_Down",                     toppt_down)
         ### Store output
         self.out.fillBranch("Stop0l_MtLepMET"		+ self.suffix,  mt)
         self.out.fillBranch("Stop0l_nVetoElecMuon"	+ self.suffix, 	countEle + countMuon)
