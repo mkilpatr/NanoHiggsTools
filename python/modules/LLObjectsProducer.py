@@ -139,7 +139,7 @@ class LLObjectsProducer(Module):
             if gp.statusFlags & 8192 == 0: continue
             if abs(gp.pdgId) == 6:
                 genTops.append(gp)
-                mgpowheg.append(self.topMGPowheg.GetBinContent(self.topMGPowheg.GetXaxis().FindBin(gp.pt)))
+                mgpowheg.append(self.topMGPowheg.GetBinContent(self.topMGPowheg.GetNbinsX()) if gp.pt >= 1000 else self.topMGPowheg.GetBinContent(self.topMGPowheg.GetXaxis().FindBin(gp.pt)))
             if len(mgpowheg) != 0: topptWeight = 1.*mgpowheg[0]
             else:                  topptWeight = 1.
 
@@ -149,6 +149,7 @@ class LLObjectsProducer(Module):
         
                 topptWeight = np.sqrt(wgt(genTops[0].pt) * mgpowheg[0] * wgt(genTops[1].pt) * mgpowheg[1])
 
+        if topptWeight == 0: print("toppt1: {0}, mgpow2: {1}, toppt2: {2}, mgpow2: {3}".format(genTops[0].pt, mgpowheg[0], genTops[1].pt, mgpowheg[1]))
         return topptWeight
 
     def ScaleFactorErrElectron(self, obj, kind="Veto", region="CR"):
