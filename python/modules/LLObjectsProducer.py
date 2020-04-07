@@ -40,7 +40,10 @@ class LLObjectsProducer(Module):
         self.metBranchName = "MET"
         self.applyUncert = applyUncert
         self.suffix = ""
-	self.xsRoot = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/topPT_MGPowheg_comp.root"
+	self.xsRoot = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/LostLepton_HM_toppt_weight.root"
+        self.hist_2016 = "FatJet_pt[0]_singlelep-2016__llcr_hm_2016__over__bkgtotal"
+        self.hist_2017 = "FatJet_pt[0]_singlelep-2017__llcr_hm_2017__over__bkgtotal"
+        self.hist_2018 = "FatJet_pt[0]_singlelep-2018__llcr_hm_2018__over__bkgtotal"
         
         if self.applyUncert == "JESUp":
             self.suffix = "_JESUp"
@@ -64,7 +67,9 @@ class LLObjectsProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	self.topMGPowheg=self.loadhisto(self.xsRoot,self.era)
+	if self.era == '2016':   self.topMGPowheg=self.loadhisto(self.xsRoot,self.hist_2016)
+	elif self.era == '2017': self.topMGPowheg=self.loadhisto(self.xsRoot,self.hist_2017)
+	elif self.era == '2018': self.topMGPowheg=self.loadhisto(self.xsRoot,self.hist_2018)
         self.out.branch("Stop0l_MtLepMET"		+ self.suffix, 	"F")
         self.out.branch("Stop0l_nVetoElecMuon"		+ self.suffix, 	"I")
         self.out.branch("Stop0l_noMuonJet"		+ self.suffix,	"O")
