@@ -115,8 +115,10 @@ class LLObjectsProducer(Module):
         self.out.branch("Stop0l_MatchWPt"                            ,  "F", lenVar="Stop0l_nMatchTopPt") 
         self.out.branch("Stop0l_PtLepMetB"              + self.suffix,  "F")
         if not self.isData:
-            self.out.branch('Stop0l_topPTLep', 			        "F")
-            self.out.branch('Stop0l_topPTHad', 			        "F")
+            self.out.branch('Stop0l_ntopPTLep', 			"I")
+            self.out.branch('Stop0l_ntopPTHad', 			"I")
+            self.out.branch('Stop0l_topPTLep', 			        "F", lenVar="Stop0l_ntopPTLep")
+            self.out.branch('Stop0l_topPTHad', 			        "F", lenVar="Stop0l_ntopPTHad")
             self.out.branch('Stop0l_topAK8Weight', 			"F")
             self.out.branch('Stop0l_topPtLepBMetWeight', 		"F")
             self.out.branch('Stop0l_topptWeight', 			"F")
@@ -257,34 +259,42 @@ class LLObjectsProducer(Module):
         #print("toppt1: {0}, mgpow2: {1}, toppt2: {2}, mgpow2: {3}".format(genTops[0].pt, mgpowheg[0], genTops[1].pt, mgpowheg[1]))
         return topptWeight, topptWeight_only, topptWeightLep, topptWeightHad, topptWeightComb
 
-    def topPTLep(self, genparts):
-        genTops = []
-        toppt_lep = 0.
-        toppt_had = 0.
-        genLeps = []
-        for gp in genparts:
-            if gp.statusFlags & 8192 == 0: continue
-            if abs(gp.pdgId) == 6:
-                genTops.append(gp)
-            if self.isA(self.pfelectron, gp.pdgId) or self.isA(self.pfmuon, gp.pdgId):
-                genMotherIdx = gp.genPartIdxMother
-                if self.isA(self.p_Wplus, genparts[genMotherIdx].pdgId):
-                    genLeps.append(gp)
- 
-        top_lep_ = 0.
-        top_had_ = 0.
-        for gt in genTops:
-           for gl in genLeps:
-               if deltaR(gt.eta, gt.phi, gl.eta, gl.phi) <= 0.8 and top_lep_ <= gt.pt: 
-                   toppt_lep = gt.pt
-                   top_lep_ = gt.pt
-               elif top_had_ <= gt.pt:
-                   toppt_had = gt.pt
-                   top_had_ = gt.pt
+    def topPTLep(self, genpars):
+        toppt_leptonic = []
+        toppt_hadronic = []
+        
+        #for genpar in genpars :     #loop on genpars       
+        #print len(genpars)
+        for i in range(len(genpars)):
+            genpar = genpars[i]
+            if genpar.statusFlags & 8192 == 0: continue
+            ## look at top daughters
+            if abs(genpar.pdgId)==6:
+                #print genpar.pt,genpar.pdgId
+                for j in range(len(genpars)):
+                    genpard = genpars[j]
+                    if genpard.genPartIdxMother == i:
+                        #print genpard.pt,genpard.pdgId
+        
+                        ## look at W daughters
+                        if self.isA(self.p_Wplus, genpard.pdgId):
+                            for k in range(len(genpars)):
+                                genpardd = genpars[k]
+                                if genpardd.genPartIdxMother == j:
+                                    #print genpardd.pt,genpardd.pdgId
+                                    if abs(genpardd.pdgId)>=11 and abs(genpardd.pdgId)<=16:
+                                        toppt_leptonic.append(genpar.pt)
+                                        break
+                                    if abs(genpardd.pdgId)>=1 and abs(genpardd.pdgId)<=4:
+                                        toppt_hadronic.append(genpar.pt)
+                                        break
 
+        toppt_leptonic.sort(reverse=True)
+        toppt_hadronic.sort(reverse=True)
+        #print("Leptonic: {0}".format(toppt_leptonic))
+        #print("Hadronic: {0}".format(toppt_hadronic))
 
-        #print("Top pT lep: {0}".format(toppt_lep))
-        return toppt_lep, toppt_had
+        return toppt_leptonic, toppt_hadronic 
 
     def topPTAK8Match(self, fatjet):
         topptWeight = 1.
@@ -497,15 +507,13 @@ class LLObjectsProducer(Module):
             self.out.fillBranch("Stop0l_MatchWPt",                             wpt)
  
         if not self.isData and self.applyUncert == None:
+            toppt_lepmatch, toppt_hadmatch = self.topPTLep(genpart)
             if "TTbar" in self.process:
-                toppt_lepmatch, toppt_hadmatch = self.topPTLep(genpart)
                 topptAK8  = self.topPTAK8Match(fatjets) 
                 topptPtlepbmet  = self.topPTptlepbmetMatch(ptlepmetb.Pt()) 
                 #topptWeight, topptWeight_only, topptWeightLep, topptWeightHad, topptweightComb
                 toppt_wgt, toppt_only, toppt_lep, toppt_had, toppt_comb  = self.topPTWeight(genpart) 
             else:
-                toppt_hadmatch = 0.
-                toppt_lepmatch = 0.
                 topptAK8 = 1.
                 topptPtlepbmet = 1.
                 toppt_wgt = 1.
@@ -514,6 +522,8 @@ class LLObjectsProducer(Module):
                 toppt_had = 1.
                 toppt_comb = 1.
             #print("toppt_wgt: {0}".format(toppt_lep))
+            self.out.fillBranch('Stop0l_ntopPTLep', 			len(toppt_lepmatch))
+            self.out.fillBranch('Stop0l_ntopPTHad', 			len(toppt_hadmatch))
             self.out.fillBranch('Stop0l_topPTLep', 			toppt_lepmatch)
             self.out.fillBranch('Stop0l_topPTHad', 			toppt_hadmatch)
             self.out.fillBranch('Stop0l_topAK8Weight', 			topptAK8)
