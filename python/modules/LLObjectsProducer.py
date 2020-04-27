@@ -122,6 +122,7 @@ class LLObjectsProducer(Module):
             self.out.branch('Stop0l_topAK8Weight', 			"F")
             self.out.branch('Stop0l_topPtLepBMetWeight', 		"F")
             self.out.branch('Stop0l_topptWeight', 			"F")
+            self.out.branch('Stop0l_topMGPowWeight', 			"F")
             self.out.branch('Stop0l_topptOnly', 		        "F")
             self.out.branch('Stop0l_topLepWeight', 			"F")
             self.out.branch('Stop0l_topHadWeight', 			"F")
@@ -230,6 +231,8 @@ class LLObjectsProducer(Module):
             if len(mgpowhegLep) != 0 or len(mgpowhegHad) != 0: topptWeightComb = mgpowhegHad[0] if len(mgpowhegHad) != 0 else mgpowhegLep[0]
             else:                                              topptWeightComb = 1.
             topptWeight_only = 1.
+            if len(mgpowheg) != 0: topptWeight_mgpow = mgpowheg[0]
+            else:                  topptWeight_mgpow = 1.
 
             if len(genTops) == 2:
                 def wgt(pt):
@@ -237,6 +240,7 @@ class LLObjectsProducer(Module):
         
                 topptWeight = np.sqrt(wgt(genTops[0].pt) * mgpowheg[0] * wgt(genTops[1].pt) * mgpowheg[1])
                 topptWeight_only = np.sqrt(wgt(genTops[0].pt) * wgt(genTops[1].pt))
+                topptWeight_mgpow = (mgpowheg[0] + mgpowheg[1])/2
 
             if len(genTopsLep) == 2:
                 def wgt(pt):
@@ -257,7 +261,7 @@ class LLObjectsProducer(Module):
                 topptWeightComb = np.sqrt(wgt(genTopsLep[0].pt) * mgpowhegLep[0] * wgt(genTopsHad[0].pt) * mgpowhegHad[0])
 
         #print("toppt1: {0}, mgpow2: {1}, toppt2: {2}, mgpow2: {3}".format(genTops[0].pt, mgpowheg[0], genTops[1].pt, mgpowheg[1]))
-        return topptWeight, topptWeight_only, topptWeightLep, topptWeightHad, topptWeightComb
+        return topptWeight, topptWeight_only, topptWeightLep, topptWeightHad, topptWeightComb, topptWeight_mgpow
 
     def topPTLep(self, genpars):
         toppt_leptonic = []
@@ -512,7 +516,7 @@ class LLObjectsProducer(Module):
                 topptAK8  = self.topPTAK8Match(fatjets) 
                 topptPtlepbmet  = self.topPTptlepbmetMatch(ptlepmetb.Pt()) 
                 #topptWeight, topptWeight_only, topptWeightLep, topptWeightHad, topptweightComb
-                toppt_wgt, toppt_only, toppt_lep, toppt_had, toppt_comb  = self.topPTWeight(genpart) 
+                toppt_wgt, toppt_only, toppt_lep, toppt_had, toppt_comb, toppt_mgpow  = self.topPTWeight(genpart) 
             else:
                 topptAK8 = 1.
                 topptPtlepbmet = 1.
@@ -521,6 +525,7 @@ class LLObjectsProducer(Module):
                 toppt_lep = 1.
                 toppt_had = 1.
                 toppt_comb = 1.
+                toppt_mgpow = 1.
             #print("toppt_wgt: {0}".format(toppt_lep))
             self.out.fillBranch('Stop0l_ntopPTLep', 			len(toppt_lepmatch))
             self.out.fillBranch('Stop0l_ntopPTHad', 			len(toppt_hadmatch))
@@ -529,6 +534,7 @@ class LLObjectsProducer(Module):
             self.out.fillBranch('Stop0l_topAK8Weight', 			topptAK8)
             self.out.fillBranch('Stop0l_topPtLepBMetWeight', 		topptPtlepbmet)
             self.out.fillBranch('Stop0l_topptWeight', 			toppt_wgt)
+            self.out.fillBranch('Stop0l_topMGPowWeight', 		toppt_mgpow)
             self.out.fillBranch('Stop0l_topptOnly', 	        	toppt_only)
             self.out.fillBranch('Stop0l_topLepWeight', 			toppt_lep)
             self.out.fillBranch('Stop0l_topHadWeight', 			toppt_had)
