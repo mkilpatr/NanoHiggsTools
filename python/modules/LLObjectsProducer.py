@@ -9,7 +9,6 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import *
-#from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import SelBtagJets
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, closest
 
 #2016 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Data_MC_Scale_Factors_period_dep
@@ -42,14 +41,17 @@ class LLObjectsProducer(Module):
         self.applyUncert = applyUncert
         self.suffix = ""
         self.xsRoot_mg = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/topPT_MGPowheg_comp.root"
-	self.xsRoot = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/LostLepton_HM_toppt_weight.root"
+	self.xsRoot = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/LostLepton_HM_topAK8_weight.root"
 	self.xsRoot_ptlepbmet = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/LostLepton_HM_ptlepbmet_weight.root"
-        self.hist_AK8_2016 = "FatJet_pt[0]_singlelep-2016__llcr_hm_2016__over__bkgtotal"
-        self.hist_AK8_2017 = "FatJet_pt[0]_singlelep-2017__llcr_hm_2017__over__bkgtotal"
-        self.hist_AK8_2018 = "FatJet_pt[0]_singlelep-2018__llcr_hm_2018__over__bkgtotal"
+	self.xsRoot_topptSyst = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/LostLepton_topPt_systematics.root"
+        self.hist_AK8_2016 = "FatJet_pt[0]_singlelep-2016__llcr_hm_2016__num__"
+        self.hist_AK8_2017 = "FatJet_pt[0]_singlelep-2017__llcr_hm_2017__num__"
+        self.hist_AK8_2018 = "FatJet_pt[0]_singlelep-2018__llcr_hm_2018__num__"
         self.hist_Ptb_2016 = "Stop0l_PtLepMetB_singlelep-2016__llcr_hm_2016__over__bkgtotal"
         self.hist_Ptb_2017 = "Stop0l_PtLepMetB_singlelep-2017__llcr_hm_2017__over__bkgtotal"
         self.hist_Ptb_2018 = "Stop0l_PtLepMetB_singlelep-2018__llcr_hm_2018__over__bkgtotal"
+        self.hist_toppt_up = "topPt_up";
+        self.hist_toppt_dn = "topPt_dn";
 
         ## Gen pdgid for toppt weight
         self.p_tauminus = 15
@@ -99,6 +101,8 @@ class LLObjectsProducer(Module):
             self.topAK8LLHMcr=self.loadhisto(self.xsRoot,self.hist_AK8_2018)
             self.topPtLepBMetLLHMcr=self.loadhisto(self.xsRoot_ptlepbmet,self.hist_Ptb_2018)
         self.topMGPowheg=self.loadhisto(self.xsRoot_mg,self.era)
+        self.topPTSyst_up=self.loadhisto(self.xsRoot_topptSyst,self.hist_toppt_up)
+        self.topPTSyst_dn=self.loadhisto(self.xsRoot_topptSyst,self.hist_toppt_dn)
         self.out.branch("Stop0l_MtLepMET"		+ self.suffix, 	"F")
         self.out.branch("Stop0l_nVetoElecMuon"		+ self.suffix, 	"I")
         self.out.branch("Stop0l_noMuonJet"		+ self.suffix,	"O")
@@ -124,8 +128,8 @@ class LLObjectsProducer(Module):
             self.out.branch('Stop0l_topptWeight', 			"F")
             self.out.branch('Stop0l_topMGPowWeight', 			"F")
             self.out.branch('Stop0l_topptOnly', 		        "F")
-            self.out.branch('Stop0l_topLepWeight', 			"F")
-            self.out.branch('Stop0l_topHadWeight', 			"F")
+            self.out.branch('Stop0l_topptOnly_Up', 			"F")
+            self.out.branch('Stop0l_topptOnly_Down', 			"F")
             self.out.branch('Stop0l_topCombWeight', 			"F")
             self.out.branch("ElectronVetoCRSF"		+ self.suffix,	"F")
             self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
@@ -199,40 +203,27 @@ class LLObjectsProducer(Module):
 
     def topPTWeight(self, genparts):
         genTops = []
-        genTopsLep = []
-        genTopsHad = []
+        genTops_up = []
+        genTops_dn = []
         mgpowheg = []
-        mgpowhegLep = []
-        mgpowhegHad = []
         for gp in genparts:
             if gp.statusFlags & 8192 == 0: continue
             if abs(gp.pdgId) == 6:
                 genTops.append(gp)
                 mgpowheg.append(self.topMGPowheg.GetBinContent(self.topMGPowheg.GetNbinsX()) if gp.pt >= 1000 else self.topMGPowheg.GetBinContent(self.topMGPowheg.GetXaxis().FindBin(gp.pt)))
-            if self.isA(self.pfelectron, gp.pdgId) or self.isA(self.pfmuon, gp.pdgId):
-                genMotherIdx = gp.genPartIdxMother
-                if self.isA(self.p_Wplus, genparts[genMotherIdx].pdgId) and self.isA(6, genparts[genparts[genMotherIdx].genPartIdxMother].pdgId):
-                    genTopsLep.append(genparts[genparts[genMotherIdx].genPartIdxMother])
-                    mgpowhegLep.append(self.topMGPowheg.GetBinContent(self.topMGPowheg.GetNbinsX()) if genparts[genparts[genMotherIdx].genPartIdxMother].pt >= 1000 else self.topMGPowheg.GetBinContent(self.topMGPowheg.GetXaxis().FindBin(genparts[genparts[genMotherIdx].genPartIdxMother].pt)))
-            elif (not self.isA(self.p_nu_e, gp.pdgId)) and (not self.isA(self.p_nu_mu, gp.pdgId)) and (not self.isA(self.pfelectron, gp.pdgId) and (not self.isA(self.pfmuon, gp.pdgId))):
-                    genMotherIdx = gp.genPartIdxMother
-                    if genMotherIdx != -1:
-                      if self.isA(self.p_Wplus, genparts[genMotherIdx].pdgId) and self.isA(6, genparts[genparts[genMotherIdx].genPartIdxMother].pdgId):
-                          genTopsHad.append(genparts[genparts[genMotherIdx].genPartIdxMother])
-                          mgpowhegHad.append(self.topMGPowheg.GetBinContent(self.topMGPowheg.GetNbinsX()) if genparts[genparts[genMotherIdx].genPartIdxMother].pt >= 1000 else self.topMGPowheg.GetBinContent(self.topMGPowheg.GetXaxis().FindBin(genparts[genparts[genMotherIdx].genPartIdxMother].pt)))
-                    
+                genTops_up.append(self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetNbinsX()) if gp.pt >= 800 else self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetXaxis().FindBin(gp.pt)))
+                genTops_dn.append(self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetNbinsX()) if gp.pt >= 800 else self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetXaxis().FindBin(gp.pt)))
+
 
             if len(mgpowheg) != 0: topptWeight = 1.*mgpowheg[0]
             else:                  topptWeight = 1.
-            if len(mgpowhegLep) != 0: topptWeightLep = 1.*mgpowhegLep[0]
-            else:                     topptWeightLep = 1.
-            if len(mgpowhegHad) != 0: topptWeightHad = 1.*mgpowhegHad[0]
-            else:                     topptWeightHad = 1.
-            if len(mgpowhegLep) != 0 or len(mgpowhegHad) != 0: topptWeightComb = mgpowhegHad[0] if len(mgpowhegHad) != 0 else mgpowhegLep[0]
-            else:                                              topptWeightComb = 1.
             topptWeight_only = 1.
             if len(mgpowheg) != 0: topptWeight_mgpow = mgpowheg[0]
             else:                  topptWeight_mgpow = 1.
+            if len(genTops_up) != 0: topptWeight_up = genTops_up[0]
+            else:                    topptWeight_up = 1.
+            if len(genTops_dn) != 0: topptWeight_dn = genTops_dn[0]
+            else:                    topptWeight_dn = 1.
 
             if len(genTops) == 2:
                 def wgt(pt):
@@ -240,28 +231,12 @@ class LLObjectsProducer(Module):
         
                 topptWeight = np.sqrt(wgt(genTops[0].pt) * mgpowheg[0] * wgt(genTops[1].pt) * mgpowheg[1])
                 topptWeight_only = np.sqrt(wgt(genTops[0].pt) * wgt(genTops[1].pt))
-                topptWeight_mgpow = (mgpowheg[0] + mgpowheg[1])/2
-
-            if len(genTopsLep) == 2:
-                def wgt(pt):
-                    return np.exp(0.0615 - 0.0005 * np.clip(pt, 0, 800))
-        
-                topptWeightLep = np.sqrt(wgt(genTopsLep[0].pt) * mgpowhegLep[0] * wgt(genTopsLep[1].pt) * mgpowhegLep[1])
-
-            if len(genTopsHad) == 2:
-                def wgt(pt):
-                    return np.exp(0.0615 - 0.0005 * np.clip(pt, 0, 800))
-        
-                topptWeightHad = np.sqrt(wgt(genTopsHad[0].pt) * mgpowhegHad[0] * wgt(genTopsHad[1].pt) * mgpowhegHad[1])
-
-            if len(genTopsHad) == 1 and len(genTopsLep) == 1:
-                def wgt(pt):
-                    return np.exp(0.0615 - 0.0005 * np.clip(pt, 0, 800))
-        
-                topptWeightComb = np.sqrt(wgt(genTopsLep[0].pt) * mgpowhegLep[0] * wgt(genTopsHad[0].pt) * mgpowhegHad[0])
+                topptWeight_up = np.sqrt(wgt(genTops[0].pt * genTops_up[0]) * wgt(genTops[1].pt * genTops_up[1]))
+                topptWeight_dn = np.sqrt(wgt(genTops[0].pt * genTops_dn[0]) * wgt(genTops[1].pt * genTops_dn[1]))
+                topptWeight_mgpow = np.sqrt(mgpowheg[0] * mgpowheg[1])
 
         #print("toppt1: {0}, mgpow2: {1}, toppt2: {2}, mgpow2: {3}".format(genTops[0].pt, mgpowheg[0], genTops[1].pt, mgpowheg[1]))
-        return topptWeight, topptWeight_only, topptWeightLep, topptWeightHad, topptWeightComb, topptWeight_mgpow
+        return topptWeight, topptWeight_only, topptWeight_mgpow, topptWeight_up, topptWeight_dn
 
     def topPTLep(self, genpars):
         toppt_leptonic = []
@@ -305,7 +280,7 @@ class LLObjectsProducer(Module):
         if len(fatjet) == 0: return topptWeight
 
         if fatjet[0].pt >= 150:
-            topptWeight = self.topAK8LLHMcr.GetBinContent(self.topAK8LLHMcr.GetNbinsX()) if fatjet[0].pt >= 1000 else self.topAK8LLHMcr.GetBinContent(self.topAK8LLHMcr.GetXaxis().FindBin(fatjet[0].pt))
+            topptWeight = self.topAK8LLHMcr.GetBinContent(self.topAK8LLHMcr.GetNbinsX()) if fatjet[0].pt >= 800 else self.topAK8LLHMcr.GetBinContent(self.topAK8LLHMcr.GetXaxis().FindBin(fatjet[0].pt))
 
         return topptWeight
 
@@ -345,7 +320,7 @@ class LLObjectsProducer(Module):
         topptWeight = 1.
         if ptlepbmet == 0: return topptWeight
 
-        topptWeight = self.topPtLepBMetLLHMcr.GetBinContent(self.topPtLepBMetLLHMcr.GetNbinsX()) if ptlepbmet >= 1000 else self.topPtLepBMetLLHMcr.GetBinContent(self.topPtLepBMetLLHMcr.GetXaxis().FindBin(ptlepbmet))
+        topptWeight = self.topPtLepBMetLLHMcr.GetBinContent(self.topPtLepBMetLLHMcr.GetNbinsX()) if ptlepbmet >= 800 else self.topPtLepBMetLLHMcr.GetBinContent(self.topPtLepBMetLLHMcr.GetXaxis().FindBin(ptlepbmet))
 
         return topptWeight
 
@@ -515,17 +490,16 @@ class LLObjectsProducer(Module):
             if "TTbar" in self.process:
                 topptAK8  = self.topPTAK8Match(fatjets) 
                 topptPtlepbmet  = self.topPTptlepbmetMatch(ptlepmetb.Pt()) 
-                #topptWeight, topptWeight_only, topptWeightLep, topptWeightHad, topptweightComb
-                toppt_wgt, toppt_only, toppt_lep, toppt_had, toppt_comb, toppt_mgpow  = self.topPTWeight(genpart) 
+                #topptWeight, topptWeight_only, topptWeight_mgpow, topptWeight_up, topptWeight_dn
+                toppt_wgt, toppt_only, toppt_mgpow, toppt_up, toppt_dn  = self.topPTWeight(genpart) 
             else:
                 topptAK8 = 1.
                 topptPtlepbmet = 1.
                 toppt_wgt = 1.
                 toppt_only = 1.
-                toppt_lep = 1.
-                toppt_had = 1.
-                toppt_comb = 1.
                 toppt_mgpow = 1.
+                toppt_up = 1.
+                toppt_dn = 1.
             #print("toppt_wgt: {0}".format(toppt_lep))
             self.out.fillBranch('Stop0l_ntopPTLep', 			len(toppt_lepmatch))
             self.out.fillBranch('Stop0l_ntopPTHad', 			len(toppt_hadmatch))
@@ -536,9 +510,8 @@ class LLObjectsProducer(Module):
             self.out.fillBranch('Stop0l_topptWeight', 			toppt_wgt)
             self.out.fillBranch('Stop0l_topMGPowWeight', 		toppt_mgpow)
             self.out.fillBranch('Stop0l_topptOnly', 	        	toppt_only)
-            self.out.fillBranch('Stop0l_topLepWeight', 			toppt_lep)
-            self.out.fillBranch('Stop0l_topHadWeight', 			toppt_had)
-            self.out.fillBranch('Stop0l_topCombWeight', 		toppt_comb)
+            self.out.fillBranch('Stop0l_topptOnly_Up', 			toppt_up)
+            self.out.fillBranch('Stop0l_topptOnly_Down', 		toppt_dn)
         ### Store output
         self.out.fillBranch("Stop0l_PtLepMetB"          + self.suffix,  ptlepmetb.Pt())
         self.out.fillBranch("Stop0l_MtLepMET"		+ self.suffix,  mt)
