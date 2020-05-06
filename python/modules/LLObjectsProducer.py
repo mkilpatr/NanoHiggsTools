@@ -204,11 +204,6 @@ class LLObjectsProducer(Module):
     def topPTSyst(self, toppt):
         ptrange = [0, 25, 75, 125, 200, 250, 300, 350, 450, 600]
         pt_index = -1
-        dx = 0.
-        dy_up = 0.
-        dy_dn = 0.
-        b_up = 0.
-        b_dn = 0.
         y_up = []
         y_dn = []
         x = []
@@ -243,7 +238,6 @@ class LLObjectsProducer(Module):
         genTops = []
         genTops_up = []
         genTops_dn = []
-        topPt_cor = []
         mgpowheg = []
         for gp in genparts:
             if gp.statusFlags & 8192 == 0: continue
