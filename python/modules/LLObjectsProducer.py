@@ -201,19 +201,58 @@ class LLObjectsProducer(Module):
             if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
                 nGenLeptons+=1
 
+    def topPTSyst(self, toppt):
+        ptrange = [0, 25, 75, 125, 200, 250, 300, 350, 450, 600]
+        pt_index = -1
+        dx = 0.
+        dy_up = 0.
+        dy_dn = 0.
+        b_up = 0.
+        b_dn = 0.
+        y_up = []
+        y_dn = []
+        x = []
+        syst_out = []
+        for i in xrange(len(ptrange)):
+            if toppt < float(ptrange[i]):
+                if toppt >= 25: pt_index = i - 1
+                else:           pt_index = 1
+                x = [ptrange[pt_index + 1], ptrange[pt_index]]
+                y_up = [self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetXaxis().FindBin(ptrange[pt_index + 1])), self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetXaxis().FindBin(ptrange[pt_index]))]
+                y_dn = [self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetXaxis().FindBin(ptrange[pt_index + 1])), self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetXaxis().FindBin(ptrange[pt_index]))]
+                break
+            else:
+                pt_index = len(ptrange) - 1
+                x = [ptrange[pt_index], ptrange[pt_index - 1]]
+                y_up = [self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetXaxis().FindBin(ptrange[pt_index])), self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetXaxis().FindBin(ptrange[pt_index - 1]))]
+                y_dn = [self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetXaxis().FindBin(ptrange[pt_index])), self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetXaxis().FindBin(ptrange[pt_index - 1]))]
+
+        def line(pt, m, c):
+            return m*np.clip(pt, 0, 800) + c
+
+        coef_up = np.polyfit(x, y_up, 1)
+        coef_dn = np.polyfit(x, y_dn, 1)
+        up = line(toppt, coef_up[0], coef_up[1])
+        dn = line(toppt, coef_dn[0], coef_dn[1])
+
+        if up < 0.5 or dn < 0.5: print("toppt: {0}, coef_up: {1}, coef_dn: {2}, x: {3}, y_up: {4}, y_dn: {5}, ptrange: {6}".format(toppt, coef_up, coef_dn, x, y_up, y_dn, ptrange[pt_index]))
+
+        return up, dn
+
     def topPTWeight(self, genparts):
         genTops = []
         genTops_up = []
         genTops_dn = []
+        topPt_cor = []
         mgpowheg = []
         for gp in genparts:
             if gp.statusFlags & 8192 == 0: continue
             if abs(gp.pdgId) == 6:
                 genTops.append(gp)
                 mgpowheg.append(self.topMGPowheg.GetBinContent(self.topMGPowheg.GetNbinsX()) if gp.pt >= 1000 else self.topMGPowheg.GetBinContent(self.topMGPowheg.GetXaxis().FindBin(gp.pt)))
-                genTops_up.append(self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetNbinsX()) if gp.pt >= 800 else self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetXaxis().FindBin(gp.pt)))
-                genTops_dn.append(self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetNbinsX()) if gp.pt >= 800 else self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetXaxis().FindBin(gp.pt)))
-
+                up, dn = self.topPTSyst(gp.pt)
+                genTops_up.append(up)
+                genTops_dn.append(dn)
 
             if len(mgpowheg) != 0: topptWeight = 1.*mgpowheg[0]
             else:                  topptWeight = 1.
@@ -231,8 +270,8 @@ class LLObjectsProducer(Module):
         
                 topptWeight = np.sqrt(wgt(genTops[0].pt) * mgpowheg[0] * wgt(genTops[1].pt) * mgpowheg[1])
                 topptWeight_only = np.sqrt(wgt(genTops[0].pt) * wgt(genTops[1].pt))
-                topptWeight_up = np.sqrt(wgt(genTops[0].pt * genTops_up[0]) * wgt(genTops[1].pt * genTops_up[1]))
-                topptWeight_dn = np.sqrt(wgt(genTops[0].pt * genTops_dn[0]) * wgt(genTops[1].pt * genTops_dn[1]))
+                topptWeight_up = np.sqrt(wgt(genTops[0].pt) * genTops_up[0] * wgt(genTops[1].pt) * genTops_up[1])
+                topptWeight_dn = np.sqrt(wgt(genTops[0].pt) * genTops_dn[0] * wgt(genTops[1].pt) * genTops_dn[1])
                 topptWeight_mgpow = np.sqrt(mgpowheg[0] * mgpowheg[1])
 
         #print("toppt1: {0}, mgpow2: {1}, toppt2: {2}, mgpow2: {3}".format(genTops[0].pt, mgpowheg[0], genTops[1].pt, mgpowheg[1]))
