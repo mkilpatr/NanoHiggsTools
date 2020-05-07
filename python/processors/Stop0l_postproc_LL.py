@@ -6,6 +6,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 from importlib import import_module
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from PhysicsTools.NanoSUSYTools.modules.LLObjectsProducer import *
+from PhysicsTools.NanoSUSYTools.modules.TopReweightProducer import *
 from PhysicsTools.NanoSUSYTools.modules.qcdSFProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateEvtWeightFastsim import *
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
@@ -168,15 +169,16 @@ def main(args):
 
 
     mods = [
-	LLObjectsProducer(args.era, args.sampleName, isData=isdata),
-        SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
+	TopReweightProducer(args.era, args.sampleName, isData=isdata),
+	#LLObjectsProducer(args.era, args.sampleName, isData=isdata),
+        #SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
     ]
 
-    if not isdata:
-	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="JESUp"))
-	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="JESDown"))
-	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="METUnClustUp"))
-	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="METUnClustDown"))
+#    if not isdata:
+#	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="JESUp"))
+#	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="JESDown"))
+#	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="METUnClustUp"))
+#	mods.append(LLObjectsProducer(args.era, args.sampleName, isData=isdata, applyUncert="METUnClustDown"))
 
     if "QCD" in args.sampleName:
 	mods.append(qcdSFProducer(args.era))
