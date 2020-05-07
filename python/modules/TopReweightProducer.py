@@ -8,7 +8,6 @@ import operator
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
-from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, closest
 
 class TopReweightProducer(Module):
