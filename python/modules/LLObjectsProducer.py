@@ -4,11 +4,11 @@ import math
 import numpy as np
 from functools import reduce
 import operator
+import os
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
-from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, closest
 
 #2016 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Data_MC_Scale_Factors_period_dep
@@ -40,35 +40,7 @@ class LLObjectsProducer(Module):
         self.metBranchName = "MET"
         self.applyUncert = applyUncert
         self.suffix = ""
-        self.xsRoot_mg = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/topPT_MGPowheg_comp.root"
-	self.xsRoot = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/LostLepton_HM_topAK8_weight.root"
-	self.xsRoot_ptlepbmet = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/LostLepton_HM_ptlepbmet_weight.root"
-	self.xsRoot_topptSyst = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/LostLepton_topPt_systematics.root"
-        self.hist_AK8_2016 = "FatJet_pt[0]_singlelep-2016__llcr_hm_2016__num__"
-        self.hist_AK8_2017 = "FatJet_pt[0]_singlelep-2017__llcr_hm_2017__num__"
-        self.hist_AK8_2018 = "FatJet_pt[0]_singlelep-2018__llcr_hm_2018__num__"
-        self.hist_Ptb_2016 = "Stop0l_PtLepMetB_singlelep-2016__llcr_hm_2016__over__bkgtotal"
-        self.hist_Ptb_2017 = "Stop0l_PtLepMetB_singlelep-2017__llcr_hm_2017__over__bkgtotal"
-        self.hist_Ptb_2018 = "Stop0l_PtLepMetB_singlelep-2018__llcr_hm_2018__over__bkgtotal"
-        self.hist_toppt_up = "topPt_up";
-        self.hist_toppt_dn = "topPt_dn";
 
-        ## Gen pdgid for toppt weight
-        self.p_tauminus = 15
-        self.p_Z0       = 23
-        self.p_Wplus    = 24
-        self.p_gamma    = 22
-        self.pfhfhad = 1
-        self.pfem = 2
-        self.pfelectron = 11
-        self.p_nu_e = 12
-        self.pfmuon = 13
-        self.p_nu_mu = 14
-        self.p_nu_tau = 16
-        self.pfphoton = 22
-        self.pfh0 = 130
-        self.pfhplus = 211
-        
         if self.applyUncert == "JESUp":
             self.suffix = "_JESUp"
         elif self.applyUncert == "METUnClustUp":
@@ -91,18 +63,6 @@ class LLObjectsProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	if self.era == '2016':   
-            self.topAK8LLHMcr=self.loadhisto(self.xsRoot,self.hist_AK8_2016)
-            self.topPtLepBMetLLHMcr=self.loadhisto(self.xsRoot_ptlepbmet,self.hist_Ptb_2016)
-	elif self.era == '2017': 
-            self.topAK8LLHMcr=self.loadhisto(self.xsRoot,self.hist_AK8_2017)
-            self.topPtLepBMetLLHMcr=self.loadhisto(self.xsRoot_ptlepbmet,self.hist_Ptb_2017)
-	elif self.era == '2018': 
-            self.topAK8LLHMcr=self.loadhisto(self.xsRoot,self.hist_AK8_2018)
-            self.topPtLepBMetLLHMcr=self.loadhisto(self.xsRoot_ptlepbmet,self.hist_Ptb_2018)
-        self.topMGPowheg=self.loadhisto(self.xsRoot_mg,self.era)
-        self.topPTSyst_up=self.loadhisto(self.xsRoot_topptSyst,self.hist_toppt_up)
-        self.topPTSyst_dn=self.loadhisto(self.xsRoot_topptSyst,self.hist_toppt_dn)
         self.out.branch("Stop0l_MtLepMET"		+ self.suffix, 	"F")
         self.out.branch("Stop0l_nVetoElecMuon"		+ self.suffix, 	"I")
         self.out.branch("Stop0l_noMuonJet"		+ self.suffix,	"O")
@@ -113,24 +73,7 @@ class LLObjectsProducer(Module):
         self.out.branch("Pass_exHEMVetoPho30"		+ self.suffix,  "O")
         self.out.branch("Pass_exHEMVetoJet30"		+ self.suffix,  "O")
         self.out.branch("Pass_LHETTbar"			+ self.suffix,  "O")
-        self.out.branch("Stop0l_nMatchTopPt"                         ,  "I")
-        self.out.branch("Stop0l_MatchTopPt"                          ,  "F", lenVar="Stop0l_nMatchTopPt") 
-        self.out.branch("Stop0l_nMatchWPt"                           ,  "I")
-        self.out.branch("Stop0l_MatchWPt"                            ,  "F", lenVar="Stop0l_nMatchTopPt") 
-        self.out.branch("Stop0l_PtLepMetB"              + self.suffix,  "F")
         if not self.isData:
-            self.out.branch('Stop0l_ntopPTLep', 			"I")
-            self.out.branch('Stop0l_ntopPTHad', 			"I")
-            self.out.branch('Stop0l_topPTLep', 			        "F", lenVar="Stop0l_ntopPTLep")
-            self.out.branch('Stop0l_topPTHad', 			        "F", lenVar="Stop0l_ntopPTHad")
-            self.out.branch('Stop0l_topAK8Weight', 			"F")
-            self.out.branch('Stop0l_topPtLepBMetWeight', 		"F")
-            self.out.branch('Stop0l_topptWeight', 			"F")
-            self.out.branch('Stop0l_topMGPowWeight', 			"F")
-            self.out.branch('Stop0l_topptOnly', 		        "F")
-            self.out.branch('Stop0l_topptOnly_Up', 			"F")
-            self.out.branch('Stop0l_topptOnly_Down', 			"F")
-            self.out.branch('Stop0l_topCombWeight', 			"F")
             self.out.branch("ElectronVetoCRSF"		+ self.suffix,	"F")
             self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
             self.out.branch("ElectronVetoSRSF"		+ self.suffix,	"F")
@@ -183,179 +126,6 @@ class LLObjectsProducer(Module):
     def isA(self, particleID, p):
         return abs(p) == particleID
 
-    def checkLepDecay(self, genparts):
-        for p in genparts:
-            if p.statusFlags & 8192 == 0: continue
-            #print "staitusFlag =", p.statusFlags
-            nGenTaus+=1
-            lepdecay = False
-            if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
-                lepdecay = True
-                continue
-            if (not self.isA(self.p_nu_e, p.pdgId)) and (not self.isA(self.p_nu_mu, p.pdgId)):
-                if (self.isA(self.pfhplus, p.pdgId) or self.isA(321, p.pdgId)):
-                    taudecayprods.append(p)
-                    if p.pt > 10.0 and abs(p.eta) < 2.4: nGenChHadsAcc+=1
-            if not lepdecay:
-                nGenHadTaus+=1
-            if self.isA(self.pfelectron, p.pdgId) or self.isA(self.pfmuon, p.pdgId):
-                nGenLeptons+=1
-
-    def topPTSyst(self, toppt):
-        ptrange = [0, 25, 75, 125, 200, 250, 300, 350, 450, 600]
-        pt_index = -1
-        y_up = []
-        y_dn = []
-        x = []
-        syst_out = []
-        for i in xrange(len(ptrange)):
-            if toppt < float(ptrange[i]):
-                if toppt >= 25: pt_index = i - 1
-                else:           pt_index = 1
-                x = [ptrange[pt_index + 1], ptrange[pt_index]]
-                y_up = [self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetXaxis().FindBin(ptrange[pt_index + 1])), self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetXaxis().FindBin(ptrange[pt_index]))]
-                y_dn = [self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetXaxis().FindBin(ptrange[pt_index + 1])), self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetXaxis().FindBin(ptrange[pt_index]))]
-                break
-            else:
-                pt_index = len(ptrange) - 1
-                x = [ptrange[pt_index], ptrange[pt_index - 1]]
-                y_up = [self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetXaxis().FindBin(ptrange[pt_index])), self.topPTSyst_up.GetBinContent(self.topPTSyst_up.GetXaxis().FindBin(ptrange[pt_index - 1]))]
-                y_dn = [self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetXaxis().FindBin(ptrange[pt_index])), self.topPTSyst_dn.GetBinContent(self.topPTSyst_dn.GetXaxis().FindBin(ptrange[pt_index - 1]))]
-
-        def line(pt, m, c):
-            return m*np.clip(pt, 0, 800) + c
-
-        coef_up = np.polyfit(x, y_up, 1)
-        coef_dn = np.polyfit(x, y_dn, 1)
-        up = line(toppt, coef_up[0], coef_up[1])
-        dn = line(toppt, coef_dn[0], coef_dn[1])
-
-        if up < 0.5 or dn < 0.5: print("toppt: {0}, coef_up: {1}, coef_dn: {2}, x: {3}, y_up: {4}, y_dn: {5}, ptrange: {6}".format(toppt, coef_up, coef_dn, x, y_up, y_dn, ptrange[pt_index]))
-
-        return up, dn
-
-    def topPTWeight(self, genparts):
-        genTops = []
-        genTops_up = []
-        genTops_dn = []
-        mgpowheg = []
-        for gp in genparts:
-            if gp.statusFlags & 8192 == 0: continue
-            if abs(gp.pdgId) == 6:
-                genTops.append(gp)
-                mgpowheg.append(self.topMGPowheg.GetBinContent(self.topMGPowheg.GetNbinsX()) if gp.pt >= 1000 else self.topMGPowheg.GetBinContent(self.topMGPowheg.GetXaxis().FindBin(gp.pt)))
-                up, dn = self.topPTSyst(gp.pt)
-                genTops_up.append(up)
-                genTops_dn.append(dn)
-
-            if len(mgpowheg) != 0: topptWeight = 1.*mgpowheg[0]
-            else:                  topptWeight = 1.
-            topptWeight_only = 1.
-            if len(mgpowheg) != 0: topptWeight_mgpow = mgpowheg[0]
-            else:                  topptWeight_mgpow = 1.
-            if len(genTops_up) != 0: topptWeight_up = genTops_up[0]
-            else:                    topptWeight_up = 1.
-            if len(genTops_dn) != 0: topptWeight_dn = genTops_dn[0]
-            else:                    topptWeight_dn = 1.
-
-            if len(genTops) == 2:
-                def wgt(pt):
-                    return np.exp(0.0615 - 0.0005 * np.clip(pt, 0, 800))
-        
-                topptWeight = np.sqrt(wgt(genTops[0].pt) * mgpowheg[0] * wgt(genTops[1].pt) * mgpowheg[1])
-                topptWeight_only = np.sqrt(wgt(genTops[0].pt) * wgt(genTops[1].pt))
-                topptWeight_up = np.sqrt(wgt(genTops[0].pt) * genTops_up[0] * wgt(genTops[1].pt) * genTops_up[1])
-                topptWeight_dn = np.sqrt(wgt(genTops[0].pt) * genTops_dn[0] * wgt(genTops[1].pt) * genTops_dn[1])
-                topptWeight_mgpow = np.sqrt(mgpowheg[0] * mgpowheg[1])
-
-        #print("toppt1: {0}, mgpow2: {1}, toppt2: {2}, mgpow2: {3}".format(genTops[0].pt, mgpowheg[0], genTops[1].pt, mgpowheg[1]))
-        return topptWeight, topptWeight_only, topptWeight_mgpow, topptWeight_up, topptWeight_dn
-
-    def topPTLep(self, genpars):
-        toppt_leptonic = []
-        toppt_hadronic = []
-        
-        #for genpar in genpars :     #loop on genpars       
-        #print len(genpars)
-        for i in range(len(genpars)):
-            genpar = genpars[i]
-            if genpar.statusFlags & 8192 == 0: continue
-            ## look at top daughters
-            if abs(genpar.pdgId)==6:
-                #print genpar.pt,genpar.pdgId
-                for j in range(len(genpars)):
-                    genpard = genpars[j]
-                    if genpard.genPartIdxMother == i:
-                        #print genpard.pt,genpard.pdgId
-        
-                        ## look at W daughters
-                        if self.isA(self.p_Wplus, genpard.pdgId):
-                            for k in range(len(genpars)):
-                                genpardd = genpars[k]
-                                if genpardd.genPartIdxMother == j:
-                                    #print genpardd.pt,genpardd.pdgId
-                                    if abs(genpardd.pdgId)>=11 and abs(genpardd.pdgId)<=16:
-                                        toppt_leptonic.append(genpar.pt)
-                                        break
-                                    if abs(genpardd.pdgId)>=1 and abs(genpardd.pdgId)<=4:
-                                        toppt_hadronic.append(genpar.pt)
-                                        break
-
-        toppt_leptonic.sort(reverse=True)
-        toppt_hadronic.sort(reverse=True)
-        #print("Leptonic: {0}".format(toppt_leptonic))
-        #print("Hadronic: {0}".format(toppt_hadronic))
-
-        return toppt_leptonic, toppt_hadronic 
-
-    def topPTAK8Match(self, fatjet):
-        topptWeight = 1.
-        if len(fatjet) == 0: return topptWeight
-
-        if fatjet[0].pt >= 150:
-            topptWeight = self.topAK8LLHMcr.GetBinContent(self.topAK8LLHMcr.GetNbinsX()) if fatjet[0].pt >= 800 else self.topAK8LLHMcr.GetBinContent(self.topAK8LLHMcr.GetXaxis().FindBin(fatjet[0].pt))
-
-        return topptWeight
-
-    def SelBtagJets(self, jet):
-        global DeepCSVMediumWP
-        if jet.pt < 20 or math.fabs(jet.eta) > 2.4:
-            return False
-        if jet.btagDeepB >= DeepCSVMediumWP[self.era]:
-            return True
-        return False
-
-    def ptlepmetb(self, electron, muon, tau, met, jets):
-        topptWeight = 1.
-        bjets = [ j for i,j in enumerate(jets) if self.BJet_Stop0l[i]]
-        btagidx = sorted(range(len(bjets)), key=lambda k: bjets[k].btagDeepB , reverse=True)
-
-        lep = electron if (len(electron) != 0 and len(muon) == 0) else muon
-        if len(lep) == 0: lep_4vec = ROOT.TLorentzVector(0, 0, 0, 0)
-        else:             lep_4vec = ROOT.TLorentzVector(lep[0].pt, lep[0].eta, lep[0].phi, lep[0].mass)
-
-        Mtb = float('inf')
-
-        met_4vec = ROOT.TLorentzVector()
-        met_4vec.SetPtEtaPhiM(met.pt, 0, met.phi, 0)
-        tot = ROOT.TLorentzVector()
-        for b in range(min(len(btagidx), 2)):
-            bj = bjets[btagidx[b]]
-            bj_4vec = ROOT.TLorentzVector(bj.pt, bj.eta, bj.phi, bj.mass)
-            if Mtb <= math.sqrt(2 * met.pt * bj.pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-bj.phi)))): continue
-            tot = bj_4vec + lep_4vec
-
-        ptlepbmet = (met_4vec + tot)
-
-        return ptlepbmet
-
-    def topPTptlepbmetMatch(self, ptlepbmet):
-        topptWeight = 1.
-        if ptlepbmet == 0: return topptWeight
-
-        topptWeight = self.topPtLepBMetLLHMcr.GetBinContent(self.topPtLepBMetLLHMcr.GetNbinsX()) if ptlepbmet >= 800 else self.topPtLepBMetLLHMcr.GetBinContent(self.topPtLepBMetLLHMcr.GetXaxis().FindBin(ptlepbmet))
-
-        return topptWeight
 
     def ScaleFactorErrElectron(self, obj, kind="Veto", region="CR"):
         sf = 1
@@ -496,11 +266,6 @@ class LLObjectsProducer(Module):
         dphiISRMet           = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
         Pass_HEMElec, Pass_HEMPho, Pass_HEMJet = self.HEMVetoLepton(electrons, photons, jets)
         PassLHE              = lhe.HTIncoming < 600 if (("DiLep" in self.process) or ("SingleLep" in self.process)) else True 
-        ## Adding matched Fatjet pT
-        toppt                = self.FatJetMatchedPt(fatjets, 1)
-        wpt                  = self.FatJetMatchedPt(fatjets, 2)
-        self.BJet_Stop0l     = map(self.SelBtagJets, jets)
-        ptlepmetb            = self.ptlepmetb(electrons, muons, taus, met, jets)
         
         if not self.isData:
             electronVetoCRSF, electronVetoCRSFErr       = self.ScaleFactorErrElectron(electrons, "Veto", "CR")
@@ -512,41 +277,7 @@ class LLObjectsProducer(Module):
             ## type top = 1, W = 2, else 0
             softBSF, softBSFErr                         = self.ScaleFactorErrSoftB(SB)
        
-        if self.applyUncert == None:
-            self.out.fillBranch("Stop0l_nMatchTopPt",                          len(toppt))
-            self.out.fillBranch("Stop0l_MatchTopPt",                           toppt)
-            self.out.fillBranch("Stop0l_nMatchWPt",                            len(wpt))
-            self.out.fillBranch("Stop0l_MatchWPt",                             wpt)
- 
-        if not self.isData and self.applyUncert == None:
-            toppt_lepmatch, toppt_hadmatch = self.topPTLep(genpart)
-            if "TTbar" in self.process:
-                topptAK8  = self.topPTAK8Match(fatjets) 
-                topptPtlepbmet  = self.topPTptlepbmetMatch(ptlepmetb.Pt()) 
-                #topptWeight, topptWeight_only, topptWeight_mgpow, topptWeight_up, topptWeight_dn
-                toppt_wgt, toppt_only, toppt_mgpow, toppt_up, toppt_dn  = self.topPTWeight(genpart) 
-            else:
-                topptAK8 = 1.
-                topptPtlepbmet = 1.
-                toppt_wgt = 1.
-                toppt_only = 1.
-                toppt_mgpow = 1.
-                toppt_up = 1.
-                toppt_dn = 1.
-            #print("toppt_wgt: {0}".format(toppt_lep))
-            self.out.fillBranch('Stop0l_ntopPTLep', 			len(toppt_lepmatch))
-            self.out.fillBranch('Stop0l_ntopPTHad', 			len(toppt_hadmatch))
-            self.out.fillBranch('Stop0l_topPTLep', 			toppt_lepmatch)
-            self.out.fillBranch('Stop0l_topPTHad', 			toppt_hadmatch)
-            self.out.fillBranch('Stop0l_topAK8Weight', 			topptAK8)
-            self.out.fillBranch('Stop0l_topPtLepBMetWeight', 		topptPtlepbmet)
-            self.out.fillBranch('Stop0l_topptWeight', 			toppt_wgt)
-            self.out.fillBranch('Stop0l_topMGPowWeight', 		toppt_mgpow)
-            self.out.fillBranch('Stop0l_topptOnly', 	        	toppt_only)
-            self.out.fillBranch('Stop0l_topptOnly_Up', 			toppt_up)
-            self.out.fillBranch('Stop0l_topptOnly_Down', 		toppt_dn)
         ### Store output
-        self.out.fillBranch("Stop0l_PtLepMetB"          + self.suffix,  ptlepmetb.Pt())
         self.out.fillBranch("Stop0l_MtLepMET"		+ self.suffix,  mt)
         self.out.fillBranch("Stop0l_nVetoElecMuon"	+ self.suffix, 	countEle + countMuon)
         self.out.fillBranch("Stop0l_noMuonJet"		+ self.suffix,	noMuonJet)
