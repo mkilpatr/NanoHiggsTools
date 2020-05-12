@@ -170,10 +170,10 @@ def main(args):
 
 
     mods = [
-	TopReweightProducer(args.era, args.sampleName, isData=isdata),
+	#TopReweightProducer(args.era, args.sampleName, isData=isdata),
 	TopOtherWeightProducer(args.era, args.sampleName, isData=isdata),
-	LLObjectsProducer(args.era, args.sampleName, isData=isdata),
         SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
+	LLObjectsProducer(args.era, args.sampleName, isData=isdata),
     ]
 
     if not isdata:

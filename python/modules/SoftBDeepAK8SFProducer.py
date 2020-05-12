@@ -585,7 +585,7 @@ class SoftBDeepAK8SFProducer(Module):
         fatJet_stop0l = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_Stop0l), int)
         nGenPartCut = nGenPart[fatJet_stop0l == 1]
         denseTopFilter = (fatJet_stop0l[fatJetPtFilter] == 1) & (nGenPart[fatJetPtFilter] >= 4)
-        self.top_sferr[denseTopFilter] = np.sqrt(np.power(self.top_sferr[denseTopFilter], 2) + additionalUncertainty*additionalUncertainty)
+        self.top_sferr[denseTopFilter] = np.sqrt(np.power(self.top_sferr[denseTopFilter], 2))
 
         ### Store output
         self.out.fillBranch("SB_SF",        sb_sf)

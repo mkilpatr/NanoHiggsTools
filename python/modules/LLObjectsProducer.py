@@ -62,6 +62,7 @@ class LLObjectsProducer(Module):
         return hist_
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
+        self.isFirstEventOfFile = True
         self.out = wrappedOutputTree
         self.out.branch("Stop0l_MtLepMET"		+ self.suffix, 	"F")
         self.out.branch("Stop0l_nVetoElecMuon"		+ self.suffix, 	"I")
@@ -73,6 +74,8 @@ class LLObjectsProducer(Module):
         self.out.branch("Pass_exHEMVetoPho30"		+ self.suffix,  "O")
         self.out.branch("Pass_exHEMVetoJet30"		+ self.suffix,  "O")
         self.out.branch("Pass_LHETTbar"			+ self.suffix,  "O")
+        self.out.branch("LHEScaleWeight_Up"		+ self.suffix,  "F")
+        self.out.branch("LHEScaleWeight_Down"		+ self.suffix,  "F")
         if not self.isData:
             self.out.branch("ElectronVetoCRSF"		+ self.suffix,	"F")
             self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
@@ -224,6 +227,28 @@ class LLObjectsProducer(Module):
 
 	return pt
 
+    def LHEScale(self, lhewgt):
+        LHEwgt_Up = 1.
+        LHEwgt_Down = 1.
+        lhe = []
+
+        for l in lhewgt:
+            LHEwgt_Up = max(l, LHEwgt_Up)
+            LHEwgt_Down = min(l, LHEwgt_Down)
+            #print("length of LHEScale: {0}, value: {1}".format(len(lhewgt), lhewgt[0]))
+
+        #if len(lhewgt) != 0: print("UP: {0}, Down: {1}, Last: {2}".format(LHEwgt_Up, LHEwgt_Down, lhewgt[8]))
+
+        return LHEwgt_Up, LHEwgt_Down        
+
+    def getattr_safe(self, event, name):
+        out = None
+        try:
+            out = getattr(event, name)
+        except RuntimeError:
+            pass
+        return out
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
@@ -240,8 +265,10 @@ class LLObjectsProducer(Module):
         res       = Collection(event, "ResolvedTop", lenVar="nResolvedTopCandidate")
         jets      = Collection(event, "Jet")
         met       = Object(event, self.metBranchName)
+        if not self.isData: lhewgt    = event.LHEScaleWeight
         lhe       = Object(event, "LHE")
-        
+        lhescale = [lhewgt[0], lhewgt[1], lhewgt[3], lhewgt[4], lhewgt[5], lhewgt[7], lhewgt[8]] if not self.isData else [1, 1, 1, 1, 1, 1, 1]
+
         if self.applyUncert == "JESUp":
             jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
             met       = ObjectRemapped(event, self.metBranchName, replaceMap={"pt":"pt_jesTotalUp", "phi":"phi_jesTotalUp"})
@@ -266,8 +293,9 @@ class LLObjectsProducer(Module):
         dphiISRMet           = abs(deltaPhi(fatjets[stop0l.ISRJetIdx].phi, met.phi)) if stop0l.ISRJetIdx >= 0 else -1
         Pass_HEMElec, Pass_HEMPho, Pass_HEMJet = self.HEMVetoLepton(electrons, photons, jets)
         PassLHE              = lhe.HTIncoming < 600 if (("DiLep" in self.process) or ("SingleLep" in self.process)) else True 
-        
+
         if not self.isData:
+            LHEwgt_Up, LHEwgt_Down 			= self.LHEScale(lhescale)
             electronVetoCRSF, electronVetoCRSFErr       = self.ScaleFactorErrElectron(electrons, "Veto", "CR")
             electronVetoSRSF, electronVetoSRSFErr       = self.ScaleFactorErrElectron(electrons, "Veto", "SR")
             muonLooseCRSF, muonLooseCRSFErr             = self.ScaleFactorErrMuon(muons, "Loose", "CR")
@@ -290,6 +318,8 @@ class LLObjectsProducer(Module):
         self.out.fillBranch("Pass_LHETTbar"		+ self.suffix,  PassLHE)
         
         if not self.isData:
+            self.out.fillBranch("LHEScaleWeight_Up"		+ self.suffix,  LHEwgt_Up)
+            self.out.fillBranch("LHEScaleWeight_Down"	+ self.suffix,  LHEwgt_Down)
             self.out.fillBranch("ElectronVetoCRSF"	+ self.suffix,	electronVetoCRSF)
             self.out.fillBranch("ElectronVetoCRSFErr"	+ self.suffix,  electronVetoCRSFErr)
             self.out.fillBranch("ElectronVetoSRSF"	+ self.suffix,	electronVetoSRSF)
