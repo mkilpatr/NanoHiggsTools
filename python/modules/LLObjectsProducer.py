@@ -74,9 +74,18 @@ class LLObjectsProducer(Module):
         self.out.branch("Pass_exHEMVetoPho30"		+ self.suffix,  "O")
         self.out.branch("Pass_exHEMVetoJet30"		+ self.suffix,  "O")
         self.out.branch("Pass_LHETTbar"			+ self.suffix,  "O")
-        self.out.branch("LHEScaleWeight_Up"		+ self.suffix,  "F")
-        self.out.branch("LHEScaleWeight_Down"		+ self.suffix,  "F")
         if not self.isData:
+            self.out.branch("LHEScaleWeight_Up"		+ self.suffix,  "F")
+            self.out.branch("LHEScaleWeight_Down"	+ self.suffix,  "F")
+            self.out.branch("LHEScaleWeight_0"		+ self.suffix,  "F")
+            self.out.branch("LHEScaleWeight_1"		+ self.suffix,  "F")
+            self.out.branch("LHEScaleWeight_2"		+ self.suffix,  "F")
+            self.out.branch("LHEScaleWeight_3"		+ self.suffix,  "F")
+            self.out.branch("LHEScaleWeight_4"		+ self.suffix,  "F")
+            self.out.branch("LHEScaleWeight_5"		+ self.suffix,  "F")
+            self.out.branch("LHEScaleWeight_6"		+ self.suffix,  "F")
+            self.out.branch("LHEScaleWeight_7"		+ self.suffix,  "F")
+            self.out.branch("LHEScaleWeight_8"		+ self.suffix,  "F")
             self.out.branch("ElectronVetoCRSF"		+ self.suffix,	"F")
             self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
             self.out.branch("ElectronVetoSRSF"		+ self.suffix,	"F")
@@ -267,7 +276,13 @@ class LLObjectsProducer(Module):
         met       = Object(event, self.metBranchName)
         if not self.isData: lhewgt    = event.LHEScaleWeight
         lhe       = Object(event, "LHE")
-        lhescale = [lhewgt[0], lhewgt[1], lhewgt[3], lhewgt[4], lhewgt[5], lhewgt[7], lhewgt[8]] if not self.isData else [1, 1, 1, 1, 1, 1, 1]
+
+        lhescale = []
+        if not self.isData:
+            for lhe_ in xrange(len(lhewgt)):
+                l = lhewgt[lhe_]
+                lhescale.append(l)
+            if len(lhescale) == 0: lhescale = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 
         if self.applyUncert == "JESUp":
             jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
@@ -318,8 +333,17 @@ class LLObjectsProducer(Module):
         self.out.fillBranch("Pass_LHETTbar"		+ self.suffix,  PassLHE)
         
         if not self.isData:
-            self.out.fillBranch("LHEScaleWeight_Up"		+ self.suffix,  LHEwgt_Up)
+            self.out.fillBranch("LHEScaleWeight_Up"	+ self.suffix,  LHEwgt_Up)
             self.out.fillBranch("LHEScaleWeight_Down"	+ self.suffix,  LHEwgt_Down)
+            self.out.fillBranch("LHEScaleWeight_0"	+ self.suffix,  lhescale[0])
+            self.out.fillBranch("LHEScaleWeight_1"	+ self.suffix,  lhescale[1])
+            self.out.fillBranch("LHEScaleWeight_2"	+ self.suffix,  lhescale[2])
+            self.out.fillBranch("LHEScaleWeight_3"	+ self.suffix,  lhescale[3])
+            self.out.fillBranch("LHEScaleWeight_4"	+ self.suffix,  lhescale[4])
+            self.out.fillBranch("LHEScaleWeight_5"	+ self.suffix,  lhescale[5])
+            self.out.fillBranch("LHEScaleWeight_6"	+ self.suffix,  lhescale[6])
+            self.out.fillBranch("LHEScaleWeight_7"	+ self.suffix,  lhescale[7])
+            self.out.fillBranch("LHEScaleWeight_8"	+ self.suffix,  lhescale[8])
             self.out.fillBranch("ElectronVetoCRSF"	+ self.suffix,	electronVetoCRSF)
             self.out.fillBranch("ElectronVetoCRSFErr"	+ self.suffix,  electronVetoCRSFErr)
             self.out.fillBranch("ElectronVetoSRSF"	+ self.suffix,	electronVetoSRSF)
