@@ -74,6 +74,7 @@ class DeepTopProducer(Module):
         self.out.branch("FatJet_Stop0l", "I", lenVar="nFatJet")
         self.out.branch("ResolvedTop_Stop0l" + self.suffix, "O", lenVar="nResolvedTopCandidate" + self.suffix)
         self.out.branch("Stop0l_nTop" + self.suffix, "I")
+        self.out.branch("FatJet_TopPt" + self.suffix, "F")
         self.out.branch("Stop0l_nW" + self.suffix, "I")
         self.out.branch("Stop0l_nResolved" + self.suffix, "I")
         self.out.branch("Stop0l_ISRJetIdx" + self.suffix, "I")
@@ -361,6 +362,12 @@ class DeepTopProducer(Module):
 
         return numerator/denominator, numerator_up/denominator, numerator_dn/denominator, numerator_fast_up/denominator, numerator_fast_dn/denominator
 
+    def getTopPt(self, fatjet, stop0l):
+        for f,j in zip(fatjet, stop0l):
+            if j != 1: continue
+            return f.pt
+        return 0.
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
@@ -393,6 +400,7 @@ class DeepTopProducer(Module):
         #we need all the overlap resolved candidates in the step above, so the discriminator filter is moved here
         self.ResolvedTop_Stop0l = map(lambda x : self.DeepResolvedDiscCut(x), zip(resolves, self.ResolvedTop_Stop0l))
         self.nTop = sum( [ i for i in self.FatJet_Stop0l if i == 1 ])
+        self.TopPt = self.getTopPt(fatjets, self.FatJet_Stop0l)
         self.nW = sum( [ 1 for i in self.FatJet_Stop0l if i == 2 ])
         self.nResolved = sum(self.ResolvedTop_Stop0l)
         self.ISRJetidx = self.GetISRJets(fatjets, subjets, met.phi)
@@ -403,6 +411,7 @@ class DeepTopProducer(Module):
         self.out.fillBranch("FatJet_Stop0l", self.FatJet_Stop0l)
         self.out.fillBranch("ResolvedTop_Stop0l" + self.suffix, self.ResolvedTop_Stop0l)
         self.out.fillBranch("Stop0l_nTop" + self.suffix, self.nTop)
+        self.out.fillBranch("FatJet_TopPt" + self.suffix, self.TopPt)
         self.out.fillBranch("Stop0l_nW" + self.suffix, self.nW)
         self.out.fillBranch("Stop0l_nResolved" + self.suffix, self.nResolved)
         self.out.fillBranch("Stop0l_ISRJetIdx" + self.suffix, self.ISRJetidx)

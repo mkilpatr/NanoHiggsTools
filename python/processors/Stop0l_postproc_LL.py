@@ -11,6 +11,7 @@ from PhysicsTools.NanoSUSYTools.modules.TopOtherWeightProducer import *
 from PhysicsTools.NanoSUSYTools.modules.qcdSFProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateEvtWeightFastsim import *
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
+from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
 
 DataDepInputs = {
     "MC": {
@@ -173,6 +174,7 @@ def main(args):
 	#TopReweightProducer(args.era, args.sampleName, isData=isdata),
 	TopOtherWeightProducer(args.era, args.sampleName, isData=isdata),
         SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
+	DeepTopProducer(args.era, taggerWorkingDirectory, sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
 	LLObjectsProducer(args.era, args.sampleName, isData=isdata),
     ]
 
@@ -185,8 +187,8 @@ def main(args):
     if "QCD" in args.sampleName:
 	mods.append(qcdSFProducer(args.era))
 
-    if isSUSY:
-	mods.append(UpdateEvtWeightFastsim(isdata, args.nEvents, args.sampleName))
+#    if isSUSY:
+#	mods.append(UpdateEvtWeightFastsim(isdata, args.nEvents, args.sampleName))
 
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":

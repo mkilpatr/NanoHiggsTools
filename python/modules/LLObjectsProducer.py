@@ -10,27 +10,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, closest
-
-#2016 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Data_MC_Scale_Factors_period_dep
-#2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
-
-DeepCSVMediumWP ={
-    "2016" : 0.6321,
-    "2017" : 0.4941,
-    "2018" : 0.4184
-}
-
-DeepCSVLooseWP ={
-    "2016" : 0.2217,
-    "2017" : 0.1522,
-    "2018" : 0.1241
-}
-
-CSVv2MediumWP = {
-    "2016" : 0.8484,
-    "2017" : 0.8838,
-    "2018" : 0.8838  # Not recommended, use 2017 as temp
-}
+from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMediumWP, DeepCSVLooseWP
 
 class LLObjectsProducer(Module):
     def __init__(self, era, Process, isData = False, applyUncert=None):
@@ -75,17 +55,6 @@ class LLObjectsProducer(Module):
         self.out.branch("Pass_exHEMVetoJet30"		+ self.suffix,  "O")
         self.out.branch("Pass_LHETTbar"			+ self.suffix,  "O")
         if not self.isData:
-            self.out.branch("LHEScaleWeight_Up"		+ self.suffix,  "F")
-            self.out.branch("LHEScaleWeight_Down"	+ self.suffix,  "F")
-            self.out.branch("LHEScaleWeight_0"		+ self.suffix,  "F")
-            self.out.branch("LHEScaleWeight_1"		+ self.suffix,  "F")
-            self.out.branch("LHEScaleWeight_2"		+ self.suffix,  "F")
-            self.out.branch("LHEScaleWeight_3"		+ self.suffix,  "F")
-            self.out.branch("LHEScaleWeight_4"		+ self.suffix,  "F")
-            self.out.branch("LHEScaleWeight_5"		+ self.suffix,  "F")
-            self.out.branch("LHEScaleWeight_6"		+ self.suffix,  "F")
-            self.out.branch("LHEScaleWeight_7"		+ self.suffix,  "F")
-            self.out.branch("LHEScaleWeight_8"		+ self.suffix,  "F")
             self.out.branch("ElectronVetoCRSF"		+ self.suffix,	"F")
             self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
             self.out.branch("ElectronVetoSRSF"		+ self.suffix,	"F")
@@ -236,20 +205,6 @@ class LLObjectsProducer(Module):
 
 	return pt
 
-    def LHEScale(self, lhewgt):
-        LHEwgt_Up = 1.
-        LHEwgt_Down = 1.
-        lhe = []
-
-        for l in lhewgt:
-            LHEwgt_Up = max(l, LHEwgt_Up)
-            LHEwgt_Down = min(l, LHEwgt_Down)
-            #print("length of LHEScale: {0}, value: {1}".format(len(lhewgt), lhewgt[0]))
-
-        #if len(lhewgt) != 0: print("UP: {0}, Down: {1}, Last: {2}".format(LHEwgt_Up, LHEwgt_Down, lhewgt[8]))
-
-        return LHEwgt_Up, LHEwgt_Down        
-
     def getattr_safe(self, event, name):
         out = None
         try:
@@ -274,15 +229,7 @@ class LLObjectsProducer(Module):
         res       = Collection(event, "ResolvedTop", lenVar="nResolvedTopCandidate")
         jets      = Collection(event, "Jet")
         met       = Object(event, self.metBranchName)
-        if not self.isData: lhewgt    = event.LHEScaleWeight
         lhe       = Object(event, "LHE")
-
-        lhescale = []
-        if not self.isData:
-            for lhe_ in xrange(len(lhewgt)):
-                l = lhewgt[lhe_]
-                lhescale.append(l)
-            if len(lhescale) == 0: lhescale = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 
         if self.applyUncert == "JESUp":
             jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
@@ -310,7 +257,6 @@ class LLObjectsProducer(Module):
         PassLHE              = lhe.HTIncoming < 600 if (("DiLep" in self.process) or ("SingleLep" in self.process)) else True 
 
         if not self.isData:
-            LHEwgt_Up, LHEwgt_Down 			= self.LHEScale(lhescale)
             electronVetoCRSF, electronVetoCRSFErr       = self.ScaleFactorErrElectron(electrons, "Veto", "CR")
             electronVetoSRSF, electronVetoSRSFErr       = self.ScaleFactorErrElectron(electrons, "Veto", "SR")
             muonLooseCRSF, muonLooseCRSFErr             = self.ScaleFactorErrMuon(muons, "Loose", "CR")
@@ -333,17 +279,6 @@ class LLObjectsProducer(Module):
         self.out.fillBranch("Pass_LHETTbar"		+ self.suffix,  PassLHE)
         
         if not self.isData:
-            self.out.fillBranch("LHEScaleWeight_Up"	+ self.suffix,  LHEwgt_Up)
-            self.out.fillBranch("LHEScaleWeight_Down"	+ self.suffix,  LHEwgt_Down)
-            self.out.fillBranch("LHEScaleWeight_0"	+ self.suffix,  lhescale[0])
-            self.out.fillBranch("LHEScaleWeight_1"	+ self.suffix,  lhescale[1])
-            self.out.fillBranch("LHEScaleWeight_2"	+ self.suffix,  lhescale[2])
-            self.out.fillBranch("LHEScaleWeight_3"	+ self.suffix,  lhescale[3])
-            self.out.fillBranch("LHEScaleWeight_4"	+ self.suffix,  lhescale[4])
-            self.out.fillBranch("LHEScaleWeight_5"	+ self.suffix,  lhescale[5])
-            self.out.fillBranch("LHEScaleWeight_6"	+ self.suffix,  lhescale[6])
-            self.out.fillBranch("LHEScaleWeight_7"	+ self.suffix,  lhescale[7])
-            self.out.fillBranch("LHEScaleWeight_8"	+ self.suffix,  lhescale[8])
             self.out.fillBranch("ElectronVetoCRSF"	+ self.suffix,	electronVetoCRSF)
             self.out.fillBranch("ElectronVetoCRSFErr"	+ self.suffix,  electronVetoCRSFErr)
             self.out.fillBranch("ElectronVetoSRSF"	+ self.suffix,	electronVetoSRSF)
