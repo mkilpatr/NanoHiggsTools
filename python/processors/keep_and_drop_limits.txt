@@ -7,7 +7,8 @@ keep *Pass*
 keep *Err*
 keep *SF*
 keep *Weight*
-keep MET_pt
+keep MET_*
+keep *ISR*
 keep event
 keep run
 keep *FatJet*

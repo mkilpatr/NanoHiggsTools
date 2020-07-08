@@ -46,6 +46,8 @@ class LLObjectsProducer(Module):
         self.out = wrappedOutputTree
         self.out.branch("Stop0l_MtLepMET"		+ self.suffix, 	"F")
         self.out.branch("Stop0l_nVetoElecMuon"		+ self.suffix, 	"I")
+        self.out.branch("Stop0l_nVetoElectron"	        + self.suffix, 	"I")
+        self.out.branch("Stop0l_nVetoMuon"  	        + self.suffix, 	"I")
         self.out.branch("Stop0l_noMuonJet"		+ self.suffix,	"O")
         self.out.branch("Pass_dPhiQCD"			+ self.suffix,	"O")
         self.out.branch("Pass_dPhiQCDSF"		+ self.suffix,	"O")
@@ -54,6 +56,8 @@ class LLObjectsProducer(Module):
         self.out.branch("Pass_exHEMVetoPho30"		+ self.suffix,  "O")
         self.out.branch("Pass_exHEMVetoJet30"		+ self.suffix,  "O")
         self.out.branch("Pass_LHETTbar"			+ self.suffix,  "O")
+        self.out.branch("LHEScaleWeight_Up"		+ self.suffix,  "F")
+        self.out.branch("LHEScaleWeight_Down"		+ self.suffix,  "F")
         if not self.isData:
             self.out.branch("ElectronVetoCRSF"		+ self.suffix,	"F")
             self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
@@ -205,6 +209,26 @@ class LLObjectsProducer(Module):
 
 	return pt
 
+    def LHEScale(self, lhewgt):
+        LHEwgt_Up = -1.
+        LHEwgt_Down = 10000.
+
+	try:
+            LHEwgt_Up = 1.
+            LHEwgt_Down = 1.
+            for l in xrange(len(lhewgt)):
+                    temp_min = lhewgt[l]
+                    temp_max = lhewgt[l]
+                    LHEwgt_Up = max(temp_min, LHEwgt_Up)
+                    LHEwgt_Down = min(temp_max, LHEwgt_Down)
+        except SystemError:
+            return 1.0, 1.0
+
+        if abs(LHEwgt_Up) > 10000000000: LHEwgt_Up = 1.
+        if abs(LHEwgt_Down) > 10000000000: LHEwgt_Down = 1.
+
+        return LHEwgt_Up, LHEwgt_Down       
+
     def getattr_safe(self, event, name):
         out = None
         try:
@@ -230,6 +254,9 @@ class LLObjectsProducer(Module):
         jets      = Collection(event, "Jet")
         met       = Object(event, self.metBranchName)
         lhe       = Object(event, "LHE")
+        if "TTbar" in self.process and self.era == "2016":
+            lhewgt = event.LHEScaleWeight
+            lhevec = [lhewgt[0], lhewgt[1], lhewgt[3], lhewgt[4], lhewgt[5], lhewgt[7], lhewgt[8]]
 
         if self.applyUncert == "JESUp":
             jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
@@ -257,6 +284,11 @@ class LLObjectsProducer(Module):
         PassLHE              = lhe.HTIncoming < 600 if (("DiLep" in self.process) or ("SingleLep" in self.process)) else True 
 
         if not self.isData:
+            if "TTbar" in self.process and self.era == "2016":
+                LHEwgt_Up, LHEwgt_Down 			= self.LHEScale(lhevec)
+            else:
+                LHEwgt_Up = 1.0
+                LHEwgt_Down = 1.0
             electronVetoCRSF, electronVetoCRSFErr       = self.ScaleFactorErrElectron(electrons, "Veto", "CR")
             electronVetoSRSF, electronVetoSRSFErr       = self.ScaleFactorErrElectron(electrons, "Veto", "SR")
             muonLooseCRSF, muonLooseCRSFErr             = self.ScaleFactorErrMuon(muons, "Loose", "CR")
@@ -269,6 +301,8 @@ class LLObjectsProducer(Module):
         ### Store output
         self.out.fillBranch("Stop0l_MtLepMET"		+ self.suffix,  mt)
         self.out.fillBranch("Stop0l_nVetoElecMuon"	+ self.suffix, 	countEle + countMuon)
+        self.out.fillBranch("Stop0l_nVetoElectron"	+ self.suffix, 	countEle)
+        self.out.fillBranch("Stop0l_nVetoMuon"  	+ self.suffix, 	countMuon)
         self.out.fillBranch("Stop0l_noMuonJet"		+ self.suffix,	noMuonJet)
         self.out.fillBranch("Pass_dPhiQCD"		+ self.suffix,	PassdPhiQCD)
         self.out.fillBranch("Pass_dPhiQCDSF"		+ self.suffix,	PassdPhiQCDSF)
@@ -279,6 +313,8 @@ class LLObjectsProducer(Module):
         self.out.fillBranch("Pass_LHETTbar"		+ self.suffix,  PassLHE)
         
         if not self.isData:
+            self.out.fillBranch("LHEScaleWeight_Up"	+ self.suffix,  LHEwgt_Up)
+            self.out.fillBranch("LHEScaleWeight_Down"	+ self.suffix,  LHEwgt_Down)
             self.out.fillBranch("ElectronVetoCRSF"	+ self.suffix,	electronVetoCRSF)
             self.out.fillBranch("ElectronVetoCRSFErr"	+ self.suffix,  electronVetoCRSFErr)
             self.out.fillBranch("ElectronVetoSRSF"	+ self.suffix,	electronVetoSRSF)
