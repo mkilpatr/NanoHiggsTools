@@ -20,7 +20,7 @@ from itertools import izip_longest
 #DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v6'
+VersionNumber = '_v7'
 argument = "--inputFiles=%s.$(Process).list "
 #sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
 sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_limits.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
@@ -178,7 +178,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_skim_v5"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_skim"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:

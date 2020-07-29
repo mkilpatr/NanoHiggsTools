@@ -58,6 +58,7 @@ class LLObjectsProducer(Module):
         self.out.branch("Pass_LHETTbar"			+ self.suffix,  "O")
         self.out.branch("LHEScaleWeight_Up"		+ self.suffix,  "F")
         self.out.branch("LHEScaleWeight_Down"		+ self.suffix,  "F")
+        self.out.branch("genMatchedLep"			+ self.suffix,  "I")
         if not self.isData:
             self.out.branch("ElectronVetoCRSF"		+ self.suffix,	"F")
             self.out.branch("ElectronVetoCRSFErr"	+ self.suffix,  "F")
@@ -201,14 +202,6 @@ class LLObjectsProducer(Module):
         Pass_HEMveto_jet = self.PassObjectVeto(jet, wide_eta_low, wide_eta_high, wide_phi_low, wide_phi_high)
         return Pass_HEMveto_ele, Pass_HEMveto_pho, Pass_HEMveto_jet
 
-    def FatJetMatchedPt(self, obj, objType):
-	pt = []
-	for s in obj:
-		if not (s.Stop0l == objType): continue
-		pt.append(s.pt)
-
-	return pt
-
     def LHEScale(self, lhewgt):
         LHEwgt_Up = -1.
         LHEwgt_Down = 10000.
@@ -228,6 +221,25 @@ class LLObjectsProducer(Module):
         if abs(LHEwgt_Down) > 10000000000: LHEwgt_Down = 1.
 
         return LHEwgt_Up, LHEwgt_Down       
+
+    def genLepMatch(self, genpars, el, mu):
+        #for genpar in genpars :     #loop on genpars       
+        #print len(genpars)
+        isLep = False
+        for i in range(len(genpars)):
+            genpar = genpars[i]
+            if genpar.statusFlags & 8192 == 0: continue
+            ## look at leptons daughters
+            if abs(genpar.pdgId)>=11:
+                for l in el:
+                    if l.genPartIdx == i and l.Stop0l:
+                        isLep = True
+            if abs(genpar.pdgId)<=16:
+                for l in mu:
+                    if l.genPartIdx == i and l.Stop0l:
+                        isLep = True
+
+        return isLep
 
     def getattr_safe(self, event, name):
         out = None
@@ -297,7 +309,8 @@ class LLObjectsProducer(Module):
             tauSRSF, tauSRSFUp, tauSRSFDown             = self.ScaleFactorErrTau(taus, "SR")
             ## type top = 1, W = 2, else 0
             softBSF, softBSFErr                         = self.ScaleFactorErrSoftB(SB)
-       
+            isGenLep					= self.genLepMatch(genpart, electrons, muons)
+
         ### Store output
         self.out.fillBranch("Stop0l_MtLepMET"		+ self.suffix,  mt)
         self.out.fillBranch("Stop0l_nVetoElecMuon"	+ self.suffix, 	countEle + countMuon)
@@ -313,6 +326,7 @@ class LLObjectsProducer(Module):
         self.out.fillBranch("Pass_LHETTbar"		+ self.suffix,  PassLHE)
         
         if not self.isData:
+            self.out.fillBranch("genMatchedLep"		+ self.suffix,  isGenLep)
             self.out.fillBranch("LHEScaleWeight_Up"	+ self.suffix,  LHEwgt_Up)
             self.out.fillBranch("LHEScaleWeight_Down"	+ self.suffix,  LHEwgt_Down)
             self.out.fillBranch("ElectronVetoCRSF"	+ self.suffix,	electronVetoCRSF)
