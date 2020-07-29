@@ -25,8 +25,9 @@ argument = "--inputFiles=%s.$(Process).list "
 #sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
 sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_limits.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
 TTreeName = "Events"
-NProcess = 10
-splitbyNevent = True
+NProcess = 15
+splitbyNevent = False
+haddfiles = False
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -134,7 +135,7 @@ def SplitPro(key, file, lineperfile=10, eventsplit=2**20, TreeName=None):
         pass
 
     if "/store/" in file:
-        subprocess.call("xrdcp root://cmseos.fnal.gov/%s %s/%s_all.list" % (file, filelistdir, key), shell=True)
+        subprocess.call("xrdcp -f root://cmseos.fnal.gov/%s %s/%s_all.list" % (file, filelistdir, key), shell=True)
         filename = os.path.abspath( "%s/%s_all.list" % (filelistdir, key))
     else:
         filename = os.path.abspath(file)
@@ -226,6 +227,7 @@ def my_process(args):
                 line = line.replace("DELEXE", args.runfile.split('/')[-1])
 		#line = line.replace("DELEXE", DelExe.split('/')[-1])
                 line = line.replace("OUTDIR", outdir)
+                line = line.replace("HADDFILES", str(haddfiles).lower())
                 outfile.write(line)
 
         #Update condor file
