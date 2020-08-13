@@ -228,11 +228,10 @@ class LLObjectsProducer(Module):
         isLep = False
         for i in range(len(genpars)):
             genpar = genpars[i]
-            if genpar.statusFlags & 8192 == 0: continue
-            ## look at leptons daughters
-            if abs(genpar.pdgId)>=11 or abs(genpar.pdgId)<=16:
-                isLep = True
-                break
+            if ((genpar.statusFlags & 0x2100 == 0x2100) or (genpar.statusFlags & 0x2080 == 0x2080)) == 0: 
+                if abs(genpar.pdgId)>=11 and abs(genpar.pdgId)<=16:
+                    isLep = True
+                    break
 
         return isLep
 
