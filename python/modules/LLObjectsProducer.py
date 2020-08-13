@@ -225,15 +225,15 @@ class LLObjectsProducer(Module):
     def genLepMatch(self, genpars, el, mu):
         #for genpar in genpars :     #loop on genpars       
         #print len(genpars)
-        isLep = False
+        isChargedLep = False
         for i in range(len(genpars)):
             genpar = genpars[i]
-            if ((genpar.statusFlags & 0x2100 == 0x2100) or (genpar.statusFlags & 0x2080 == 0x2080)) == 0: 
-                if abs(genpar.pdgId)>=11 and abs(genpar.pdgId)<=16:
-                    isLep = True
+            if abs(genpar.pdgId)==11 or abs(genpar.pdgId)==13 or abs(genpar.pdgId)==15:
+                if (((genpar.statusFlags & 0x2100) == 0x2100) or ((genpar.statusFlags & 0x2080) == 0x2080)): 
+                    isChargedLep = True
                     break
 
-        return isLep
+        return isChargedLep
 
     def getattr_safe(self, event, name):
         out = None
