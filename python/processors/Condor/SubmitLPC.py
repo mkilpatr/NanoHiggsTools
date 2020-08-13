@@ -20,14 +20,13 @@ from itertools import izip_longest
 #DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v7'
+VersionNumber = '_v6'
 argument = "--inputFiles=%s.$(Process).list "
 #sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
 sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_limits.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
 TTreeName = "Events"
-NProcess = 15
-splitbyNevent = False
-haddfiles = False
+NProcess = 10
+splitbyNevent = True
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -135,7 +134,7 @@ def SplitPro(key, file, lineperfile=10, eventsplit=2**20, TreeName=None):
         pass
 
     if "/store/" in file:
-        subprocess.call("xrdcp -f root://cmseos.fnal.gov/%s %s/%s_all.list" % (file, filelistdir, key), shell=True)
+        subprocess.call("xrdcp root://cmseos.fnal.gov/%s %s/%s_all.list" % (file, filelistdir, key), shell=True)
         filename = os.path.abspath( "%s/%s_all.list" % (filelistdir, key))
     else:
         filename = os.path.abspath(file)
@@ -179,7 +178,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_skim"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_skim_fix"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -227,7 +226,6 @@ def my_process(args):
                 line = line.replace("DELEXE", args.runfile.split('/')[-1])
 		#line = line.replace("DELEXE", DelExe.split('/')[-1])
                 line = line.replace("OUTDIR", outdir)
-                line = line.replace("HADDFILES", str(haddfiles).lower())
                 outfile.write(line)
 
         #Update condor file
