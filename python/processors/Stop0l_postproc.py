@@ -208,9 +208,6 @@ def main(args):
         # EE noise mitigation in PF MET
         # https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1865.html
         mods.append(UpdateMETProducer("METFixEE2017"))
-    if args.era == "2018":
-        # The 2018 JetID came after our production
-        mods.append(UpdateJetID(args.era))
 
     if isdata:
         # Apply resediual JEC on Data
@@ -238,7 +235,6 @@ def main(args):
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
              SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
              Stop0l_trigger(args.era, isData=isdata),
-	     qcdBootstrapProducer(),
              #UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
 

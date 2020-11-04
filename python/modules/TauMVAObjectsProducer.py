@@ -60,6 +60,13 @@ class TauMVAObjectsProducer(Module):
 	self.out.branch("gentaumatch", "O")
 	self.out.branch("ptmatch", "F")
 	self.out.branch("etamatch", "F")
+        self.out.branch("Jet_dijetMass", "F")
+        self.out.branch("Tau_dijetMass", "F")
+        for j in xrange(3):
+            self.out.branch("Jet_pt" + str(j+1), "F")
+            self.out.branch("Jet_eta" + str(j+1), "F")
+            self.out.branch("Jet_phi" + str(j+1), "F")
+            self.out.branch("Jet_mass" + str(j+1), "F")
 
 
     def isA(self, particleID, p):
@@ -96,12 +103,49 @@ class TauMVAObjectsProducer(Module):
 		candP4+=pfcand_buff;
 	return self.transverseMass(candP4, met);
 
+    def addFourVec(self, obj1, obj2):
+        tot = ROOT.TLorentzVector()
+        v1 = ROOT.TLorentzVector()
+        v2 = ROOT.TLorentzVector()
+        v1.SetPtEtaPhiM(obj1.pt, obj1.eta, obj1.phi, obj1.mass)
+        v2.SetPtEtaPhiM(obj2.pt, obj2.eta, obj2.phi, obj2.mass)
+        tot = (v1 + v2)
+        return tot
+
+    def diJetMass(self, jet, genjet):
+        j4vec = []
+        for gj in xrange(len(genjet)):
+            if gj == 2: break
+            for j in xrange(len(jet)):
+                if gj != jet[j].genJetIdx: continue
+                j4vec.append(jet[j])
+
+        if len(j4vec) == 2: return self.addFourVec(j4vec[0], j4vec[1]).M()
+        elif len(j4vec) == 1: return j4vec[0].mass
+        else: return -1
+
+    def diTauMass(self, tau):
+        tot = ROOT.TLorentzVector()
+        tau1 = ROOT.TLorentzVector()
+        tau2 = ROOT.TLorentzVector()
+
+        if len(tau) > 1:
+            tau1.SetPtEtaPhiM(tau[0].pt, tau[0].eta, tau[0].phi, tau[0].mass)
+            tau2.SetPtEtaPhiM(tau[1].pt, tau[1].eta, tau[1].phi, tau[1].mass)
+            tot = (tau1 + tau2)
+            return tot.M()
+        elif len(tau) == 1:
+            return tau[0].mass
+        else:
+            return -1
+
     def analyze(self, event):
         ## Getting objects
 	met	  = Object(event, "MET")
 	jets	  = Collection(event, "Jet")
+	genjets	  = Collection(event, "GenJet")
 	genPart   = Collection(event, "GenPart")
-	pfcand    = Collection(event, "PFcand")
+	pfcand    = Collection(event, "Tau")
 	eventNum  = event.event
 
 	taudecayprods = []
@@ -131,72 +175,82 @@ class TauMVAObjectsProducer(Module):
 	misset = met.pt
 	nGenChHads = len(taudecayprods)
 
-	for pfc in pfcand:
+        for j in xrange(len(jets)):
+            if j == 3: break
+            self.out.fillBranch("Jet_pt"   + str(j + 1),   jets[j].pt)
+            self.out.fillBranch("Jet_eta"  + str(j + 1),  jets[j].eta)
+            self.out.fillBranch("Jet_phi"  + str(j + 1),  jets[j].phi)
+            self.out.fillBranch("Jet_mass" + str(j + 1), jets[j].mass)
+
+        self.out.fillBranch("Jet_dijetMass", self.diJetMass(jets, genjets))
+        self.out.fillBranch("Tau_dijetMass", self.diTauMass(pfcand))
+
+	#for pfc in pfcand:
       
-		match = False
-		tmpDr = 0.05
-		kpt = 0.01
-		ptmatch = -1.0
-		etamatch = -10
-		
-		
-		for genchhad in taudecayprods:
-			dpt = 0.0
-			if(genchhad.pt>0.5): 
-				dpt = abs(1.0 - pfc.pt/genchhad.pt)
-			if((deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) +  kpt*dpt) < tmpDr and dpt < 0.4):
-				tmpDr = deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) + kpt*dpt
-				match = True
-				ptmatch = genchhad.pt
-				etamatch = genchhad.eta
-		
-		if(pfc.pt > 10.0 and abs(pfc.eta) < 2.4):
-		
-			pt = min(pfc.pt,float(300.0))
-			mt = self.computeMT(pfc, met, pfcand)
-			
-			abseta       = abs(pfc.eta)
-			absdz        = abs(pfc.dz)
-			chiso0p1     = min(pfc.chiso0p1,float(700.0))
-			chiso0p2     = min(pfc.chiso0p2,float(700.0))
-			chiso0p3     = min(pfc.chiso0p3,float(700.0))
-			chiso0p4     = min(pfc.chiso0p4,float(700.0))
-			totiso0p1    = min(pfc.totiso0p1,float(700.0))
-			totiso0p2    = min(pfc.totiso0p2,float(700.0))
-			totiso0p3    = min(pfc.totiso0p3,float(700.0))
-			totiso0p4    = min(pfc.totiso0p4,float(700.0))
-			neartrkdr    = pfc.nearestTrkDR
-			jetmatch     = (pfc.contJetIndex > -1) and (jets[pfc.contJetIndex].pt >= 20.0) and (abs(jets[pfc.contJetIndex].eta) < 2.4)
-			jetdr        = deltaR(jets[pfc.contJetIndex].eta, jets[pfc.contJetIndex].phi, pfc.eta, pfc.phi) if jetmatch else -1.0
-			jetcsv       = jets[pfc.contJetIndex].btagDeepB if jetmatch else -1.0
-			
-			contjetdr  = min(float(0.4), jetdr)
-			if(contjetdr < 0.0): contjetdr = 0.0
-			contjetcsv =  jetcsv
-			if(contjetcsv < 0.0): contjetcsv = 0.0
-			if(match and nGenHadTaus > 0): gentaumatch = True
-			else:                          gentaumatch = False
-			
-			self.out.fillBranch("pt",		pt)
-			self.out.fillBranch("abseta",		abseta)
-			self.out.fillBranch("absdz",		absdz)
-			self.out.fillBranch("chiso0p1",		chiso0p1)
-			self.out.fillBranch("chiso0p2",		chiso0p2)
-			self.out.fillBranch("chiso0p3",		chiso0p3)
-			self.out.fillBranch("chiso0p4",		chiso0p4)
-			self.out.fillBranch("totiso0p1",	totiso0p1)
-			self.out.fillBranch("totiso0p2",	totiso0p2)
-			self.out.fillBranch("totiso0p3",	totiso0p3)
-			self.out.fillBranch("totiso0p4",	totiso0p4)
-			self.out.fillBranch("neartrkdr",	neartrkdr)
-			self.out.fillBranch("contjetdr",	contjetdr)
-			self.out.fillBranch("contjetcsv",	contjetcsv)
-			self.out.fillBranch("mt", 		mt)
-			self.out.fillBranch("misset", 		misset)
-			self.out.fillBranch("gentaumatch", 	gentaumatch)
-			self.out.fillBranch("ptmatch", 		ptmatch)
-			self.out.fillBranch("etamatch", 	etamatch)
-			self.out.fill()
+	#	match = False
+	#	tmpDr = 0.05
+	#	kpt = 0.01
+	#	ptmatch = -1.0
+	#	etamatch = -10
+	#	
+	#	
+	#	for genchhad in taudecayprods:
+	#		dpt = 0.0
+	#		if(genchhad.pt>0.5): 
+	#			dpt = abs(1.0 - pfc.pt/genchhad.pt)
+	#		if((deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) +  kpt*dpt) < tmpDr and dpt < 0.4):
+	#			tmpDr = deltaR(pfc.eta, pfc.phi, genchhad.eta, genchhad.phi) + kpt*dpt
+	#			match = True
+	#			ptmatch = genchhad.pt
+	#			etamatch = genchhad.eta
+	#	
+	#	if(pfc.pt > 10.0 and abs(pfc.eta) < 2.4):
+	#	
+	#		pt = min(pfc.pt,float(300.0))
+	#		mt = self.computeMT(pfc, met, pfcand)
+	#		
+	#		abseta       = abs(pfc.eta)
+	#		absdz        = abs(pfc.dz)
+	#		chiso0p1     = min(pfc.chiso0p1,float(700.0))
+	#		chiso0p2     = min(pfc.chiso0p2,float(700.0))
+	#		chiso0p3     = min(pfc.chiso0p3,float(700.0))
+	#		chiso0p4     = min(pfc.chiso0p4,float(700.0))
+	#		totiso0p1    = min(pfc.totiso0p1,float(700.0))
+	#		totiso0p2    = min(pfc.totiso0p2,float(700.0))
+	#		totiso0p3    = min(pfc.totiso0p3,float(700.0))
+	#		totiso0p4    = min(pfc.totiso0p4,float(700.0))
+	#		neartrkdr    = pfc.nearestTrkDR
+	#		jetmatch     = (pfc.contJetIndex > -1) and (jets[pfc.contJetIndex].pt >= 20.0) and (abs(jets[pfc.contJetIndex].eta) < 2.4)
+	#		jetdr        = deltaR(jets[pfc.contJetIndex].eta, jets[pfc.contJetIndex].phi, pfc.eta, pfc.phi) if jetmatch else -1.0
+	#		jetcsv       = jets[pfc.contJetIndex].btagDeepB if jetmatch else -1.0
+	#		
+	#		contjetdr  = min(float(0.4), jetdr)
+	#		if(contjetdr < 0.0): contjetdr = 0.0
+	#		contjetcsv =  jetcsv
+	#		if(contjetcsv < 0.0): contjetcsv = 0.0
+	#		if(match and nGenHadTaus > 0): gentaumatch = True
+	#		else:                          gentaumatch = False
+	#		
+	#		self.out.fillBranch("pt",		pt)
+	#		self.out.fillBranch("abseta",		abseta)
+	#		self.out.fillBranch("absdz",		absdz)
+	#		self.out.fillBranch("chiso0p1",		chiso0p1)
+	#		self.out.fillBranch("chiso0p2",		chiso0p2)
+	#		self.out.fillBranch("chiso0p3",		chiso0p3)
+	#		self.out.fillBranch("chiso0p4",		chiso0p4)
+	#		self.out.fillBranch("totiso0p1",	totiso0p1)
+	#		self.out.fillBranch("totiso0p2",	totiso0p2)
+	#		self.out.fillBranch("totiso0p3",	totiso0p3)
+	#		self.out.fillBranch("totiso0p4",	totiso0p4)
+	#		self.out.fillBranch("neartrkdr",	neartrkdr)
+	#		self.out.fillBranch("contjetdr",	contjetdr)
+	#		self.out.fillBranch("contjetcsv",	contjetcsv)
+	#		self.out.fillBranch("mt", 		mt)
+	#		self.out.fillBranch("misset", 		misset)
+	#		self.out.fillBranch("gentaumatch", 	gentaumatch)
+	#		self.out.fillBranch("ptmatch", 		ptmatch)
+	#		self.out.fillBranch("etamatch", 	etamatch)
+	#		self.out.fill()
 		
 	return True
 

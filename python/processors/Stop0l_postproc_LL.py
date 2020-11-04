@@ -173,8 +173,8 @@ def main(args):
     mods = [
 	#TopReweightProducer(args.era, args.sampleName, isData=isdata),
 	TopOtherWeightProducer(args.era, args.sampleName, isData=isdata),
-        SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
-	DeepTopProducer(args.era, taggerWorkingDirectory, sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
+        #SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
+	#DeepTopProducer(args.era, taggerWorkingDirectory, sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
 	LLObjectsProducer(args.era, args.sampleName, isData=isdata),
     ]
 

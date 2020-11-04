@@ -1,11 +1,3 @@
 # this is a comment
-drop *
-keep *PFcand*
-keep *IsoTrack*
-keep *Pass*
-keep Pass_MET
-keep Pass_Baseline
-keep genWeight
-keep nJet
-keep *Stop0l*
-keep Jet_dPhiMET
+drop HLT_*
+drop L1_*
