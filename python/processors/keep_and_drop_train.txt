@@ -1,3 +1,4 @@
 # this is a comment
 drop HLT_*
 drop L1_*
+drop flag_*
