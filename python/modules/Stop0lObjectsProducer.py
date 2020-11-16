@@ -60,9 +60,6 @@ class Stop0lObjectsProducer(Module):
             self.out.branch("Electron_Stop0l" + self.suffix, "O", lenVar="nElectron", title="cutBased Veto ID with miniISO < 0.1, pT > 5")
             self.out.branch("Muon_Stop0l"     + self.suffix, "O", lenVar="nMuon")
             self.out.branch("Tau_Stop0l"      + self.suffix, "O", lenVar="nTau")
-            self.out.branch("Photon_Stop0l"   + self.suffix, "O", lenVar="nPhoton")
-            self.out.branch("SB_Stop0l"       + self.suffix, "O", lenVar="nSB")
-            self.out.branch("Photon_Stop0l"   + self.suffix, "O", lenVar="nPhoton")
             self.out.branch("Stop0l_nSoftb"   + self.suffix, "I")
         
         if self.applyUncert == None or "JES" in self.applyUncert or "METUnClust" in self.applyUncert:
@@ -157,21 +154,6 @@ class Stop0lObjectsProducer(Module):
             return False
         return True
 
-    def SelPhotons(self, photon):
-        # CMSSW Reference for eta cuts: https://github.com/cms-sw/cmssw/blob/02d4198c0b6615287fd88e9a8ff650aea994412e/DQM/Physics/python/singleTopDQM_miniAOD_cfi.py#L47
-        abeta = math.fabs(photon.eta)
-        if (abeta > 1.4442 and abeta < 1.5660) or (abeta > 2.5):
-            return False
-        # Photon ID MC 102X (for 2017/2018) Reference: https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#Photon
-        # --- Photon ID: cut-based medium ID from NanoAOD --- #
-        # 2016:      Use Photon_cutBased       : Int_t cut-based Spring16-V2p2 ID (0:fail, 1: :loose, 2:medium, 3:tight)
-        # 2017,2018: Use Photon_cutBasedBitmap : Int_t cut-based ID bitmap, 2^(0:loose, 1: medium, 2:tight); should be 2017 V2
-        # Using medium photon ID
-        if self.era == "2016":
-            return bool(photon.cutBased > 1) 
-        else:
-            return bool(photon.cutBasedBitmap & 2) 
-
     def CalHT(self, jets):
         HT = sum([j.pt for i, j in enumerate(jets) if self.Jet_Stop0l[i]])
         return HT
@@ -220,8 +202,6 @@ class Stop0lObjectsProducer(Module):
             jets      = Collection(event, "Jet")
             met       = Object(event, self.metBranchName)
 
-        isvs    = Collection(event, "SB")
-        photons = Collection(event, "Photon")
         flags   = Object(event,     "Flag")
        
         ## Selecting objects
@@ -235,8 +215,6 @@ class Stop0lObjectsProducer(Module):
         self.Tau_MtW	     = map(lambda x : self.CalMtW(x, met), taus)
         self.Jet_Stop0l      = map(self.SelJets, jets)
         self.BJet_Stop0l     = map(self.SelBtagJets, jets)
-        self.SB_Stop0l       = map(lambda x : self.SelSoftb(x, jets), isvs)
-        self.Photon_Stop0l   = map(self.SelPhotons, photons)
 
         ## Jet variables
         jet_phi = np.asarray([jet.phi for jet in jets])
@@ -250,12 +228,9 @@ class Stop0lObjectsProducer(Module):
 
         ### Store output
         if self.applyUncert == None:
-            self.out.fillBranch("Stop0l_nSoftb" + self.suffix,   sum(self.SB_Stop0l))
             self.out.fillBranch("Electron_Stop0l" + self.suffix, self.Electron_Stop0l)
             self.out.fillBranch("Muon_Stop0l" + self.suffix,     self.Muon_Stop0l)
             self.out.fillBranch("Tau_Stop0l" + self.suffix,	 self.Tau_Stop0l)
-            self.out.fillBranch("SB_Stop0l" + self.suffix,       self.SB_Stop0l)
-            self.out.fillBranch("Photon_Stop0l" + self.suffix,   self.Photon_Stop0l)
 
         if self.applyUncert == None or "JES" in self.applyUncert or "METUnClust" in self.applyUncert:
             self.out.fillBranch("IsoTrack_Stop0l" + self.suffix, self.IsoTrack_Stop0l)

@@ -22,8 +22,8 @@ tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
 VersionNumber = '_v6'
 argument = "--inputFiles=%s.$(Process).list "
-#sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt"]
-sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_tauMVA.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_limits.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
+sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_train.txt"]
+#sendfiles = ["../keep_and_drop.txt", "../keep_and_drop_train.txt", "../keep_and_drop_LL.txt", "../keep_and_drop_limits.txt", "../keep_and_drop_res.txt", "../keep_and_drop_QCD.txt"]
 TTreeName = "Events"
 NProcess = 10
 splitbyNevent = True
@@ -43,7 +43,7 @@ def tar_cmssw():
         if tarinfo.size > 100*1024*1024:
             tarinfo = None
             return tarinfo
-        exclude_patterns = ['/.git/', '/tmp/', '/jobs.*/', '/logs/', '/.SCRAM/', '.pyc', '/Limits/*', '/HiggsAnalysis/*', '/CombineHarvester/*', '/TauMVATraining/*']
+        exclude_patterns = ['/.git/', '/tmp/', '/jobs.*/', '/logs/', '/.SCRAM/', '.pyc', '/Limits/*', '/HiggsAnalysis/*', '/CombineHarvester/*', '/TauMVATraining/*', '/EstToolsSUSY/*', '/ParticleNet/*']
         for pattern in exclude_patterns:
             if re.search(pattern, tarinfo.name):
                 # print('ignoring %s in the tarball', tarinfo.name)
@@ -178,7 +178,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_skim_again"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_skim_again_v2"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:

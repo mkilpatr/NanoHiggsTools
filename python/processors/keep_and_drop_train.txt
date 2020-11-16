@@ -1,4 +1,21 @@
-# this is a comment
-drop HLT_*
-drop L1_*
-drop flag_*
+# Drop added by Matt
+drop *
+keep *Stop0l*
+keep *Up*
+keep *Down*
+keep *Pass*
+keep *Err*
+keep *SF*
+keep *Weight*
+keep MET_*
+keep *ISR*
+keep event
+keep run
+keep *FatJet*
+keep *Match*
+keep Jet_pt
+keep Jet_eta
+keep Jet_phi
+keep Jet_mass
+drop HLT*
+drop METFixEE2017_*
