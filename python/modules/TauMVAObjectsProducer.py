@@ -13,8 +13,7 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, clo
 from PhysicsTools.NanoAODTools.postprocessing.framework.treeReaderArrayTools import *
 from rootpy.tree import Tree, TreeModel, IntCol, FloatArrayCol
 
-#2016 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Data_MC_Scale_Factors_period_dep
-#2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
+from TauAnalysis import ClassicSVfit
 
 @numba.jit(nopython=True)
 def recursiveMotherSearch(startIdx, targetIdx, GenPartCut_genPartIdxMother):
@@ -119,27 +118,27 @@ class TauMVAObjectsProducer(Module):
         self.out.branch("nTauMatch",     "I")
         self.out.branch("Tau_hadDecayFlag1", "I")
         self.out.branch("Tau_hadDecayFlag2", "I")
-        self.out.branch("Jet_dijetMass", "F")
+        self.out.branch("JetTau_dijetMass", "F")
         self.out.branch("Tau_dijetMass", "F")
-        self.out.branch("Jet_deltaR",    "F")
+        self.out.branch("JetTau_deltaR",    "F")
         self.out.branch("Tau_deltaR",    "F")
         self.out.branch("HiggsCand_pt",  "F") 
         self.out.branch("HiggsCand_eta", "F") 
         self.out.branch("HiggsCand_phi", "F") 
         self.out.branch("HiggsCand_mass","F") 
         self.out.branch("Tau_HT",        "F")
-        self.out.branch("Jet_matchPt_1"  , "F")
-        self.out.branch("Jet_matchEta_1" , "F")
-        self.out.branch("Jet_matchPhi_1" , "F")
-        self.out.branch("Jet_matchMass_1", "F")
-        self.out.branch("Jet_matchPt_2"  , "F")
-        self.out.branch("Jet_matchEta_2" , "F")
-        self.out.branch("Jet_matchPhi_2" , "F")
-        self.out.branch("Jet_matchMass_2", "F")
-        self.out.branch("Jet_matchPt_3"  , "F")
-        self.out.branch("Jet_matchEta_3" , "F")
-        self.out.branch("Jet_matchPhi_3" , "F")
-        self.out.branch("Jet_matchMass_3", "F")
+        self.out.branch("JetTau_matchPt_1"  , "F")
+        self.out.branch("JetTau_matchEta_1" , "F")
+        self.out.branch("JetTau_matchPhi_1" , "F")
+        self.out.branch("JetTau_matchMass_1", "F")
+        self.out.branch("JetTau_matchPt_2"  , "F")
+        self.out.branch("JetTau_matchEta_2" , "F")
+        self.out.branch("JetTau_matchPhi_2" , "F")
+        self.out.branch("JetTau_matchMass_2", "F")
+        self.out.branch("JetTau_matchPt_3"  , "F")
+        self.out.branch("JetTau_matchEta_3" , "F")
+        self.out.branch("JetTau_matchPhi_3" , "F")
+        self.out.branch("JetTau_matchMass_3", "F")
         self.out.branch("Tau_nLep",  "I")
         self.out.branch("Tau_LeptonPt_1", "F")
         self.out.branch("Tau_LeptonEta_1", "F")
@@ -191,8 +190,13 @@ class TauMVAObjectsProducer(Module):
             return False
         return True
 
+    def SelTaus(self, tau):
+        if tau.pt < 20 or math.fabs(tau.eta) > 2.4 or (tau.idDeepTau2017v2p1VSjet & 0x8) != 0x8:
+            return False
+        return True
+
     def CalHT(self, jets):
-        HT = sum([j.pt for i, j in enumerate(jets) if self.Jet_Stop0l[i]])
+        HT = sum([j.pt for i, j in enumerate(jets) if self.JetTau_Stop0l[i]])
         return HT
 
     def DeltaR(self, obj):
@@ -261,52 +265,75 @@ class TauMVAObjectsProducer(Module):
 
     def analyze(self, event):
         ## Getting objects
-	met	  = Object(event, self.metBranchName)
-	jets	  = Collection(event, "Jet")
-	pfcand    = Collection(event, "PFCands")
-	eventNum  = event.event
-
+        met	  = Object(event, self.metBranchName)
+        jets	  = Collection(event, "Jet")
+        pfcand    = Collection(event, "PFCands")
+        svfit     = Collection(event, "SVFit")
+        tau       = Collection(event, "Tau")
+        genVisTau = Collection(event, "GenVisTau")
+        eventNum  = event.event
+        
         PFCandPt = np.fromiter(self.TTreeReaderArrayWrapper(event.PFCands_pt), dtype=float)
         PFCandEta = np.fromiter(self.TTreeReaderArrayWrapper(event.PFCands_eta), dtype=float)
         PFCandPhi = np.fromiter(self.TTreeReaderArrayWrapper(event.PFCands_phi), dtype=float)
-
+        
         PFCandGenMatch, whichTau = self.PFCandGenMatch(event, PFCandEta, PFCandPhi)
-
+        
         #print(PFCandGenMatch)
-
-        vec = [ROOT.TLorentzVector(), ROOT.TLorentzVector()]
-        decayType = [-1, -1]
+        self.Tau_Stop0l      = map(self.SelTaus, tau)
+        channel = -99
+        chan = 0
         hadDecayType = [0, 0]
+        for t in xrange(len(tau)):
+            if not self.Tau_Stop0l[t]: continue
+        
+            if tau[t].genPartFlav == 5:
+                chan += 1
+            elif tau[t].genPartFlav == 3:
+                chan -= 1
+        
+            if len(tau) > 1: channel = chan
+            
+        for gt in xrange(len(genVisTau)):
+            status = -1
+            if gt == 2: break
+            if genVisTau[gt].status == 1 or genVisTau[gt].status == 2:
+                status = 1
+            if genVisTau[gt].status >= 11:
+                status = 11
+            else:
+                status = genVisTau[gt].status
+            hadDecayType[gt] = status
+        
+        
+        vec = [ROOT.TLorentzVector(), ROOT.TLorentzVector()]
         hvec = ROOT.TLorentzVector()
         #print(PFCandGenMatch)
         #print(whichTau)
         lep = []
         for pf, pI, mTau in zip(pfcand, PFCandGenMatch, whichTau):
             trk = ROOT.TLorentzVector()
+            if not pI: continue
             if abs(pf.pdgId) == 11 or abs(pf.pdgId) == 13:
                 trk.SetPtEtaPhiM(pf.pt, pf.eta, pf.phi, pf.mass)
                 lep.append(pf)
-                if mTau >= 0: decayType[mTau] = 0
-	    if (abs(pf.pdgId) == 211 or abs(pf.pdgId) == 111):
+            if (abs(pf.pdgId) == 211 or abs(pf.pdgId) == 111):
                 trk.SetPtEtaPhiM(pf.pt, pf.eta, pf.phi, pf.mass)
-                if mTau >= 0: 
-                    decayType[mTau] = 1
-                    if abs(pf.pdgId) == 211: hadDecayType[mTau] += 1
-
+        
             vec[mTau] += (trk)
-
+        
         hvec = (vec[0] + vec[1])
         #print("Tau 1 ({0}, {1}, {2}, {3}) and Tau 2 ({4}, {5}, {6}, {7})".format(vec[0].Pt(), vec[0].Eta(), vec[0].Phi(), vec[0].M(), vec[1].Pt(), vec[1].Eta(), vec[1].Phi(), vec[1].M()))
-
+        
         taudr = deltaR(vec[0].Eta(), vec[0].Phi(), vec[1].Eta(), vec[1].Phi()) if sum(PFCandGenMatch) > 0 else -9
         taumass = hvec if sum(PFCandGenMatch) > 0 else ROOT.TLorentzVector(-9, 0, 0, -9)
-        self.out.fillBranch("Tau_channel", sum(decayType))
+        self.out.fillBranch("Tau_channel", channel)
         self.out.fillBranch("nTauMatch",     len(hadDecayType))
         self.out.fillBranch("Tau_hadDecayFlag1", hadDecayType[0])
         self.out.fillBranch("Tau_hadDecayFlag2", hadDecayType[1])
         self.out.fillBranch("Tau_dijetMass", taumass.M())
         self.out.fillBranch("Tau_deltaR", taudr)
-
+        
         #Lepton Info
         self.out.fillBranch("Tau_nLep", len(lep))
         for l in xrange(len(lep)):
@@ -316,25 +343,25 @@ class TauMVAObjectsProducer(Module):
             self.out.fillBranch("Tau_LeptonPhi_" + str(l + 1), lep[l].phi)
             self.out.fillBranch("Tau_LeptonCharge_" + str(l + 1), lep[l].charge)
             self.out.fillBranch("Tau_LeptonPdgId_" + str(l + 1), lep[l].pdgId)
-
+        
         #Add met to di-tau 4-vector
         metvec = ROOT.TLorentzVector()
         metvec.SetPtEtaPhiM(met.pt, 0, met.phi, 0)
         hvec += (metvec)
-
+        
         self.out.fillBranch("HiggsCand_pt",   hvec.Pt())
         self.out.fillBranch("HiggsCand_eta",  hvec.Eta())
         self.out.fillBranch("HiggsCand_phi",  hvec.Phi())
         self.out.fillBranch("HiggsCand_mass", hvec.M())
-
+        
         #self.out.fillBranch("nGenHadTaus", 	nGenHadTaus)
-	#self.out.fillBranch("nGenTaus", 	nGenTaus)
-	#self.out.fillBranch("nGenChHads", 	nGenChHads)
-	#self.out.fillBranch("nGenLeptons", 	nGenLeptons)
-
+        #self.out.fillBranch("nGenTaus", 	nGenTaus)
+        #self.out.fillBranch("nGenChHads", 	nGenChHads)
+        #self.out.fillBranch("nGenLeptons", 	nGenLeptons)
+        
         #Jet Variables
-        self.Jet_Stop0l      = map(self.SelJets, jets)
-        self.out.fillBranch("nJets30",          sum(self.Jet_Stop0l))
+        self.JetTau_Stop0l      = map(self.SelJets, jets)
+        self.out.fillBranch("nJets30",          sum(self.JetTau_Stop0l))
         HT = self.CalHT(jets)
         self.out.fillBranch("Tau_HT",       HT)
         jetvec = ROOT.TLorentzVector()
@@ -345,18 +372,18 @@ class TauMVAObjectsProducer(Module):
         jetmass = []
         for j in xrange(len(jets)):
             if j == 3: break
-            if self.Jet_Stop0l[j]:
+            if self.JetTau_Stop0l[j]:
                 jet.append(jets[j])
-                self.out.fillBranch("Jet_matchPt_"  + str(j + 1), jets[j].pt)
-                self.out.fillBranch("Jet_matchEta_" + str(j + 1), jets[j].eta)
-                self.out.fillBranch("Jet_matchPhi_" + str(j + 1), jets[j].phi)
-                self.out.fillBranch("Jet_matchMass_"+ str(j + 1), jets[j].mass)
-
-        self.out.fillBranch("Jet_dijetMass", self.addFourVec(jet).M())
-        self.out.fillBranch("Jet_deltaR", self.DeltaR(jet))
-
-		
-	return True
-
-
+                self.out.fillBranch("JetTau_matchPt_"  + str(j + 1), jets[j].pt)
+                self.out.fillBranch("JetTau_matchEta_" + str(j + 1), jets[j].eta)
+                self.out.fillBranch("JetTau_matchPhi_" + str(j + 1), jets[j].phi)
+                self.out.fillBranch("JetTau_matchMass_"+ str(j + 1), jets[j].mass)
+        
+        self.out.fillBranch("JetTau_dijetMass", self.addFourVec(jet).M())
+        self.out.fillBranch("JetTau_deltaR", self.DeltaR(jet))
+        
+        	
+        return True
+        
+        
  # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
