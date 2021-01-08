@@ -85,7 +85,7 @@ class Stop0lObjectsProducer(Module):
 
 
     def SelEle(self, ele):
-        if math.fabs(ele.eta) > 2.5 or ele.pt < 5:
+        if math.fabs(ele.eta) > 2.5 or ele.pt < 13:
             return False
         ## Veto ID electron
         if ele.cutBasedNoIso < 1:
@@ -97,7 +97,7 @@ class Stop0lObjectsProducer(Module):
 
     def SelMuon(self, mu):
         ## NanoAOD store loose ID Muon by default
-        if math.fabs(mu.eta) > 2.4 or mu.pt < 5:
+        if math.fabs(mu.eta) > 2.4 or mu.pt < 10:
             return False
         ## MiniIso < 0.1
         if mu.miniPFRelIso_all > 0.2:
@@ -118,11 +118,8 @@ class Stop0lObjectsProducer(Module):
         return True
 
     def SelTauPOG(self, tau, met):
-        if tau.pt < 20 or abs(tau.eta) > 2.4 or not tau.idDecayMode or not (tau.idMVAoldDM2017v2 & 8):
+        if tau.pt < 30 or abs(tau.eta) > 2.3 or not tau.idDecayMode or not (tau.idMVAoldDM2017v2 & 8):
                 return False
-	mtW = self.CalMtW(tau, met)
-	if mtW > 100:
-		return False
         return True
 
     def CalMtW(self, lep, met):

@@ -114,42 +114,58 @@ class TauMVAObjectsProducer(Module):
 	self.out.branch("nGenChHads", 	 "I")
 	self.out.branch("nGenLeptons", 	 "I")
         self.out.branch("nJets30",       "I")
-        self.out.branch("Tau_channel",   "I")
-        self.out.branch("nTauMatch",     "I")
-        self.out.branch("Tau_hadDecayFlag1", "I")
-        self.out.branch("Tau_hadDecayFlag2", "I")
-        self.out.branch("JetTau_dijetMass", "F")
-        self.out.branch("Tau_dijetMass", "F")
-        self.out.branch("JetTau_deltaR",    "F")
-        self.out.branch("Tau_deltaR",    "F")
-        self.out.branch("HiggsCand_pt",  "F") 
-        self.out.branch("HiggsCand_eta", "F") 
-        self.out.branch("HiggsCand_phi", "F") 
-        self.out.branch("HiggsCand_mass","F") 
-        self.out.branch("Tau_HT",        "F")
-        self.out.branch("JetTau_matchPt_1"  , "F")
-        self.out.branch("JetTau_matchEta_1" , "F")
-        self.out.branch("JetTau_matchPhi_1" , "F")
-        self.out.branch("JetTau_matchMass_1", "F")
-        self.out.branch("JetTau_matchPt_2"  , "F")
-        self.out.branch("JetTau_matchEta_2" , "F")
-        self.out.branch("JetTau_matchPhi_2" , "F")
-        self.out.branch("JetTau_matchMass_2", "F")
-        self.out.branch("JetTau_matchPt_3"  , "F")
-        self.out.branch("JetTau_matchEta_3" , "F")
-        self.out.branch("JetTau_matchPhi_3" , "F")
-        self.out.branch("JetTau_matchMass_3", "F")
-        self.out.branch("Tau_nLep",  "I")
-        self.out.branch("Tau_LeptonPt_1", "F")
-        self.out.branch("Tau_LeptonEta_1", "F")
-        self.out.branch("Tau_LeptonPhi_1", "F")
-        self.out.branch("Tau_LeptonCharge_1", "I")
-        self.out.branch("Tau_LeptonPdgId_1", "I")
-        self.out.branch("Tau_LeptonPt_2", "F")
-        self.out.branch("Tau_LeptonEta_2", "F")
-        self.out.branch("Tau_LeptonPhi_2", "F")
-        self.out.branch("Tau_LeptonCharge_2", "I")
-        self.out.branch("Tau_LeptonPdgId_2", "I")
+        self.out.branch("HiggsSVfit_PassBaseline", "F")
+        self.out.branch("HiggsSVfit_Pt"  ,   "F")
+        self.out.branch("HiggsSVfit_Eta" ,   "F")
+        self.out.branch("HiggsSVfit_Phi" ,   "F")
+        self.out.branch("HiggsSVfit_Mass",   "F")
+        self.out.branch("HiggsSVfit_TransverseMass", "F")
+        self.out.branch("HiggsSVfit_METRho", "F")
+        self.out.branch("HiggsSVfit_METPhi", "F")
+        self.out.branch("HiggsSVfit_channel", "F")
+        self.out.branch("HiggsSVfit_tau1DM", "I")
+        self.out.branch("HiggsSVfit_tau1Mass", "F")
+        self.out.branch("HiggsSVfit_tau1pdgId", "I")
+        self.out.branch("HiggsSVfit_tau1Pt", "F")
+        self.out.branch("HiggsSVfit_tau1Eta", "F")
+        self.out.branch("HiggsSVfit_tau1Phi", "F")
+        self.out.branch("HiggsSVfit_tau2DM", "I")
+        self.out.branch("HiggsSVfit_tau2Mass", "F")
+        self.out.branch("HiggsSVfit_tau2pdgId", "I")
+        self.out.branch("HiggsSVfit_tau2Pt", "F")
+        self.out.branch("HiggsSVfit_tau2Eta", "F")
+        self.out.branch("HiggsSVfit_tau2Phi", "F")
+        self.out.branch("HiggsSVFit_elecMuonMT",  "F")
+        self.out.branch("HiggsSVFit_MaxMT",       "F")
+        self.out.branch("HiggsSVFit_tau1_elecMT", "F")
+        self.out.branch("HiggsSVFit_tau1_muMT",   "F")
+        self.out.branch("HiggsSVFit_tau1_hadMT",  "F")
+        self.out.branch("HiggsSVFit_tau2_muMT",   "F")
+        self.out.branch("HiggsSVFit_tau2_hadMT",  "F")
+        self.out.branch("HiggsSVFit_ditauMass", "F")
+        self.out.branch("HiggsSVFit_ditauPt",   "F")
+        self.out.branch("HiggsSVFit_deltaR",    "F")
+        self.out.branch("HiggsSVFit_deltaREMu", "F")
+        self.out.branch("HiggsSVFit_bj1pt",  "F")
+        self.out.branch("HiggsSVFit_bj2pt",  "F")
+        self.out.branch("HiggsSVFit_j1pt",   "F")
+        self.out.branch("HiggsSVFit_j1eta",   "F")
+        self.out.branch("HiggsSVFit_j1phi",   "F")
+        self.out.branch("HiggsSVFit_j1mass",   "F")
+        self.out.branch("HiggsSVFit_j2pt",   "F")
+        self.out.branch("HiggsSVFit_j2eta",   "F")
+        self.out.branch("HiggsSVFit_j2phi",   "F")
+        self.out.branch("HiggsSVFit_j2mass",   "F")
+        self.out.branch("HiggsSVFit_j3pt",   "F")
+        self.out.branch("HiggsSVFit_j3eta",   "F")
+        self.out.branch("HiggsSVFit_j3phi",   "F")
+        self.out.branch("HiggsSVFit_j3mass",   "F")
+        self.out.branch("HiggsSVFit_2tau2jetMass", "F")
+        self.out.branch("HiggsSVFit_dijetPt",   "F")
+        self.out.branch("HiggsSVFit_dijetMass", "F")
+        self.out.branch("HiggsSVFit_deltaR",    "F")
+        self.out.branch("HiggsSVFit_deltaEta",  "F")
+        self.out.branch("HiggsSVFit_HT",        "F")
 
 
     # HAS BIT
@@ -190,19 +206,31 @@ class TauMVAObjectsProducer(Module):
             return False
         return True
 
-    def SelTaus(self, tau):
-        if tau.pt < 20 or math.fabs(tau.eta) > 2.4 or (tau.idDeepTau2017v2p1VSjet & 0x8) != 0x8:
-            return False
-        return True
+    def CalMtWTau1(self, obj, met):
+        if obj.tau1Pt != -999: return math.sqrt( 2 * met.pt * obj.tau1Pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-obj.tau1Phi))))
+        else: return -999
+
+    def CalMtWTau2(self, obj, met):
+        if obj.tau2Pt != -999: return math.sqrt( 2 * met.pt * obj.tau2Pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-obj.tau2Phi))))
+        else: return -999
+
+    def CalMtW(self, obj, met):
+        return math.sqrt( 2 * met.pt * obj.Pt() * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-obj.Phi()))))
 
     def CalHT(self, jets):
-        HT = sum([j.pt for i, j in enumerate(jets) if self.JetTau_Stop0l[i]])
+        HT = sum([j.pt for i, j in enumerate(jets) if self.Jets_Stop0l[i]])
         return HT
 
     def DeltaR(self, obj):
         if len(obj) > 1: dr = deltaR(obj[0].eta, obj[0].phi, obj[1].eta, obj[1].phi)
         elif len(obj) == 1: dr = deltaR(obj[0].eta, obj[0].phi, 0, 0)
         else: dr = -1
+        return dr
+
+    def DeltaEta(self, obj):
+        if len(obj) > 1: dr = obj[0].eta - obj[1].eta
+        elif len(obj) == 1: dr = obj[0].eta
+        else: dr = -99
         return dr
 
     class TTreeReaderArrayWrapper:
@@ -248,9 +276,9 @@ class TauMVAObjectsProducer(Module):
         GenPart_pdgId            = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_pdgId),            dtype=int)
         GenPart_statusFlags      = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_statusFlags),      dtype=int)
     
-        genTauDaughters_list, whichTau_list = genParticleAssociation(GenPart_genPartIdxMother, GenPart_pdgId, GenPart_statusFlags)
+        genTauDaughters_list, whichTaus_list = genParticleAssociation(GenPart_genPartIdxMother, GenPart_pdgId, GenPart_statusFlags)
     
-        genTauDaughters, whichTau = np.array(genTauDaughters_list), np.array(whichTau_list)
+        genTauDaughters, whichTau = np.array(genTauDaughters_list), np.array(whichTaus_list)
 
     
         if(len(genTauDaughters)):
@@ -263,14 +291,28 @@ class TauMVAObjectsProducer(Module):
     
         return deltaRMatch(PFCandEta, PFCandPhi, genTauDaughters_eta, genTauDaughters_phi), whichTau
 
+    def SelTaus(self, obj):
+        if obj.channel == 0 and (math.fabs(obj.tau1Eta) > 2.1 or obj.tau1Pt < 23 or math.fabs(obj.tau2Eta) > 2.3 or obj.tau2Pt < 30):
+            return False
+        if obj.channel == 1 and (math.fabs(obj.tau1Eta) > 2.1 or obj.tau1Pt < 26 or math.fabs(obj.tau2Eta) > 2.3 or obj.tau2Pt < 30):
+            return False
+        if obj.channel == 2 and (math.fabs(obj.tau1Eta) > 2.1 or obj.tau1Pt < 40 or math.fabs(obj.tau2Eta) > 2.1 or obj.tau2Pt < 40):
+            return False
+        if obj.channel == 3 and (math.fabs(obj.tau1Eta) > 2.4 or obj.tau1Pt < 10 or math.fabs(obj.tau2Eta) > 2.4 or obj.tau2Pt < 10):
+            return False
+        if obj.channel == 4 and (math.fabs(obj.tau1Eta) > 2.5 or obj.tau1Pt < 13 or math.fabs(obj.tau2Eta) > 2.5 or obj.tau2Pt < 13):
+            return False
+        if obj.channel == 5 and (math.fabs(obj.tau1Eta) > 2.5 or obj.tau1Pt < 13 or math.fabs(obj.tau2Eta) > 2.4 or obj.tau2Pt < 10):
+            return False
+        return True
+
     def analyze(self, event):
         ## Getting objects
         met	  = Object(event, self.metBranchName)
         jets	  = Collection(event, "Jet")
         pfcand    = Collection(event, "PFCands")
         svfit     = Collection(event, "SVFit")
-        tau       = Collection(event, "Tau")
-        genVisTau = Collection(event, "GenVisTau")
+        svfitmet  = Collection(event, "SVFitMET")
         eventNum  = event.event
         
         PFCandPt = np.fromiter(self.TTreeReaderArrayWrapper(event.PFCands_pt), dtype=float)
@@ -280,107 +322,114 @@ class TauMVAObjectsProducer(Module):
         PFCandGenMatch, whichTau = self.PFCandGenMatch(event, PFCandEta, PFCandPhi)
         
         #print(PFCandGenMatch)
-        self.Tau_Stop0l      = map(self.SelTaus, tau)
-        channel = -99
-        chan = 0
-        hadDecayType = [0, 0]
-        for t in xrange(len(tau)):
-            if not self.Tau_Stop0l[t]: continue
+        self.SVFit_Stop0l    = map(lambda x : self.SelTaus(x), svfit)
+        self.SVFit_tau1_MtW  = map(lambda x : self.CalMtWTau1(x, met), svfit)
+        self.SVFit_tau2_MtW  = map(lambda x : self.CalMtWTau2(x, met), svfit)
+
+        SVIndex = 0
+        SVPass = -1
+        checkPt = -99
+        for sv in xrange(len(svfit)):
+            if self.SVFit_Stop0l[sv] and svfit[sv].Pt > checkPt:
+                SVPass = sv
+                checkPt = svfit[sv].Pt
+            elif svfit[sv].Pt > checkPt: 
+                SVIndex = sv
+                checkPt = svfit[sv].Pt
+        SVIndex = SVPass if SVPass != -1 else SVIndex
+        #print("Picked Index: {7}, channel: {6}, (pt, eta, phi, mass) = ({0}, {1}, {2}, {3}), Tau1 Pt = {4}, Tau2 Pt = {5}".format(svfit[SVIndex].Pt, svfit[SVIndex].Eta, svfit[SVIndex].Phi, svfit[SVIndex].Mass, svfit[SVIndex].tau1Pt, svfit[SVIndex].tau2Pt, svfit[SVIndex].channel, SVIndex))
+                
+
         
-            if tau[t].genPartFlav == 5:
-                chan += 1
-            elif tau[t].genPartFlav == 3:
-                chan -= 1
-        
-            if len(tau) > 1: channel = chan
-            
-        for gt in xrange(len(genVisTau)):
-            status = -1
-            if gt == 2: break
-            if genVisTau[gt].status == 1 or genVisTau[gt].status == 2:
-                status = 1
-            if genVisTau[gt].status >= 11:
-                status = 11
-            else:
-                status = genVisTau[gt].status
-            hadDecayType[gt] = status
-        
-        
-        vec = [ROOT.TLorentzVector(), ROOT.TLorentzVector()]
-        hvec = ROOT.TLorentzVector()
-        #print(PFCandGenMatch)
-        #print(whichTau)
-        lep = []
-        for pf, pI, mTau in zip(pfcand, PFCandGenMatch, whichTau):
-            trk = ROOT.TLorentzVector()
-            if not pI: continue
-            if abs(pf.pdgId) == 11 or abs(pf.pdgId) == 13:
-                trk.SetPtEtaPhiM(pf.pt, pf.eta, pf.phi, pf.mass)
-                lep.append(pf)
-            if (abs(pf.pdgId) == 211 or abs(pf.pdgId) == 111):
-                trk.SetPtEtaPhiM(pf.pt, pf.eta, pf.phi, pf.mass)
-        
-            vec[mTau] += (trk)
-        
-        hvec = (vec[0] + vec[1])
-        #print("Tau 1 ({0}, {1}, {2}, {3}) and Tau 2 ({4}, {5}, {6}, {7})".format(vec[0].Pt(), vec[0].Eta(), vec[0].Phi(), vec[0].M(), vec[1].Pt(), vec[1].Eta(), vec[1].Phi(), vec[1].M()))
-        
-        taudr = deltaR(vec[0].Eta(), vec[0].Phi(), vec[1].Eta(), vec[1].Phi()) if sum(PFCandGenMatch) > 0 else -9
-        taumass = hvec if sum(PFCandGenMatch) > 0 else ROOT.TLorentzVector(-9, 0, 0, -9)
-        self.out.fillBranch("Tau_channel", channel)
-        self.out.fillBranch("nTauMatch",     len(hadDecayType))
-        self.out.fillBranch("Tau_hadDecayFlag1", hadDecayType[0])
-        self.out.fillBranch("Tau_hadDecayFlag2", hadDecayType[1])
-        self.out.fillBranch("Tau_dijetMass", taumass.M())
-        self.out.fillBranch("Tau_deltaR", taudr)
-        
-        #Lepton Info
-        self.out.fillBranch("Tau_nLep", len(lep))
-        for l in xrange(len(lep)):
-            if l == 2: break
-            self.out.fillBranch("Tau_LeptonPt_" + str(l + 1), lep[l].pt)
-            self.out.fillBranch("Tau_LeptonEta_" + str(l + 1), lep[l].eta)
-            self.out.fillBranch("Tau_LeptonPhi_" + str(l + 1), lep[l].phi)
-            self.out.fillBranch("Tau_LeptonCharge_" + str(l + 1), lep[l].charge)
-            self.out.fillBranch("Tau_LeptonPdgId_" + str(l + 1), lep[l].pdgId)
-        
-        #Add met to di-tau 4-vector
-        metvec = ROOT.TLorentzVector()
-        metvec.SetPtEtaPhiM(met.pt, 0, met.phi, 0)
-        hvec += (metvec)
-        
-        self.out.fillBranch("HiggsCand_pt",   hvec.Pt())
-        self.out.fillBranch("HiggsCand_eta",  hvec.Eta())
-        self.out.fillBranch("HiggsCand_phi",  hvec.Phi())
-        self.out.fillBranch("HiggsCand_mass", hvec.M())
-        
-        #self.out.fillBranch("nGenHadTaus", 	nGenHadTaus)
-        #self.out.fillBranch("nGenTaus", 	nGenTaus)
-        #self.out.fillBranch("nGenChHads", 	nGenChHads)
-        #self.out.fillBranch("nGenLeptons", 	nGenLeptons)
-        
+        self.out.fillBranch("HiggsSVfit_PassBaseline",   self.SVFit_Stop0l[SVIndex])
+        self.out.fillBranch("HiggsSVfit_Pt"  ,   svfit[SVIndex].Pt)
+        self.out.fillBranch("HiggsSVfit_Eta" ,   svfit[SVIndex].Eta)
+        self.out.fillBranch("HiggsSVfit_Phi" ,   svfit[SVIndex].Phi)
+        self.out.fillBranch("HiggsSVfit_Mass",   svfit[SVIndex].Mass)
+        self.out.fillBranch("HiggsSVfit_TransverseMass",   svfit[SVIndex].TransverseMass)
+        self.out.fillBranch("HiggsSVfit_METRho", svfit[SVIndex].METRho)
+        self.out.fillBranch("HiggsSVfit_METPhi", svfit[SVIndex].METPhi)
+        self.out.fillBranch("HiggsSVfit_channel", svfit[SVIndex].channel)
+        self.out.fillBranch("HiggsSVfit_tau1DM", int(svfit[SVIndex].tau1DM))
+        self.out.fillBranch("HiggsSVfit_tau1pdgId", int(svfit[SVIndex].tau1pdgId))
+        self.out.fillBranch("HiggsSVfit_tau1Mass", svfit[SVIndex].tau1Mass)
+        self.out.fillBranch("HiggsSVfit_tau1Pt", svfit[SVIndex].tau1Pt)
+        self.out.fillBranch("HiggsSVfit_tau1Eta", svfit[SVIndex].tau1Eta)
+        self.out.fillBranch("HiggsSVfit_tau1Phi", svfit[SVIndex].tau1Phi)
+        self.out.fillBranch("HiggsSVfit_tau2DM", int(svfit[SVIndex].tau2DM))
+        self.out.fillBranch("HiggsSVfit_tau2pdgId", int(svfit[SVIndex].tau2pdgId))
+        self.out.fillBranch("HiggsSVfit_tau2Mass", svfit[SVIndex].tau2Mass)
+        self.out.fillBranch("HiggsSVfit_tau2Pt", svfit[SVIndex].tau2Pt)
+        self.out.fillBranch("HiggsSVfit_tau2Eta", svfit[SVIndex].tau2Eta)
+        self.out.fillBranch("HiggsSVfit_tau2Phi", svfit[SVIndex].tau2Phi)
+
+        drEMu = deltaR(svfit[SVIndex].tau1Eta, svfit[SVIndex].tau1Phi, svfit[SVIndex].tau2Eta, svfit[SVIndex].tau2Phi) if svfit[SVIndex].channel == 5 else -999
+        taus = ROOT.TLorentzVector()
+        tau1 = ROOT.TLorentzVector()
+        tau2 = ROOT.TLorentzVector()
+        MET  = ROOT.TLorentzVector()
+        tau1.SetPtEtaPhiM(svfit[SVIndex].tau1Pt, svfit[SVIndex].tau1Eta, svfit[SVIndex].tau1Phi, svfit[SVIndex].tau1Mass)
+        tau2.SetPtEtaPhiM(svfit[SVIndex].tau2Pt, svfit[SVIndex].tau2Eta, svfit[SVIndex].tau2Phi, svfit[SVIndex].tau2Mass)
+        taus = (tau1 + tau2)
+        taudr = deltaR(svfit[SVIndex].tau1Eta, svfit[SVIndex].tau1Phi, svfit[SVIndex].tau2Eta, svfit[SVIndex].tau2Phi)
+        MT_elecMu   = self.CalMtW(taus, met) if svfit[SVIndex].channel == 5 else -999
+        MT_tau1_ele = self.SVFit_tau1_MtW[SVIndex] if svfit[SVIndex].channel == 5 or svfit[SVIndex].channel == 1 else -999
+        MT_tau1_mu  = self.SVFit_tau1_MtW[SVIndex] if svfit[SVIndex].channel == 0 or svfit[SVIndex].channel == 3 else -999
+        MT_tau1_tau = self.SVFit_tau1_MtW[SVIndex] if svfit[SVIndex].channel == 2 else -999
+        MT_tau2_mu  = self.SVFit_tau2_MtW[SVIndex] if (svfit[SVIndex].channel == 5 or svfit[SVIndex].channel == 3) else -999
+        MT_tau2_tau = self.SVFit_tau2_MtW[SVIndex] if svfit[SVIndex].channel <= 2 else -999
+
+        self.out.fillBranch("HiggsSVFit_elecMuonMT", MT_elecMu)
+        self.out.fillBranch("HiggsSVFit_MaxMT", max(MT_tau1_ele, MT_tau2_mu))
+        self.out.fillBranch("HiggsSVFit_tau1_elecMT", MT_tau1_ele)
+        self.out.fillBranch("HiggsSVFit_tau1_muMT",   MT_tau1_mu)
+        self.out.fillBranch("HiggsSVFit_tau1_hadMT",  MT_tau1_tau)
+        self.out.fillBranch("HiggsSVFit_tau2_muMT",   MT_tau2_mu)
+        self.out.fillBranch("HiggsSVFit_tau2_hadMT",  MT_tau2_tau)
+        self.out.fillBranch("HiggsSVFit_ditauMass", taus.M())
+        MET.SetPtEtaPhiM(met.pt, 0., met.phi, 0.)
+        taus = (tau1 + tau2 + MET)
+        self.out.fillBranch("HiggsSVFit_ditauPt", taus.Pt())
+        self.out.fillBranch("HiggsSVFit_deltaR", taudr)
+        self.out.fillBranch("HiggsSVFit_deltaREMu", drEMu)
+
         #Jet Variables
-        self.JetTau_Stop0l      = map(self.SelJets, jets)
-        self.out.fillBranch("nJets30",          sum(self.JetTau_Stop0l))
+        self.Jets_Stop0l      = map(self.SelJets, jets)
+        self.out.fillBranch("nJets30",          sum(self.Jets_Stop0l))
         HT = self.CalHT(jets)
-        self.out.fillBranch("Tau_HT",       HT)
+        self.out.fillBranch("HiggsSVFit_HT",       HT)
         jetvec = ROOT.TLorentzVector()
+        jet1 = ROOT.TLorentzVector()
+        jet2 = ROOT.TLorentzVector()
         jet = []
-        jetpt = []
-        jeteta = []
-        jetphi = []
-        jetmass = []
+        bjet = []
         for j in xrange(len(jets)):
-            if j == 3: break
-            if self.JetTau_Stop0l[j]:
-                jet.append(jets[j])
-                self.out.fillBranch("JetTau_matchPt_"  + str(j + 1), jets[j].pt)
-                self.out.fillBranch("JetTau_matchEta_" + str(j + 1), jets[j].eta)
-                self.out.fillBranch("JetTau_matchPhi_" + str(j + 1), jets[j].phi)
-                self.out.fillBranch("JetTau_matchMass_"+ str(j + 1), jets[j].mass)
-        
-        self.out.fillBranch("JetTau_dijetMass", self.addFourVec(jet).M())
-        self.out.fillBranch("JetTau_deltaR", self.DeltaR(jet))
+            if self.Jets_Stop0l[j]: jet.append(jets[j])
+            if jets[j].btagStop0l: bjet.append(jets[j])
+
+        count = 0                
+        for bj in bjet:
+            if count == 2: break
+            self.out.fillBranch("HiggsSVFit_bj" + str(count + 1) + "pt", bj.pt)
+            count += 1
+
+        count = 0
+        for j in jet:
+            if count == 3: break
+            if count == 0: jet1.SetPtEtaPhiM(j.pt, j.eta, j.phi, j.mass)
+            if count == 1: jet1.SetPtEtaPhiM(j.pt, j.eta, j.phi, j.mass)
+            self.out.fillBranch("HiggsSVFit_j" + str(count + 1) + "pt", j.pt)
+            self.out.fillBranch("HiggsSVFit_j" + str(count + 1) + "eta", j.eta)
+            self.out.fillBranch("HiggsSVFit_j" + str(count + 1) + "phi", j.phi)
+            self.out.fillBranch("HiggsSVFit_j" + str(count + 1) + "mass", j.mass)
+            count += 1
+
+        jetvec = (jet1 + jet2 + tau1 + tau2 + MET)
+        self.out.fillBranch("HiggsSVFit_2tau2jetMass", jetvec.Pt())
+        self.out.fillBranch("HiggsSVFit_dijetPt", self.addFourVec(jet).Pt())
+        self.out.fillBranch("HiggsSVFit_dijetMass", self.addFourVec(jet).M())
+        self.out.fillBranch("HiggsSVFit_deltaR", self.DeltaR(jet))
+        self.out.fillBranch("HiggsSVFit_deltaEta", self.DeltaEta(jet))
         
         	
         return True

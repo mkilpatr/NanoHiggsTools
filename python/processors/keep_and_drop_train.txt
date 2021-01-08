@@ -4,9 +4,10 @@ drop ChsMET_*
 drop CorrT1METJet_*
 drop Electron_*
 drop Muon_*
-#drop FatJet_*
+drop FatJet*
 drop Flag_*
 drop FsrPhoton_*
+drop fixedGrid*
 drop Gen*
 drop HLT*
 drop HTXS_*
@@ -22,10 +23,12 @@ drop PuppiMET_*
 drop RawMET_*
 drop RawPuppiMET_*
 drop SV_*
-drop SoftActivityJet_*
+drop SoftAc*
 drop SubGenJetAK8_*
 drop SubJet_*
 drop TkMET_*
 drop TrigObj_*
 drop btagWeight_*
-keep *SVFit*
+drop PFCand*
+drop Tau_*
+drop SVFit_*
