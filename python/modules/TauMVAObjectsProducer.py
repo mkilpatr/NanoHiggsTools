@@ -174,6 +174,9 @@ class TauMVAObjectsProducer(Module):
         self.out.branch("HiggsSVFit_2tau2jetPt", "F")
         self.out.branch("HiggsSVFit_dijetPt",   "F")
         self.out.branch("HiggsSVFit_dijetMass", "F")
+        self.out.branch("HiggsSVFit_dibjetDR",  "F")
+        self.out.branch("HiggsSVFit_MaxbjetTauDR", "F")
+        self.out.branch("HiggsSVFit_MinbjetTauDR", "F")
         self.out.branch("HiggsSVFit_dijetDR",    "F")
         self.out.branch("HiggsSVFit_dijetDEta",  "F")
         self.out.branch("HiggsSVFit_HT",        "F")
@@ -317,6 +320,17 @@ class TauMVAObjectsProducer(Module):
             return False
         return True
 
+    def minMaxDR(self, obj1, obj2):
+        dr = []
+        for j2 in obj2:
+            for j1 in obj1:
+                dr.append(deltaR(j2.Eta(), j2.Phi(), j1.eta, j1.phi))
+
+            if len(obj1) == 0:
+                dr.append(deltaR(j2.Eta(), j2.Phi(), 0., 0.))
+
+        return dr
+
     def analyze(self, event):
         ## Getting objects
         met	  = Object(event, self.metBranchName)
@@ -376,12 +390,15 @@ class TauMVAObjectsProducer(Module):
 
         drEMu = deltaR(svfit[SVIndex].tau1Eta, svfit[SVIndex].tau1Phi, svfit[SVIndex].tau2Eta, svfit[SVIndex].tau2Phi) if svfit[SVIndex].channel == 5 else -999
         taus = ROOT.TLorentzVector()
+        tausVec = []
         tau1 = ROOT.TLorentzVector()
         tau2 = ROOT.TLorentzVector()
         MET  = ROOT.TLorentzVector()
         tau1.SetPtEtaPhiM(svfit[SVIndex].tau1Pt, svfit[SVIndex].tau1Eta, svfit[SVIndex].tau1Phi, svfit[SVIndex].tau1Mass)
         tau2.SetPtEtaPhiM(svfit[SVIndex].tau2Pt, svfit[SVIndex].tau2Eta, svfit[SVIndex].tau2Phi, svfit[SVIndex].tau2Mass)
         taus = (tau1 + tau2)
+        tausVec.append(tau1)
+        tausVec.append(tau2)
         taudr = deltaR(svfit[SVIndex].tau1Eta, svfit[SVIndex].tau1Phi, svfit[SVIndex].tau2Eta, svfit[SVIndex].tau2Phi)
         MT_elecMu   = self.CalMtW(taus, met) if svfit[SVIndex].channel == 5 else -999
         MT_tau1_ele = self.SVFit_tau1_MtW[SVIndex] if svfit[SVIndex].channel == 5 or svfit[SVIndex].channel == 1 else -999
@@ -437,13 +454,20 @@ class TauMVAObjectsProducer(Module):
             self.out.fillBranch("HiggsSVFit_j" + str(count + 1) + "Eta", j.eta)
             self.out.fillBranch("HiggsSVFit_j" + str(count + 1) + "Phi", j.phi)
             self.out.fillBranch("HiggsSVFit_j" + str(count + 1) + "Mass", j.mass)
-            self.out.fillBranch("HiggsSVFit_j" + str(count + 1) + "DeepCSV", bj.btagDeepB)
+            self.out.fillBranch("HiggsSVFit_j" + str(count + 1) + "DeepCSV", j.btagDeepB)
             count += 1
+
+        drBJetTaus = self.minMaxDR(bjet, tausVec)
+        drBJetTaus.sort()
+        #print drBJetTaus
 
         jetvec = (jet1 + jet2 + tau1 + tau2 + MET)
         self.out.fillBranch("HiggsSVFit_2tau2jetPt", jetvec.Pt())
         self.out.fillBranch("HiggsSVFit_dijetPt", self.addFourVec(jet).Pt())
         self.out.fillBranch("HiggsSVFit_dijetMass", self.addFourVec(jet).M())
+        self.out.fillBranch("HiggsSVFit_dibjetDR", self.DeltaR(bjet))
+        self.out.fillBranch("HiggsSVFit_MaxbjetTauDR", drBJetTaus[-1])
+        self.out.fillBranch("HiggsSVFit_MinbjetTauDR", drBJetTaus[0])
         self.out.fillBranch("HiggsSVFit_dijetDR", self.DeltaR(jet))
         self.out.fillBranch("HiggsSVFit_dijetDEta", self.DeltaEta(jet))
         
