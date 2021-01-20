@@ -15,13 +15,14 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 def main(args):
     isdata = len(args.dataEra) > 0
     isfastsim = args.isFastSim
+    isVBF = args.sampleName.startswith("VBF")
     process = args.process
 
     mods = [eleMiniCutID(),
             UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName),
             Stop0lObjectsProducer(args.era),
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-            TauMVAObjectsProducer(),
+            TauMVAObjectsProducer(isVBF=isVBF),
     ]
 
     files = []
