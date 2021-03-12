@@ -31,4 +31,3 @@ drop TrigObj_*
 drop btagWeight_*
 drop PFCand*
 drop Tau_*
-drop SVFit_*
