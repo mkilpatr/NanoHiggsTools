@@ -31,7 +31,7 @@ LeptonEtas = {
    5 : (2.5, 2.4)
 }
 
-EffIDs = {
+TauIds = {
    'Tight' : 5,
    'Medium' : 4,
    'Loose' : 3,
@@ -39,6 +39,31 @@ EffIDs = {
    'VVLoose' : 1
 }
 
+ElecIds = {
+   'Tight' : 2,
+   'Medium' : 1,
+   'Loose' : 0,
+}
+
+MuonIds = {
+   'HighPt' : 4,
+   'Tight' : 3,
+   'Medium' : 2,
+   'Soft' : 1,
+   'Loose' : 0,
+}
+
+pairType = {
+   'kMuHad' : 0,
+   'kEHad' : 1,
+   'kHadHad' : 2,
+   'kMuMu' : 3,    #shouldn't be needed
+   'kEE' : 4,      #shouldn't be needed
+   'kEMu' : 5,
+   'kEEPrompt' : 6,#shouldn't be needed
+   'kMuMuPrompt' : 7,#shouldn't be needed
+   'kOther' : 8    # for e.g. h->bb
+}
 
 @numba.jit(nopython=True)
 def recursiveMotherSearch(startIdx, targetIdx, GenPartCut_genPartIdxMother):
@@ -135,10 +160,16 @@ class TauMVAObjectsProducer(Module):
         self.out.branch("SVFit_nPassMedium", "I")
         self.out.branch("SVFit_nPassVLoose", "I")
         self.out.branch("SVFit_nPassVVLoose", "I")
+        self.out.branch("SVFit_nPassTightElecMuon",   "I")
+        self.out.branch("SVFit_nPassMediumElecMuon",  "I")
+        self.out.branch("SVFit_nPassLooseElecMuon",   "I")
         self.out.branch("SVFit_PassTight", "O", lenVar="nSVFit")
         self.out.branch("SVFit_PassMedium", "O", lenVar="nSVFit")
         self.out.branch("SVFit_PassVLoose", "O", lenVar="nSVFit")
         self.out.branch("SVFit_PassVVLoose", "O", lenVar="nSVFit")
+        self.out.branch("SVFit_PassTightElecMuon",   "O", lenVar="nSVFit")
+        self.out.branch("SVFit_PassMediumElecMuon",  "O", lenVar="nSVFit")
+        self.out.branch("SVFit_PassLooseElecMuon",   "O", lenVar="nSVFit")
         self.out.branch("SVFit_Boosted", "O", lenVar="nSVFit")
         self.out.branch("SVFit_VBF", "O")
         self.out.branch("SVFit_elecMuonMT",  "F", lenVar="nSVFit")
@@ -228,12 +259,16 @@ class TauMVAObjectsProducer(Module):
         return True
 
     def CalMtWTau1(self, obj, met):
-        if obj.tau1Pt != -999: return math.sqrt( 2 * met.pt * obj.tau1Pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-obj.tau1Phi))))
-        else: return -999
+        if obj.tau1Pt > -100:
+            #print("met: {0} tau1pt: {1} metPhi: {2} tau1Phi: {3}, dPhi: {4}, Cos: {5}".format(met.pt, obj.tau1Pt, met.phi, obj.tau1Phi, ROOT.TVector2.Phi_mpi_pi(met.phi-obj.tau1Phi), math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-obj.tau1Phi))))
+            return math.sqrt( 2 * met.pt * obj.tau1Pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-obj.tau1Phi))))
+        else: return obj.tau1Pt
 
     def CalMtWTau2(self, obj, met):
-        if obj.tau2Pt != -999: return math.sqrt( 2 * met.pt * obj.tau2Pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-obj.tau2Phi))))
-        else: return -999
+        if obj.tau2Pt > -100:
+            #print("met: {0} tau2pt: {1} metPhi: {2} tau2Phi: {3}, dPhi: {4}, Cos: {5}".format(met.pt, obj.tau2Pt, met.phi, obj.tau2Phi, ROOT.TVector2.Phi_mpi_pi(met.phi-obj.tau2Phi), math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-obj.tau2Phi))))
+            return math.sqrt( 2 * met.pt * obj.tau2Pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-obj.tau2Phi))))
+        else: return obj.tau2Pt
 
     def CalMtW(self, obj, met):
         return math.sqrt( 2 * met.pt * obj.Pt() * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-obj.Phi()))))
@@ -287,6 +322,9 @@ class TauMVAObjectsProducer(Module):
     
         return deltaRMatch(PFCandEta, PFCandPhi, genTauDaughters_eta, genTauDaughters_phi), genTauDaughters
 
+    def isChannel(self, obj, kType):
+        return pairType[kType] == obj.channel
+
 
     def SelTaus(self, obj):
         if obj.channel < -100: return False
@@ -295,29 +333,40 @@ class TauMVAObjectsProducer(Module):
         return True
 
     def SelLeptons(self, obj, met):
-        if obj.channel == 0 or obj.channel == 1:
+        if self.isChannel(obj, 'kMuHad') or self.isChannel(obj, 'kEHad'):
             if (obj.tau1Pt + obj.tau2Pt + met.pt) < 50:
                 return False
 
         return True
 
     def SelTausID(self, obj, ID = "Medium"):
-        if obj.channel <= 1: 
-            if self.hasBit(obj.tau2IDjet, EffIDs[ID]):
-                return True
-        elif obj.channel == 2:
-            if self.hasBit(obj.tau1IDjet, EffIDs[ID]) and self.hasBit(obj.tau2IDjet, EffIDs[ID]):
-                return True
-        return False
+        if self.isChannel(obj, 'kEMu'): return True
+        if self.isChannel(obj, 'kMuHad') or self.isChannel(obj, 'kEHad'):
+            if not self.hasBit(obj.tau2IDjet, TauIds[ID]):
+                return False
+        elif self.isChannel(obj, 'kHadHad'):
+            if not self.hasBit(obj.tau1IDjet, TauIds[ID]) or not self.hasBit(obj.tau2IDjet, TauIds[ID]):
+                return False
+        return True
 
-    def DZeta(self, sv, met):
-        if sv.channel != 5: return 0.
+    def SelElecMuonID(self, obj, ID = "Medium"):
+        #if obj.channel >= 0: print("channel {0}, id1: {1}, id2: {2}".format(obj.channel, id1, id2))
+        if self.isChannel(obj, 'kMuHad') and (obj.tau1Isojet >= 0.15 or not self.hasBit(obj.tau1IDjet, MuonIds[ID])): 
+            return False
+        elif self.isChannel(obj, 'kEHad') and (obj.tau1Isojet >= 0.15 or not self.hasBit(obj.tau1IDjet, ElecIds[ID])): 
+            return False
+        elif self.isChannel(obj, 'kEMu') and (obj.tau1Isojet >= 0.15 or obj.tau2Isojet >= 0.2 or not self.hasBit(obj.tau1IDjet, ElecIds[ID]) or not self.hasBit(obj.tau2IDjet, MuonIds[ID])):
+            return False
+        return True
+
+    def DZeta(self, obj, met):
+        if not self.isChannel(obj, 'kEMu'): return 0.
         lep1 = ROOT.TLorentzVector()
         lep2 = ROOT.TLorentzVector()
-        lep1.SetPtEtaPhiM(1, 0, sv.tau1Phi, 0)
-        lep2.SetPtEtaPhiM(1, 0, sv.tau2Phi, 0)
+        lep1.SetPtEtaPhiM(1, 0, obj.tau1Phi, 0)
+        lep2.SetPtEtaPhiM(1, 0, obj.tau2Phi, 0)
         bisector = (lep1 + lep2).Phi()
-        pVis = (sv.tau1Pt + sv.tau2Pt)*np.cos(bisector)
+        pVis = (obj.tau1Pt + obj.tau2Pt)*np.cos(bisector)
         pMiss = met.pt*np.cos(bisector)
 
         return pMiss - 1.85*pVis
@@ -357,44 +406,7 @@ class TauMVAObjectsProducer(Module):
         svfit     = Collection(event, "SVFit")
         svfitmet  = Collection(event, "SVFitMET")
         genpart   = Collection(event, "GenPart")
-        elec      = Collection(event, "Electron")
-        muon      = Collection(event, "Muon")
 
-
-        tau1Pt = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Pt), dtype=float)
-        tau1Eta = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Eta), dtype=float)
-        tau1Phi = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Phi), dtype=float)
-        tau2Pt = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau2Pt), dtype=float)
-        tau2Eta = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau2Eta), dtype=float)
-        tau2Phi = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau2Phi), dtype=float)
-        
-        tau1Iso = []
-        tau2Iso = []
-        tau1GenMatch, genTau1Daughters  = self.PFCandGenMatch(event, tau1Eta, tau1Phi)
-        tau2GenMatch, genTau2Daughters  = self.PFCandGenMatch(event, tau2Eta, tau2Phi)
-        if (len(genTau1Daughters) and sum(tau1GenMatch)) or (len(genTau2Daughters) and sum(tau2GenMatch)):
-            for g in genTau1Daughters:
-                for e in elec:
-                    if e.genPartIdx == g:
-                        tau1Iso.append(e.pfRelIso03_chg)
-                        print("tau1 is electron")
-                for e in muon:
-                    if e.genPartIdx == g:
-                        tau1Iso.append(e.pfRelIso03_chg)
-                        print("tau1 is muon")
-            for g in genTau2Daughters:
-                for e in elec:
-                    if e.genPartIdx == g:
-                        tau2Iso.append(e.pfRelIso03_chg)
-                        print("tau2 is electron")
-                for e in muon:
-                    if e.genPartIdx == g:
-                        tau2Iso.append(e.pfRelIso03_chg)
-                        print("tau2 is muon")
-            #print("{0} {1} {2}".format(genpart[g].pdgId, genpart[g].pt, e.pfRelIso03_chg))
-            print("Iso1: {0}, Iso2: {1}".format(tau1Iso, tau2Iso))
-
-        
         #Jet Variables
         self.Jets_Stop0l      = map(self.SelJets, jets)
         self.out.fillBranch("nJets30",          sum(self.Jets_Stop0l))
@@ -416,6 +428,9 @@ class TauMVAObjectsProducer(Module):
         self.SVFit_Stop0l_Medium = []
         self.SVFit_Stop0l_VLoose = []
         self.SVFit_Stop0l_VVLoose = []
+        self.SVFit_Stop0l_Tight_ElecMuon = []
+        self.SVFit_Stop0l_Medium_ElecMuon = []
+        self.SVFit_Stop0l_Loose_ElecMuon = []
         self.SVFit_tau1_MtW = []
         self.SVFit_tau2_MtW = []
         self.SVFit_DZeta = []
@@ -435,19 +450,21 @@ class TauMVAObjectsProducer(Module):
         self.MindrBJetTaus = []
         self.SVFit_2tau2jetPt = []
         for sv in xrange(len(svfit)):
-            #if svfit[sv].channel == 5: print("{0}".format(svfit[sv].channel))
             self.SVFit_Stop0l.append( self.SelTaus(svfit[sv]))
             self.SVFit_Stop0l_leptonID.append( self.SelLeptons(svfit[sv], met))
             self.SVFit_Stop0l_Tight.append( self.SelTausID(svfit[sv], "Tight"))
             self.SVFit_Stop0l_Medium.append( self.SelTausID(svfit[sv], "Medium"))
             self.SVFit_Stop0l_VLoose.append( self.SelTausID(svfit[sv], "VLoose"))
             self.SVFit_Stop0l_VVLoose.append( self.SelTausID(svfit[sv], "VVLoose"))
+            self.SVFit_Stop0l_Tight_ElecMuon.append(self.SelElecMuonID(svfit[sv], "Tight"))
+            self.SVFit_Stop0l_Medium_ElecMuon.append(self.SelElecMuonID(svfit[sv], "Medium"))
+            self.SVFit_Stop0l_Loose_ElecMuon.append(self.SelElecMuonID(svfit[sv], "Loose"))
             self.SVFit_tau1_MtW.append( self.CalMtWTau1(svfit[sv], met))
             self.SVFit_tau2_MtW.append( self.CalMtWTau2(svfit[sv], met))
             self.SVFit_DZeta.append( self.DZeta(svfit[sv], met))
             self.boosted.append(svfit[sv].Pt > 400.)
 
-            self.drEMu.append(deltaR(svfit[sv].tau1Eta, svfit[sv].tau1Phi, svfit[sv].tau2Eta, svfit[sv].tau2Phi) if svfit[sv].channel == 5 else -999)
+            self.drEMu.append(deltaR(svfit[sv].tau1Eta, svfit[sv].tau1Phi, svfit[sv].tau2Eta, svfit[sv].tau2Phi) if self.isChannel(svfit[sv], 'kEMu') else -999)
             taus = ROOT.TLorentzVector()
             tausVec = []
             tau1 = ROOT.TLorentzVector()
@@ -459,12 +476,12 @@ class TauMVAObjectsProducer(Module):
             tausVec.append(tau1)
             tausVec.append(tau2)
             self.taudr.append(deltaR(svfit[sv].tau1Eta, svfit[sv].tau1Phi, svfit[sv].tau2Eta, svfit[sv].tau2Phi))
-            self.MT_elecMu.append(self.CalMtW(taus, met) if svfit[sv].channel == 5 else -999)
-            self.MT_tau1_ele.append(self.SVFit_tau1_MtW[sv] if svfit[sv].channel == 5 or svfit[sv].channel == 1 else -999)
-            self.MT_tau1_mu.append(self.SVFit_tau1_MtW[sv] if svfit[sv].channel == 0 or svfit[sv].channel == 3 else -999)
-            self.MT_tau1_tau.append(self.SVFit_tau1_MtW[sv] if svfit[sv].channel == 2 else -999)
-            self.MT_tau2_mu.append(self.SVFit_tau2_MtW[sv] if (svfit[sv].channel == 5 or svfit[sv].channel == 3) else -999)
-            self.MT_tau2_tau.append(self.SVFit_tau2_MtW[sv] if svfit[sv].channel <= 2 else -999)
+            self.MT_elecMu.append(self.CalMtW(taus, met) if self.isChannel(svfit[sv], 'kEMu') else -999)
+            self.MT_tau1_ele.append(self.SVFit_tau1_MtW[sv] if self.isChannel(svfit[sv], 'kEMu') or self.isChannel(svfit[sv], 'kEHad') else -999)
+            self.MT_tau1_mu.append(self.SVFit_tau1_MtW[sv] if self.isChannel(svfit[sv], 'kMuHad') else -999)
+            self.MT_tau1_tau.append(self.SVFit_tau1_MtW[sv] if self.isChannel(svfit[sv], 'kHadHad') else -999)
+            self.MT_tau2_mu.append(self.SVFit_tau2_MtW[sv] if self.isChannel(svfit[sv], 'kEMu') else -999)
+            self.MT_tau2_tau.append(self.SVFit_tau2_MtW[sv] if (self.isChannel(svfit[sv], 'kMuHad') or self.isChannel(svfit[sv], 'kEHad') or self.isChannel(svfit[sv], 'kHadHad')) else -999)
             self.tausMass.append(taus.M())
             MET.SetPtEtaPhiM(met.pt, 0., met.phi, 0.)
             taus = (tau1 + tau2 + MET)
@@ -486,10 +503,16 @@ class TauMVAObjectsProducer(Module):
         self.out.fillBranch("SVFit_nPassMedium",    sum(self.SVFit_Stop0l_Medium))
         self.out.fillBranch("SVFit_nPassVLoose",    sum(self.SVFit_Stop0l_VLoose))
         self.out.fillBranch("SVFit_nPassVVLoose",   sum(self.SVFit_Stop0l_VVLoose))
+        self.out.fillBranch("SVFit_nPassTightElecMuon",   sum(self.SVFit_Stop0l_Tight_ElecMuon))
+        self.out.fillBranch("SVFit_nPassMediumElecMuon",   sum(self.SVFit_Stop0l_Medium_ElecMuon))
+        self.out.fillBranch("SVFit_nPassLooseElecMuon",   sum(self.SVFit_Stop0l_Loose_ElecMuon))
         self.out.fillBranch("SVFit_PassTight",     self.SVFit_Stop0l_Tight)
         self.out.fillBranch("SVFit_PassMedium",     self.SVFit_Stop0l_Medium)
         self.out.fillBranch("SVFit_PassVLoose",     self.SVFit_Stop0l_VLoose)
         self.out.fillBranch("SVFit_PassVVLoose",    self.SVFit_Stop0l_VVLoose)
+        self.out.fillBranch("SVFit_PassTightElecMuon",   self.SVFit_Stop0l_Tight_ElecMuon)
+        self.out.fillBranch("SVFit_PassMediumElecMuon",  self.SVFit_Stop0l_Medium_ElecMuon)
+        self.out.fillBranch("SVFit_PassLooseElecMuon",   self.SVFit_Stop0l_Loose_ElecMuon)
         self.out.fillBranch("SVFit_Boosted",   self.boosted)
         self.out.fillBranch("SVFit_VBF",   self.isVBF)
         self.out.fillBranch("SVFit_DZeta", self.SVFit_DZeta)
