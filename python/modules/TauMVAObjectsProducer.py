@@ -152,8 +152,7 @@ class TauMVAObjectsProducer(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
         self.out.branch("nJets30",       "I")
-        self.out.branch("nSVIndex",      "I")
-        self.out.branch("SVIndex",       "I", lenVar="nSVIndex")
+        self.out.branch("SVFit_Index",       "I", lenVar="nSVFit")
         self.out.branch("SVFit_PassBaseline", "O", lenVar="nSVFit")
         self.out.branch("SVFit_PassLepton", "O", lenVar="nSVFit")
         self.out.branch("SVFit_nPassTight", "I")
@@ -495,11 +494,10 @@ class TauMVAObjectsProducer(Module):
 
         self.SVIndex = self.GetSVFitSortedIdx(svfit)
 
-        self.out.fillBranch("nSVIndex",      len(self.SVIndex))
-        self.out.fillBranch("SVIndex",       self.SVIndex)
+        self.out.fillBranch("SVFit_Index",          self.SVIndex)
         self.out.fillBranch("SVFit_PassLepton",     self.SVFit_Stop0l_leptonID)
         self.out.fillBranch("SVFit_PassBaseline",   self.SVFit_Stop0l)
-        self.out.fillBranch("SVFit_nPassTight",    sum(self.SVFit_Stop0l_Tight))
+        self.out.fillBranch("SVFit_nPassTight",     sum(self.SVFit_Stop0l_Tight))
         self.out.fillBranch("SVFit_nPassMedium",    sum(self.SVFit_Stop0l_Medium))
         self.out.fillBranch("SVFit_nPassVLoose",    sum(self.SVFit_Stop0l_VLoose))
         self.out.fillBranch("SVFit_nPassVVLoose",   sum(self.SVFit_Stop0l_VVLoose))
