@@ -19,7 +19,7 @@ from rootpy.tree import Tree, TreeModel, IntCol, FloatArrayCol
 class HiggsJSONProducer(Module):
     def __init__(self, processName):
         self.metBranchName = "MET"
-        self.filename=processName
+        self.filename=processName + '.json.gz'
 
     def beginJob(self):
         pass
@@ -33,10 +33,22 @@ class HiggsJSONProducer(Module):
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.fout.close()
 
+    def makeTLorentzVector(self, svfit, idx, isTau=""):
+        v = ROOT.TLorentzVector()
+        if isTau=="tau1":   v.SetPtEtaPhiM(svfit[idx].tau1Pt, svfit[idx].tau1Eta, svfit[idx].tau1Phi, svfit[idx].tau1Mass)
+        elif isTau=="tau2": v.SetPtEtaPhiM(svfit[idx].tau2Pt, svfit[idx].tau2Eta, svfit[idx].tau2Phi, svfit[idx].tau2Mass)
+        else:               v.SetPtEtaPhiM(svfit[idx].Pt, svfit[idx].Eta, svfit[idx].Phi, svfit[idx].Mass)
+        return v
+
     def higg2json(self, svfit, idx):
-        j = [{'M':float(svfit[idx].Mass), 'pt':float(svfit[idx].Pt), 'phi':float(svfit[idx].Phi), 'eta':float(svfit[idx].Eta)}]
-        j.append({'M':float(svfit[idx].tau1Mass), 'pt':float(svfit[idx].tau1Pt), 'phi':float(svfit[idx].tau1Phi), 'eta':float(svfit[idx].tau1Eta)})
-        j.append({'M':float(svfit[idx].tau2Mass), 'pt':float(svfit[idx].tau2Pt), 'phi':float(svfit[idx].tau2Phi), 'eta':float(svfit[idx].tau2Eta)})
+        h = self.makeTLorentzVector(svfit, idx)
+        t1 = self.makeTLorentzVector(svfit, idx, 'tau1')
+        t2 = self.makeTLorentzVector(svfit, idx, 'tau2')
+
+        
+        j = [{'E':float(h.E()), 'px':float(h.Px()), 'py':float(h.Py()), 'pz':float(h.Pz())}]
+        j.append({'E':float(t1.E()), 'px':float(t1.Px()), 'py':float(t1.Py()), 'pz':float(t1.Pz())})
+        j.append({'E':float(t2.E()), 'px':float(t2.Px()), 'py':float(t2.Py()), 'pz':float(t2.Pz())})
         return j
 
     def analyze(self, event):
