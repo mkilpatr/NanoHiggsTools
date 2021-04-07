@@ -43,7 +43,7 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    if process == 'json':      p=PostProcessor(args.outputfile,files,cut="Pass_NJets30 && SVFitMET_isValid && SVFit_PassBaseline && SVFit_PassLepton", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    if process == 'json':      p=PostProcessor(args.outputfile,files,cut="Pass_NJets30 && SVFitMET_isValid && SVFit_PassBaseline && SVFit_PassLepton && Pass_EventFilter && Pass_JetID && nJets30 >=2 && SVFit_Pt[SVFit_Index[0]] > 100 && SVFit_dijetMass > 300", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     elif process == 'dihiggs': p=PostProcessor(args.outputfile,files,cut="nJet >= 2 && SVFitMET_isInteresting", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     elif process == 'cut':     p=PostProcessor(args.outputfile,files,cut="nJet >= 2 && SVFitMET_isInteresting", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     else:                      p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
