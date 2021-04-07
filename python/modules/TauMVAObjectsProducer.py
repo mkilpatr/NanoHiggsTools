@@ -89,18 +89,14 @@ def genParticleAssociation(GenPart_genPartIdxMother, GenPart_pdgId, GenPart_stat
     for iGP, pdgId in enumerate(GenPart_pdgId):
         if (GenPart_statusFlags[iGP] & 0x2100) != 0x2100:
             continue
-        #print("Mother index {0} and pdgId {1}".format(iGP, pdgId))
         if abs(pdgId) == 15:
             gtd = []
             for iGP2, pdgId2 in enumerate(GenPart_pdgId):
                 if (abs(pdgId2) == 11 or abs(pdgId2) == 13) and (GenPart_statusFlags[iGP2] & 0x2008) == 0x2008:
                     if recursiveMotherSearch(iGP2, iGP, GenPart_genPartIdxMother):
                         gtd.append(iGP2)
-                        #print(iGP2, pdgId2, gtd, iGP, GenPart_genPartIdxMother[iGP2])
-                    #print("Appended index {0} and pdgId {1} and gtd {2}".format(iGP2, pdgId2, gtd))
             genTauDaughters.extend(gtd)
 
-    #print("How many tau daughters? {0}".format(genTauDaughters))
     return genTauDaughters
 
 def deltaRMatch(PFCandEta, PFCandPhi, genTauDaughters_eta, genTauDaughters_phi):
@@ -115,10 +111,7 @@ def deltaRMatch(PFCandEta, PFCandPhi, genTauDaughters_eta, genTauDaughters_phi):
         ## Using ufunc for vector operation
         deta = np.power(topEtaVals[:,0] - topEtaVals[:,1], 2)
         dPhi = topPhiVals[:,0] - topPhiVals[:,1]
-        #print("DEta {0} and DPhi {1}".format(deta, dPhi))
         dR = np.sqrt((( abs(abs(dPhi)-np.pi)-np.pi )**2+(deta)**2)).reshape([-1,len(genTauDaughters_eta)/len(genTauDaughters_eta), len(genTauDaughters_eta)])
-
-        #print(dR)
 
         matches[dR.max(axis=2).min(axis=1) < 0.6] = 1
         
@@ -405,6 +398,18 @@ class TauMVAObjectsProducer(Module):
         svfit     = Collection(event, "SVFit")
         svfitmet  = Collection(event, "SVFitMET")
         genpart   = Collection(event, "GenPart")
+
+        #tau1Pt = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Pt), dtype=float)
+        #tau1Eta = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Eta), dtype=float)
+        #tau1Phi = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Phi), dtype=float)
+        #tau1GenMatch, whichTau = self.PFCandGenMatch(event, tau1Eta, tau1Phi)
+        #print("tau1: {0} {1}".format(tau1GenMatch, whichTau))
+
+        #tau2Pt = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau2Pt), dtype=float)
+        #tau2Eta = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau2Eta), dtype=float)
+        #tau2Phi = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau2Phi), dtype=float)
+        #tau2GenMatch, whichTau = self.PFCandGenMatch(event, tau2Eta, tau2Phi)
+        #print("tau2: {0} {1}".format(tau2GenMatch, whichTau))
 
         #Jet Variables
         self.Jets_Stop0l      = map(self.SelJets, jets)

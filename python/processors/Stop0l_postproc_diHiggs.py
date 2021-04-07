@@ -12,6 +12,7 @@ from PhysicsTools.NanoSUSYTools.modules.updateEvtWeight import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.HiggsJSONProducer import *
+from PhysicsTools.NanoSUSYTools.modules.CutProducer import *
 
 def main(args):
     isdata = len(args.dataEra) > 0
@@ -28,6 +29,10 @@ def main(args):
 
     if process == 'json':
         mods = [HiggsJSONProducer(args.sampleName)]
+    #elif process == 'dihiggs':
+    #    mods = [TauMVAObjectsProducer(isVBF=isVBF)]
+    elif process == 'cut':
+        mods = [CutProducer()]
 
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
@@ -38,8 +43,10 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    if process == 'json': p=PostProcessor(args.outputfile,files,cut="Pass_NJets30 && SVFitMET_isValid && SVFit_PassBaseline && SVFit_PassLepton", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False)
-    else:                 p=PostProcessor(args.outputfile,files,cut="nJet >= 2 && SVFitMET_isInteresting", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False)
+    if process == 'json':      p=PostProcessor(args.outputfile,files,cut="Pass_NJets30 && SVFitMET_isValid && SVFit_PassBaseline && SVFit_PassLepton", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    elif process == 'dihiggs': p=PostProcessor(args.outputfile,files,cut="nJet >= 2 && SVFitMET_isInteresting", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    elif process == 'cut':     p=PostProcessor(args.outputfile,files,cut="nJet >= 2 && SVFitMET_isInteresting", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    else:                      p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
 if __name__ == "__main__":

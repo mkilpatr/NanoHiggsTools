@@ -51,15 +51,25 @@ class HiggsJSONProducer(Module):
         j.append({'E':float(t2.E()), 'px':float(t2.Px()), 'py':float(t2.Py()), 'pz':float(t2.Pz())})
         return j
 
+    def findHiggs(self, genpart):
+        for g in xrange(len(genpart)):
+            if abs(genpart[g].pdgId) == 25:
+                return g
+        return -1
+
+
     def analyze(self, event):
         ## Getting objects
         svfit     = Collection(event, "SVFit")
         svfitmet  = Collection(event, "SVFitMET")
+        genpart   = Collection(event, "GenPart")
+
+        #higgsIdx = self.findHiggs(genpart)
 
         for idx in xrange(len(svfit)):
             if svfit[svfit[idx].Index].Pt > 0.:
                 j = self.higg2json(svfit, svfit[idx].Index)
-                self.fout.write((json.dumps(j)+'\n').encode('utf-8'))
+                self.fout.write((json.dumps(j, sort_keys=False)+'\n').encode('utf-8'))
 
         return True
         
