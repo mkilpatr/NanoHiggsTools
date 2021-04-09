@@ -2,11 +2,11 @@ import os, sys
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import math
-import numba
 import numpy as np
 from array import array
 from importlib import import_module
 
+from PhysicsTools.NanoSUSYTools.modules.HelperFunctions import *
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, closest
@@ -64,58 +64,6 @@ pairType = {
    'kMuMuPrompt' : 7,#shouldn't be needed
    'kOther' : 8    # for e.g. h->bb
 }
-
-@numba.jit(nopython=True)
-def recursiveMotherSearch(startIdx, targetIdx, GenPartCut_genPartIdxMother):
-    if startIdx < 0:
-        return False
-
-    mom = GenPartCut_genPartIdxMother[startIdx]
-
-    if mom < 0:
-        return False
-    elif startIdx == targetIdx:
-        return True
-    else:
-        return recursiveMotherSearch(mom, targetIdx, GenPartCut_genPartIdxMother)
-
-@numba.jit(nopython=True)
-def genParticleAssociation(GenPart_genPartIdxMother, GenPart_pdgId, GenPart_statusFlags):
-    GenPart_momPdgId = GenPart_pdgId[GenPart_genPartIdxMother]
-    #set any particles with an index of -1 to id 0                                                                                                                      
-    GenPart_momPdgId[GenPart_genPartIdxMother < 0] = 0
-
-    genTauDaughters = []
-    for iGP, pdgId in enumerate(GenPart_pdgId):
-        if (GenPart_statusFlags[iGP] & 0x2100) != 0x2100:
-            continue
-        if abs(pdgId) == 15:
-            gtd = []
-            for iGP2, pdgId2 in enumerate(GenPart_pdgId):
-                if (abs(pdgId2) == 11 or abs(pdgId2) == 13) and (GenPart_statusFlags[iGP2] & 0x2008) == 0x2008:
-                    if recursiveMotherSearch(iGP2, iGP, GenPart_genPartIdxMother):
-                        gtd.append(iGP2)
-            genTauDaughters.extend(gtd)
-
-    return genTauDaughters
-
-def deltaRMatch(PFCandEta, PFCandPhi, genTauDaughters_eta, genTauDaughters_phi):
-
-    matches = np.zeros(len(PFCandEta), dtype=int)
-
-    if len(genTauDaughters_eta):
-
-        topEtaVals = np.array(np.meshgrid(PFCandEta, genTauDaughters_eta)).T.reshape(-1,2)
-        topPhiVals = np.array(np.meshgrid(PFCandPhi, genTauDaughters_phi)).T.reshape(-1,2)
-    
-        ## Using ufunc for vector operation
-        deta = np.power(topEtaVals[:,0] - topEtaVals[:,1], 2)
-        dPhi = topPhiVals[:,0] - topPhiVals[:,1]
-        dR = np.sqrt((( abs(abs(dPhi)-np.pi)-np.pi )**2+(deta)**2)).reshape([-1,len(genTauDaughters_eta)/len(genTauDaughters_eta), len(genTauDaughters_eta)])
-
-        matches[dR.max(axis=2).min(axis=1) < 0.6] = 1
-        
-    return matches
 
 class TauMVAObjectsProducer(Module):
     def __init__(self, isVBF):
@@ -212,39 +160,6 @@ class TauMVAObjectsProducer(Module):
         self.out.branch("SVFit_DZeta",        "F", lenVar="nSVFit")
 
 
-    # HAS BIT
-    def hasBit(self, value,bit):
-        """Check if i'th bit is set to 1, i.e. binary of 2^(i-1),
-        from the right to the left, starting from position i=0."""
-        # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
-        # Gen status flags, stored bitwise, are:
-        #    0: isPrompt,                          8: fromHardProcess,
-        #    1: isDecayedLeptonHadron,             9: isHardProcessTauDecayProduct,
-        #    2: isTauDecayProduct,                10: isDirectHardProcessTauDecayProduct,
-        #    3: isPromptTauDecayProduct,          11: fromHardProcessBeforeFSR,
-        #    4: isDirectTauDecayProduct,          12: isFirstCopy,
-        #    5: isDirectPromptTauDecayProduct,    13: isLastCopy,
-        #    6: isDirectHadronDecayProduct,       14: isLastCopyBeforeFSR
-        #    7: isHardProcess,
-        ###return bin(value)[-bit-1]=='1'
-        ###return format(value,'b').zfill(bit+1)[-bit-1]=='1'
-        return (value & (1 << bit))>0
-
-    def isA(self, particleID, p):
-	return abs(p) == particleID
-
-    def addFourVec(self, obj):
-        tot = ROOT.TLorentzVector()
-        v1 = ROOT.TLorentzVector()
-        v2 = ROOT.TLorentzVector()
-
-        if(len(obj) > 0): v1.SetPtEtaPhiM(obj[0].pt, obj[0].eta, obj[0].phi, obj[0].mass)
-        else: v1.SetPtEtaPhiM(0, 0, 0, 0)
-        if(len(obj) > 1): v2.SetPtEtaPhiM(obj[1].pt, obj[1].eta, obj[1].phi, obj[1].mass)
-        else: v2.SetPtEtaPhiM(0, 0, 0, 0)
-        tot = (v1 + v2)
-        return tot
-
     def SelJets(self, jet):
         if jet.pt < 30 or math.fabs(jet.eta) > 4.7:
             return False
@@ -281,39 +196,6 @@ class TauMVAObjectsProducer(Module):
         else: dr = -99
         return dr
 
-    class TTreeReaderArrayWrapper:
-        def __init__(self, ttarray):
-            self.ttarray = ttarray
-
-        def __iter__(self):
-            for i in xrange(len(self.ttarray)):
-                yield self.ttarray[i]
-            return
-
-    def PFCandGenMatch(self, event, PFCandEta, PFCandPhi):
-        
-        GenPart_eta              = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_eta),              dtype=float)
-        GenPart_phi              = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_phi),              dtype=float)
-
-        GenPart_genPartIdxMother = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_genPartIdxMother), dtype=int)
-        GenPart_pdgId            = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_pdgId),            dtype=int)
-        GenPart_statusFlags      = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_statusFlags),      dtype=int)
-    
-        genTauDaughters_list = genParticleAssociation(GenPart_genPartIdxMother, GenPart_pdgId, GenPart_statusFlags)
-    
-        genTauDaughters = np.array(genTauDaughters_list)
-
-    
-        if(len(genTauDaughters)):
-            genTauDaughters_eta = GenPart_eta[genTauDaughters]
-            genTauDaughters_phi = GenPart_phi[genTauDaughters]
-        else:
-            genTauDaughters_eta = np.array([])
-            genTauDaughters_phi = np.array([])
-
-    
-        return deltaRMatch(PFCandEta, PFCandPhi, genTauDaughters_eta, genTauDaughters_phi), genTauDaughters
-
     def isChannel(self, obj, kType):
         return pairType[kType] == obj.channel
 
@@ -334,20 +216,20 @@ class TauMVAObjectsProducer(Module):
     def SelTausID(self, obj, ID = "Medium"):
         if self.isChannel(obj, 'kEMu'): return True
         if self.isChannel(obj, 'kMuHad') or self.isChannel(obj, 'kEHad'):
-            if not self.hasBit(obj.tau2IDjet, TauIds[ID]):
+            if not hasBit(obj.tau2IDjet, TauIds[ID]):
                 return False
         elif self.isChannel(obj, 'kHadHad'):
-            if not self.hasBit(obj.tau1IDjet, TauIds[ID]) or not self.hasBit(obj.tau2IDjet, TauIds[ID]):
+            if not hasBit(obj.tau1IDjet, TauIds[ID]) or not hasBit(obj.tau2IDjet, TauIds[ID]):
                 return False
         return True
 
     def SelElecMuonID(self, obj, ID = "Medium"):
         #if obj.channel >= 0: print("channel {0}, id1: {1}, id2: {2}".format(obj.channel, id1, id2))
-        if self.isChannel(obj, 'kMuHad') and (obj.tau1Isojet >= 0.15 or not self.hasBit(obj.tau1IDjet, MuonIds[ID])): 
+        if self.isChannel(obj, 'kMuHad') and (obj.tau1Isojet >= 0.15 or not hasBit(obj.tau1IDjet, MuonIds[ID])): 
             return False
-        elif self.isChannel(obj, 'kEHad') and (obj.tau1Isojet >= 0.15 or not self.hasBit(obj.tau1IDjet, ElecIds[ID])): 
+        elif self.isChannel(obj, 'kEHad') and (obj.tau1Isojet >= 0.15 or not hasBit(obj.tau1IDjet, ElecIds[ID])): 
             return False
-        elif self.isChannel(obj, 'kEMu') and (obj.tau1Isojet >= 0.15 or obj.tau2Isojet >= 0.2 or not self.hasBit(obj.tau1IDjet, ElecIds[ID]) or not self.hasBit(obj.tau2IDjet, MuonIds[ID])):
+        elif self.isChannel(obj, 'kEMu') and (obj.tau1Isojet >= 0.15 or obj.tau2Isojet >= 0.2 or not hasBit(obj.tau1IDjet, ElecIds[ID]) or not hasBit(obj.tau2IDjet, MuonIds[ID])):
             return False
         return True
 
@@ -398,18 +280,6 @@ class TauMVAObjectsProducer(Module):
         svfit     = Collection(event, "SVFit")
         svfitmet  = Collection(event, "SVFitMET")
         genpart   = Collection(event, "GenPart")
-
-        #tau1Pt = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Pt), dtype=float)
-        #tau1Eta = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Eta), dtype=float)
-        #tau1Phi = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Phi), dtype=float)
-        #tau1GenMatch, whichTau = self.PFCandGenMatch(event, tau1Eta, tau1Phi)
-        #print("tau1: {0} {1}".format(tau1GenMatch, whichTau))
-
-        #tau2Pt = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau2Pt), dtype=float)
-        #tau2Eta = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau2Eta), dtype=float)
-        #tau2Phi = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau2Phi), dtype=float)
-        #tau2GenMatch, whichTau = self.PFCandGenMatch(event, tau2Eta, tau2Phi)
-        #print("tau2: {0} {1}".format(tau2GenMatch, whichTau))
 
         #Jet Variables
         self.Jets_Stop0l      = map(self.SelJets, jets)
@@ -556,8 +426,8 @@ class TauMVAObjectsProducer(Module):
             count += 1
 
         self.out.fillBranch("SVFit_2tau2jetPt", self.SVFit_2tau2jetPt)
-        self.out.fillBranch("SVFit_dijetPt", self.addFourVec(jet).Pt())
-        self.out.fillBranch("SVFit_dijetMass", self.addFourVec(jet).M())
+        self.out.fillBranch("SVFit_dijetPt", addFourVec(jet).Pt())
+        self.out.fillBranch("SVFit_dijetMass", addFourVec(jet).M())
         self.out.fillBranch("SVFit_dibjetDR", self.DeltaR(bjet))
         self.out.fillBranch("SVFit_MaxbjetTauDR", self.MaxdrBJetTaus)
         self.out.fillBranch("SVFit_MinbjetTauDR", self.MindrBJetTaus)
