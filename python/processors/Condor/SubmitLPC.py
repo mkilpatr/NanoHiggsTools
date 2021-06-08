@@ -178,7 +178,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_dihiggs_skim"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_dihiggs_json"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -226,6 +226,7 @@ def my_process(args):
                 line = line.replace("DELEXE", args.runfile.split('/')[-1])
 		#line = line.replace("DELEXE", DelExe.split('/')[-1])
                 line = line.replace("OUTDIR", outdir)
+                line = line.replace("JSONCP", args.process)
                 outfile.write(line)
 
         #Update condor file
@@ -276,6 +277,9 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--process',
         default = "",
         help = 'Change process for QCD running.')
+    parser.add_argument('-j', '--match', 
+        type=str, default = "GenPart",
+        help = "Type of particle match for JSON files")
 
     args = parser.parse_args()
     my_process(args)

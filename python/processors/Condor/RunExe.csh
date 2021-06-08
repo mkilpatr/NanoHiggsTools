@@ -5,6 +5,7 @@ set CMSSW  = DELDIR
 set EXE    = DELEXE
 set OUTPUT = OUTDIR
 set INPUTROOT = INROOT
+set JSONCOPY = JSONCP
 
 #============================================================================#
 #-----------------------------   Setup the env   ----------------------------#
@@ -40,14 +41,12 @@ endif
 #--------------------------   To Run the Process   --------------------------#
 #============================================================================#
 
-# copy response file for smearing
-if INPUTROOT != "" then
-  xrdcp -f "root://cmseos.fnal.gov/${INPUTROOT}" "$CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/data/qcdJetRes/."
-endif
-
 #argv[1] is the hadd file name that will be copied over. Other arguments are for the postprocessor.
 echo $EXE $argv[2-]
 python $EXE $argv[2-]
+
+set json = $argv[1]
+set jname = `echo $json | sed 's/\.root//1'`
 
 if ($? == 0) then
   echo "Process finished. Listing current files: "
@@ -61,6 +60,13 @@ if ($? == 0) then
   endif
   foreach i (1 2 3)
     xrdcp -f $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
+    #if (JSONCOPY == "json") then
+    mv IsoTrack.json.gz "$jname.json.gz"
+    mv genHiggs_IsoTrack.json.gz "genHiggs_$jname.json.gz"
+    xrdcp -f "$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
+    xrdcp -f "genHiggs_$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
+    rm "$jname.json.gz"
+    rm "genHiggs_$jname.json.gz"
     ## Remove output file once it is copied
     if ($? == 0) then
       rm $argv[1] 
