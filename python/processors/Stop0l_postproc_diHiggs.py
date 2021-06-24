@@ -19,6 +19,7 @@ def main(args):
     isfastsim = args.isFastSim
     isVBF = args.sampleName.startswith("VBF")
     process = args.process
+    region = args.region
 
     mods = [eleMiniCutID(),
             UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName),
@@ -34,6 +35,12 @@ def main(args):
     elif process == 'cut':
         mods = [CutProducer()]
 
+    cut = "1 == 1"
+    if region == "emu":      cut = "(SVFit_channel[SVFit_Index[0]] == 5 && SVFit_DZeta[SVFit_Index[0]] > -35 && SVFit_elecMuonMT[SVFit_Index[0]] < 60)"
+    elif region == "ehad":   cut = "(SVFit_channel[SVFit_Index[0]] == 1 && SVFit_PassTight[SVFit_Index[0]] && SVFit_tau1_elecMT[SVFit_Index[0]] < 50)"
+    elif region == "muhad":  cut = "(SVFit_channel[SVFit_Index[0]] == 0 && SVFit_PassTight[SVFit_Index[0]] && SVFit_tau1_muMT[SVFit_Index[0]] < 50)"
+    elif region == "hadhad": cut = "(SVFit_channel[SVFit_Index[0]] == 2 && SVFit_PassTight[SVFit_Index[0]] && SVFit_ditauDR[SVFit_Index[0]] > 0.5 && SVFit_ditauPt[SVFit_Index[0]] > 50)"
+
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file
@@ -43,7 +50,7 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    if process == 'json':      p=PostProcessor(args.outputfile,files,cut="Pass_NJets30 && SVFitMET_isValid && Pass_EventFilter && Pass_JetID && nJets30 >=2 && SVFit_dijetMass > 300 && SVFit_nPassMediumElecMuon <= 2", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    if process == 'json':      p=PostProcessor(args.outputfile,files,cut="Pass_NJets30 && SVFitMET_isValid && Pass_EventFilter && Pass_JetID && nJets30 >=2 && SVFit_dijetMass > 300 && SVFit_nPassMediumElecMuon <= 2 && " + cut, branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     elif process == 'dihiggs': p=PostProcessor(args.outputfile,files,cut="nJet >= 2 && SVFitMET_isInteresting", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     elif process == 'cut':     p=PostProcessor(args.outputfile,files,cut="nJet >= 2 && SVFitMET_isInteresting", branchsel=None, outputbranchsel="keep_and_drop_train.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     else:                      p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
@@ -81,5 +88,7 @@ if __name__ == "__main__":
                         help = "Type of QCD process to do (jetres or smear)")
     parser.add_argument('-j', '--match', type=str, default = "GenPart",
                         help = "Type of particle match for JSON files")
+    parser.add_argument('-r', '--region', type=str, default = "",
+                        help = "Which Region do you want to cut")
     args = parser.parse_args()
     main(args)

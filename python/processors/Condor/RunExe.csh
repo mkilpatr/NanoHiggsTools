@@ -61,8 +61,8 @@ if ($? == 0) then
   foreach i (1 2 3)
     xrdcp -f $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
     #if (JSONCOPY == "json") then
-    mv IsoTrack.json.gz "$jname.json.gz"
-    mv genHiggs_IsoTrack.json.gz "genHiggs_$jname.json.gz"
+    mv GenTau.json.gz "$jname.json.gz"
+    mv genHiggs_GenTau.json.gz "genHiggs_$jname.json.gz"
     xrdcp -f "$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
     xrdcp -f "genHiggs_$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
     rm "$jname.json.gz"

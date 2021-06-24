@@ -178,7 +178,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_dihiggs_json"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_dihiggs_json_emu"
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -280,6 +280,9 @@ if __name__ == "__main__":
     parser.add_argument('-j', '--match', 
         type=str, default = "GenPart",
         help = "Type of particle match for JSON files")
+    parser.add_argument('-r', '--region', 
+        type=str, default = "",
+        help = "Which Region do you want to cut")
 
     args = parser.parse_args()
     my_process(args)
