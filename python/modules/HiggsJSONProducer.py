@@ -331,7 +331,7 @@ class HiggsJSONProducer(Module):
         if len(j) > 4: self.fout.write((json.dumps(j, sort_keys=False)+'\n').encode('utf-8'))
         if tottauIdx2 >= 0: j = self.tau2json(svfit, tau2GenMatch, tau2GenMatchPdgId, svfitmet, "tau2", genpart[tottauIdx2])
         if len(j) > 4: self.fout.write((json.dumps(j, sort_keys=False)+'\n').encode('utf-8'))
-        if higgsIdx >= 0: j = self.higg2json(svfit, tau1GenMatch, tau2GenMatch, tau1GenMatchPdgId, tau2GenMatchPdgId, svfitmet, genpart[higgsIdx])
+        if higgsIdx > 0: j = self.higg2json(svfit, tau1GenMatch, tau2GenMatch, tau1GenMatchPdgId, tau2GenMatchPdgId, svfitmet, genpart[higgsIdx])
         if len(j) > 4: self.fgenout.write((json.dumps(j, sort_keys=False)+'\n').encode('utf-8'))
 
         return True
