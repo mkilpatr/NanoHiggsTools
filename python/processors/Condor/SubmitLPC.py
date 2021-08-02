@@ -107,6 +107,10 @@ def ConfigList(config):
             process[stripped_entry[0]].update( {
                 "process" : args.process
             })
+	if args.region != "":
+            process[stripped_entry[0]].update( {
+                "region" : args.region
+            })
 
     return process
 
@@ -178,7 +182,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_dihiggs_json"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber + "_v2_" + args.process + "_" + args.region
     if args.era == 0:
         tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     else:
@@ -280,6 +284,9 @@ if __name__ == "__main__":
     parser.add_argument('-j', '--match', 
         type=str, default = "GenPart",
         help = "Type of particle match for JSON files")
+    parser.add_argument('-r', '--region', 
+        type=str, default = "",
+        help = "Which Region do you want to cut")
 
     args = parser.parse_args()
     my_process(args)
