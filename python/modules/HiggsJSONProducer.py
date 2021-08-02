@@ -162,9 +162,7 @@ class HiggsJSONProducer(Module):
         for idx, sv in enumerate(svfit):
             if not sv.PassBaseline or not sv.PassLepton: continue
             if (tauGenMatch[idx]):
-                if isFirst: 
-                    
-                    h = self.makeTLorentzVector(tau, "gen")
+                if isFirst: h = self.makeTLorentzVector(tau, "gen")
                 t = self.makeTLorentzVector(sv, type)
                 
                 if isFirst:
@@ -226,35 +224,6 @@ class HiggsJSONProducer(Module):
                 if fill2: j.append(cand2[0])
                 isFirst = False
         if self.checkJSONNaN(j): j = []
-        if self.debug: print("Output json: {0}".format(j))
-
-        return j
-
-    def tau2json(self, svfit, tau1GenMatch, tau1GenMatchPdgId, svfitmet, whichTau="tau1", genHiggs = None):
-        j = []
-        isFirst = True
-        for idx, sv in enumerate(svfit):
-            if not sv.PassBaseline or not sv.PassLepton: continue
-            if (tau1GenMatch[idx]) or (tau1GenMatchPdgId[idx]) or genHiggs == None:
-                if isFirst: h = self.makeTLorentzVector(sv if genHiggs == None else genHiggs, "gen")
-                t1 = self.makeTLorentzVector(sv, whichTau)
-                
-                if isFirst:
-                    jTot = [{'E':float(h.E()), 'px':float(h.Px()), 'py':float(h.Py()), 'pz':float(h.Pz())}]
-                    j.append(jTot[0])
-                    if whichTau == "tau1": nu1 = [{'E':float(sv.tau1nuE), 'px':float(sv.tau1nuPx), 'py':float(sv.tau1nuPy), 'pz':float(sv.tau1nuPz)}]
-                    elif whichTau == "tau2": nu1 = [{'E':float(sv.tau2nuE), 'px':float(sv.tau2nuPx), 'py':float(sv.tau2nuPy), 'pz':float(sv.tau2nuPz)}]
-                    j.append(nu1[0])
-                cand1 = [{'E':float(t1.E()), 'px':float(t1.Px()), 'py':float(t1.Py()), 'pz':float(t1.Pz())}]
-
-                if self.debug: 
-                    print("DM1: {0}, cand1: {1}".format(sv.tau1DM, cand1))
-                fill1 = self.checkJSON(j, cand1)
-                if (sv.tau1DM == -1. and whichTau == "tau1") or (sv.tau2DM == -1. and whichTau == "tau2"):
-                    fill1 = False
-                
-                if fill1: j.append(cand1[0])
-                isFirst = False
         if self.debug: print("Output json: {0}".format(j))
 
         return j
