@@ -6,6 +6,7 @@ set EXE    = DELEXE
 set OUTPUT = OUTDIR
 set INPUTROOT = INROOT
 set JSONCOPY = JSONCP
+set REGION = REG
 
 #============================================================================#
 #-----------------------------   Setup the env   ----------------------------#
@@ -61,11 +62,11 @@ if ($? == 0) then
   foreach i (1 2 3)
     xrdcp -f $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
     #if (JSONCOPY == "json") then
-    mv GenTau.json.gz "$jname.json.gz"
-    mv genHiggs_GenTau.json.gz "genHiggs_$jname.json.gz"
-    xrdcp -f "$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
+    mv IsoTrack.json.gz "genTaus_$jname.json.gz"
+    mv genHiggs_IsoTrack.json.gz "genHiggs_$jname.json.gz"
+    xrdcp -f "genTaus_$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
     xrdcp -f "genHiggs_$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
-    rm "$jname.json.gz"
+    rm "genTaus_$jname.json.gz"
     rm "genHiggs_$jname.json.gz"
     ## Remove output file once it is copied
     if ($? == 0) then
