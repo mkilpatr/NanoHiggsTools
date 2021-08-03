@@ -118,8 +118,7 @@ class HiggsJSONProducer(Module):
         self.metBranchName = "MET"
         self.processName = processName
         self.match = match
-        self.filename='GenTau.json.gz'
-        self.debug = False
+        self.debug = True
 
     def beginJob(self):
         pass
@@ -128,8 +127,8 @@ class HiggsJSONProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.fout = gzip.open(self.filename, 'a')
-        self.fgenout = gzip.open("genHiggs_"+self.filename, 'a')
+        self.fout = gzip.open('GenTau.json.gz', 'a')
+        self.fgenout = gzip.open("genHiggs.json.gz", 'a')
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.fout.close()
@@ -145,7 +144,7 @@ class HiggsJSONProducer(Module):
 
     def checkJSON(self, jin, jcheck):
         for j1, j in enumerate(jin):
-            if self.debug: print("{0} and {1}".format(j, jcheck[0]))
+            #if self.debug: print("{0} and {1}".format(j, jcheck[0]))
             if j['E'] == jcheck[0]['E'] and j['px'] == jcheck[0]['px'] and j['py'] == jcheck[0]['py'] and j['pz'] == jcheck[0]['pz']:
                 return False
         return True
@@ -159,8 +158,10 @@ class HiggsJSONProducer(Module):
     def tau2json(self, svfit, tauGenMatch, tauGenPartMatch, svfitmet, tau = None, type = None):
         j = []
         isFirst = True
+        print("inputs: {0} {1} {2} {3}".format(tauGenMatch, tauGenPartMatch, tau, type))
         for idx, sv in enumerate(svfit):
-            if not sv.PassBaseline or not sv.PassLepton: continue
+            #print("Pass Baseline: {0} Pass Lepton: {1}".format(sv.PassBaseline, sv.PassLepton))
+            #if not sv.PassBaseline or not sv.PassLepton: continue
             if (tauGenMatch[idx]):
                 if isFirst: h = self.makeTLorentzVector(tau, "gen")
                 t = self.makeTLorentzVector(sv, type)
@@ -168,10 +169,11 @@ class HiggsJSONProducer(Module):
                 if isFirst:
                     jTot = [{'E':float(h.E()), 'px':float(h.Px()), 'py':float(h.Py()), 'pz':float(h.Pz())}]
                     j.append(jTot[0])
-                    if type == 'tau1': 
-                        nu = [{'E':float(sv.tau1nuE), 'px':float(sv.tau1nuPx), 'py':float(sv.tau1nuPy), 'pz':float(sv.tau1nuPz)}]
-                    elif type == 'tau2':
-                        nu = [{'E':float(sv.tau2nuE), 'px':float(sv.tau2nuPx), 'py':float(sv.tau2nuPy), 'pz':float(sv.tau2nuPz)}]
+                if type == 'tau1': 
+                    nu = [{'E':float(sv.tau1nuE), 'px':float(sv.tau1nuPx), 'py':float(sv.tau1nuPy), 'pz':float(sv.tau1nuPz)}]
+                    j.append(nu[0])
+                elif type == 'tau2':
+                    nu = [{'E':float(sv.tau2nuE), 'px':float(sv.tau2nuPx), 'py':float(sv.tau2nuPy), 'pz':float(sv.tau2nuPz)}]
                     j.append(nu[0])
                 cand = [{'E':float(t.E()), 'px':float(t.Px()), 'py':float(t.Py()), 'pz':float(t.Pz())}]
 
@@ -194,7 +196,7 @@ class HiggsJSONProducer(Module):
         j = []
         isFirst = True
         for idx, sv in enumerate(svfit):
-            if not sv.PassBaseline or not sv.PassLepton: continue
+            #if not sv.PassBaseline or not sv.PassLepton: continue
             if (tau1GenMatch[idx] and tau2GenMatch[idx]) or (tau1GenMatchPdgId[idx] and tau2GenMatchPdgId[idx]) or genHiggs == None:
                 if isFirst: h = self.makeTLorentzVector(sv if genHiggs == None else genHiggs, "gen")
                 t1 = self.makeTLorentzVector(sv, 'tau1')
