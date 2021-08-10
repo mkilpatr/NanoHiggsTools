@@ -340,18 +340,22 @@ class HiggsJSONProducer(Module):
             idx2 = genpart[gD2].genPartIdxMother if t2 else -1
             if idx1 >= 0: 
                 if idx1 not in tauIdx1: tauIdx1.append(idx1)
-                hIdx = self.recursiveFindHiggs(idx1, genpart)
+                hIdx = genpart[idx1].genPartIdxMother
                 if hIdx not in higgs1Idx: higgs1Idx.append(hIdx)
             if idx2 >= 0: 
                 if idx2 not in tauIdx2: tauIdx2.append(idx2)
-                hIdx = self.recursiveFindHiggs(idx2, genpart)
+                hIdx = genpart[idx2].genPartIdxMother
                 if hIdx not in higgs2Idx: higgs2Idx.append(hIdx)
             if self.debug: 
                 print("Daughter IDs: {0} {1}, PDGIDs: {4} {5}, mother IDx: {2} {3}, PDGIDs: {6} {7}".format(gD1, gD2, idx1, idx2, genpart[gD1].pdgId, genpart[gD2].pdgId, genpart[idx1].pdgId if idx1 != -1 else -1, genpart[idx2].pdgId if idx2 != -1 else -1))
                 if idx1 >= 0: print("Matched Higgs Index: {0} pdgId: {1} --> tau1: {2} pdgId: {3}".format(hIdx, genpart[hIdx].pdgId if hIdx != -1 else -1, idx1, genpart[idx1].pdgId))
                 if idx2 >= 0: print("Matched Higgs Index: {0} pdgId: {1} --> tau2: {2} pdgId: {3}".format(hIdx, genpart[hIdx].pdgId if hIdx != -1 else -1, idx2, genpart[idx2].pdgId))
-            if idx + 1 == len(whichTau1) and len(tauIdx1) == 0: tauIdx1.append(genpart[whichTau1[0]].genPartIdxMother)
-            if idx + 1 == len(whichTau2) and len(tauIdx2) == 0: tauIdx2.append(genpart[whichTau2[0]].genPartIdxMother)
+        if len(tauIdx1) == 0: 
+            tauIdx1.append(genpart[whichTau1[0]].genPartIdxMother)
+            higgs1Idx.append(genpart[genpart[whichTau1[0]].genPartIdxMother].genPartIdxMother)
+        if len(tauIdx2) == 0: 
+            tauIdx2.append(genpart[whichTau2[0]].genPartIdxMother)
+            higgs2Idx.append(genpart[genpart[whichTau2[0]].genPartIdxMother].genPartIdxMother)
 
         if self.debug: print("Higgs Vec: {0} = {1}, tau1 Vec: {2}, tau2 Vec: {3}".format(higgs1Idx, higgs2Idx, tauIdx1, tauIdx2))
 
