@@ -334,10 +334,8 @@ class HiggsJSONProducer(Module):
         higgs1Idx = []
         higgs2Idx = []
         for idx, (gD1, gD2, t1, t2) in enumerate(zip(whichTau1, whichTau2, tau1GenPartMatch, tau2GenPartMatch)):
-            #idx1 = self.recursiveFindHiggs(gD1, 15, genpart) if t1 else -1
-            #idx2 = self.recursiveFindHiggs(gD2, 15, genpart) if t2 else -1
-            idx1 = self.recursiveFindHiggs(gD1, 15, genpart)
-            idx2 = self.recursiveFindHiggs(gD2, 15, genpart)
+            idx1 = self.recursiveFindHiggs(gD1, 15, genpart) if t1 else -1
+            idx2 = self.recursiveFindHiggs(gD2, 15, genpart) if t2 else -1
             if idx1 >= 0: tauIdx1.append(idx1)
             if idx2 >= 0: tauIdx2.append(idx2)
             if idx1 >= 0:
