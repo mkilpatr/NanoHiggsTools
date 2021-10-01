@@ -127,7 +127,7 @@ class HiggsJSONProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.fout = gzip.open('GenTau.json.gz', 'a')
+        self.fout = gzip.open('genTau.json.gz', 'a')
         self.fgenout = gzip.open("genHiggs.json.gz", 'a')
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
@@ -180,12 +180,12 @@ class HiggsJSONProducer(Module):
                     print("DM1: {0}, DM2: {1}".format(sv.tau1DM, sv.tau2DM))
                     print("cand: {0}".format(cand))
                 fill = self.checkJSON(j, cand)
-                if (type == 'tau1' and sv.tau1DM == -1.) or (type == 'tau2' and sv.tau2DM == -1.):
-                    fill = False
+                #if (type == 'tau1' and sv.tau1DM == -1.) or (type == 'tau2' and sv.tau2DM == -1.):
+                #    fill = False
                 
                 if fill: j.append(cand[0])
                 isFirst = False
-        if len(j) < 3: j = []
+        #if len(j) < 3: j = []
         if self.checkJSONNaN(j): j = []
         if self.debug: print("Output json: {0}".format(j))
 
@@ -216,10 +216,10 @@ class HiggsJSONProducer(Module):
                     print("cand1: {0}, cand2: {1}".format(cand1, cand2))
                 fill1 = self.checkJSON(j, cand1)
                 fill2 = self.checkJSON(j, cand2)
-                if sv.tau1DM == -1.: 
-                    fill1 = False
-                if sv.tau2DM == -1.:
-                    fill2 = False
+                #if sv.tau1DM == -1.: 
+                #    fill1 = False
+                #if sv.tau2DM == -1.:
+                #    fill2 = False
                 
                 if fill1: j.append(cand1[0])
                 if fill2: j.append(cand2[0])
@@ -334,17 +334,19 @@ class HiggsJSONProducer(Module):
         higgs1Idx = []
         higgs2Idx = []
         for idx, (gD1, gD2, t1, t2) in enumerate(zip(whichTau1, whichTau2, tau1GenPartMatch, tau2GenPartMatch)):
-            idx1 = self.recursiveFindHiggs(gD1, 15, genpart) if t1 else -1
-            idx2 = self.recursiveFindHiggs(gD2, 15, genpart) if t2 else -1
+            #idx1 = self.recursiveFindHiggs(gD1, 15, genpart) if t1 else -1
+            #idx2 = self.recursiveFindHiggs(gD2, 15, genpart) if t2 else -1
+            idx1 = self.recursiveFindHiggs(gD1, 15, genpart)
+            idx2 = self.recursiveFindHiggs(gD2, 15, genpart)
             if idx1 >= 0: tauIdx1.append(idx1)
             if idx2 >= 0: tauIdx2.append(idx2)
             if idx1 >= 0:
                 higgs1Idx.append(genpart[idx1].genPartIdxMother)
-                if self.debug: print("Matched Higgs Index: {0} --> tau1: {1} pdgId: {3} tau2: {2} pdgId: {4}".format(genpart[idx1].genPartIdxMother, idx1, idx2, genpart[idx1].pdgId, genpart[idx2].pdgId))
+                if self.debug: print("Matched Higgs Index: {0} --> tau1: {1} pdgId: {2}".format(genpart[idx1].genPartIdxMother, idx1, genpart[idx1].pdgId))
                 break
             elif idx2 >= 0:
                 higgs2Idx.append(genpart[idx2].genPartIdxMother)
-                if self.debug: print("Matched Higgs Index: {0} --> tau1: {1} pdgId: {3} tau2: {2} pdgId: {4}".format(genpart[idx1].genPartIdxMother, idx1, idx2, genpart[idx1].pdgId, genpart[idx2].pdgId))
+                if self.debug: print("Matched Higgs Index: {0} --> tau2: {1} pdgId: {2}".format(genpart[idx2].genPartIdxMother, idx2, genpart[idx2].pdgId))
                 break
 #---
 #>         for idx, (gD1, gD2, t1, t2) in enumerate(zip(whichTau1, whichTau2, tau1GenPartMatch, tau2GenPartMatch)):
