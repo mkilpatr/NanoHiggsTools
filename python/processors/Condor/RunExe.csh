@@ -60,24 +60,14 @@ if ($? == 0) then
     end
   endif
   echo $JSONCOPY
-  if ($JSONCOPY == "json") then
-    mv genTau.json.gz "genTaus_$jname.json.gz"
-    mv genHiggs.json.gz "genHiggs_$jname.json.gz"
-    xrdcp -f "genTaus_$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
-    xrdcp -f "genHiggs_$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
-    rm "genTaus_$jname.json.gz"
-    rm "genHiggs_$jname.json.gz"
-  endif
   foreach i (1 2 3)
     if ($JSONCOPY != "json") then
       xrdcp -f $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
     else
-      mv genTau.json.gz "genTaus_$jname.json.gz"
-      mv genHiggs.json.gz "genHiggs_$jname.json.gz"
-      xrdcp -f "genTaus_$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
-      xrdcp -f "genHiggs_$jname.json.gz" "root://cmseos.fnal.gov/${OUTPUT}/."
-      rm "genTaus_$jname.json.gz"
-      rm "genHiggs_$jname.json.gz"
+      xrdcp -f genTaus.json.gz "root://cmseos.fnal.gov/${OUTPUT}/genTaus_$jname.json.gz"
+      xrdcp -f genHiggs.json.gz "root://cmseos.fnal.gov/${OUTPUT}/genHiggs_$jname.json.gz"
+      rm genTaus.json.gz
+      rm genHiggs.json.gz
     endif
     ## Remove output file once it is copied
     if ($? == 0) then
