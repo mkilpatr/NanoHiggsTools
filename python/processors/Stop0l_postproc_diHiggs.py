@@ -20,7 +20,6 @@ def main(args):
     isfastsim = args.isFastSim
     isVBF = args.sampleName.startswith("VBF")
     process = args.process
-    region = args.region
 
     mods = [eleMiniCutID(),
             UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName),
@@ -30,7 +29,7 @@ def main(args):
     ]
 
     if process == 'json':
-        mods = [HiggsJSONProducer(args.sampleName, args.match)]
+        mods = [HiggsJSONProducer(args.sampleName, args.match, args.debug)]
     elif process == 'lund':
         mods = [TauMVAObjectsProducer(isVBF=isVBF), 
                 HiggsLundVarsProducer(args.sampleName, args.match)]
@@ -40,10 +39,10 @@ def main(args):
         mods = [CutProducer()]
 
     cut = "1 == 1"
-    if region == "emu":      cut = "(SVFit_channel[SVFit_Index[0]] == 5 && SVFit_DZeta[SVFit_Index[0]] > -35 && SVFit_elecMuonMT[SVFit_Index[0]] < 60)"
-    elif region == "ehad":   cut = "(SVFit_channel[SVFit_Index[0]] == 1 && SVFit_PassTight[SVFit_Index[0]] && SVFit_tau1_elecMT[SVFit_Index[0]] < 50)"
-    elif region == "muhad":  cut = "(SVFit_channel[SVFit_Index[0]] == 0 && SVFit_PassTight[SVFit_Index[0]] && SVFit_tau1_muMT[SVFit_Index[0]] < 50)"
-    elif region == "hadhad": cut = "(SVFit_channel[SVFit_Index[0]] == 2 && SVFit_PassTight[SVFit_Index[0]] && SVFit_ditauDR[SVFit_Index[0]] > 0.5 && SVFit_ditauPt[SVFit_Index[0]] > 50)"
+    if args.region == "emu":      cut = "(SVFit_channel[SVFit_Index[0]] == 5 && SVFit_DZeta[SVFit_Index[0]] > -35 && SVFit_elecMuonMT[SVFit_Index[0]] < 60)"
+    elif args.region == "ehad":   cut = "(SVFit_channel[SVFit_Index[0]] == 1 && SVFit_PassTight[SVFit_Index[0]] && SVFit_tau1_elecMT[SVFit_Index[0]] < 50)"
+    elif args.region == "muhad":  cut = "(SVFit_channel[SVFit_Index[0]] == 0 && SVFit_PassTight[SVFit_Index[0]] && SVFit_tau1_muMT[SVFit_Index[0]] < 50)"
+    elif args.region == "hadhad": cut = "(SVFit_channel[SVFit_Index[0]] == 2 && SVFit_PassTight[SVFit_Index[0]] && SVFit_ditauDR[SVFit_Index[0]] > 0.5 && SVFit_ditauPt[SVFit_Index[0]] > 50)"
     else: cut = "((SVFit_channel[SVFit_Index[0]] == 5 && SVFit_DZeta[SVFit_Index[0]] > -35 && SVFit_elecMuonMT[SVFit_Index[0]] < 60) || (SVFit_channel[SVFit_Index[0]] == 1 && SVFit_PassTight[SVFit_Index[0]] && SVFit_tau1_elecMT[SVFit_Index[0]] < 50) || (SVFit_channel[SVFit_Index[0]] == 0 && SVFit_PassTight[SVFit_Index[0]] && SVFit_tau1_muMT[SVFit_Index[0]] < 50) || (SVFit_channel[SVFit_Index[0]] == 2 && SVFit_PassTight[SVFit_Index[0]] && SVFit_ditauDR[SVFit_Index[0]] > 0.5 && SVFit_ditauPt[SVFit_Index[0]] > 50))"
 
     files = []
@@ -96,5 +95,7 @@ if __name__ == "__main__":
                         help = "Type of particle match for JSON files")
     parser.add_argument('-r', '--region', type=str, default = "",
                         help = "Which Region do you want to cut")
+    parser.add_argument('-db', '--debug', type=bool, default = False,
+                        help = "Print debug statements")
     args = parser.parse_args()
     main(args)

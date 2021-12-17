@@ -52,21 +52,6 @@ def genParticleAssociation(GenPart_genPartIdxMother, GenPart_pdgId, GenPart_stat
 
     return genTauDaughters
 
-@numba.jit(nopython=True)
-def isotrkAssociation(PFCands_pdgId):
-    genTauDaughters = []
-    genTaupdgId = []
-    gtd = []
-    gtpdgid = []
-    for iGP, pdgId in enumerate(PFCands_pdgId):
-        if (abs(pdgId) == 11 or abs(pdgId) == 13 or abs(pdgId) == 211):
-            gtd.append(iGP)
-            gtpdgid.append(pdgId)
-    genTauDaughters.extend(gtd)
-    genTaupdgId.extend(gtpdgid)
-
-    return genTauDaughters, genTaupdgId
-
 def deltaRMatch(CandPdgId, CandEta, CandPhi, genTauDaughters_pdgId, genTauDaughters_eta, genTauDaughters_phi):
 
     matches = np.zeros(len(CandEta), dtype=int)
@@ -114,11 +99,11 @@ tauDecayPdgId = {
 }
 
 class HiggsJSONProducer(Module):
-    def __init__(self, processName, match):
+    def __init__(self, processName, match, debug):
         self.metBranchName = "MET"
         self.processName = processName
         self.match = match
-        self.debug = False
+        self.debug = debug
 
     def beginJob(self):
         pass
@@ -257,6 +242,11 @@ class HiggsJSONProducer(Module):
             genTauDaughters_pdgid = pdgId[genTauDaughters]
             genTauDaughters_eta = eta[genTauDaughters]
             genTauDaughters_phi = phi[genTauDaughters]
+        elif "qcd" in self.processName.lower():
+            genTauDaughters = np.linspace(0, len(eta), num = len(eta) + 1)
+            genTauDaughters_pdgid = pdgId #np.array([])
+            genTauDaughters_eta = eta #np.array([])
+            genTauDaughters_phi = phi #np.array([])
         else:
             genTauDaughters_pdgid = np.array([])
             genTauDaughters_eta = np.array([])
@@ -266,7 +256,7 @@ class HiggsJSONProducer(Module):
     
         return matches, candmatches, matchPdgID, genTauDaughters
 
-    def recursiveFindHiggs(self, startIdx, targetPdgId, genpart):
+    def recursiveFindHiggs(self, startIdx, startPdgId, genpart):
         if startIdx < 0:
             return -1
     
@@ -274,10 +264,10 @@ class HiggsJSONProducer(Module):
     
         if mom < 0:
             return startIdx
-        elif genpart[startIdx].pdgId == targetPdgId:
+        elif genpart[mom].pdgId != startPdgId:
             return mom
         else:
-            return self.recursiveFindHiggs(mom, targetPdgId, genpart)
+            return self.recursiveFindHiggs(mom, startPdgId, genpart)
 
     def findwhichTau(self, tau, genpart):
         idx = -1
@@ -290,20 +280,51 @@ class HiggsJSONProducer(Module):
                 PT = pt
                 idx = i
 
-            #if abs(pdgid) == 25:
-            #    return i
-
         return i
+
+    def firstRealValue(self, index, value):
+        if index < 0: return -1
+
+        if value[index] < 0:
+            if index + 1 == len(value): return -1
+            return self.firstRealValue(index + 1, value)
+        else:
+            return index
+
+    def findMothers(self, tau1, tau2, higgs1, higgs2, wt1, wt2, genpart):
+        t1 = t2 = h = -1
+        if self.debug: print("tau1: {0}, wt1: {4}, tau2: {1}, wt2: {5}, h1: {2}, h2: {3}".format(tau1, tau2, higgs1, higgs2, wt1, wt2))
+
+        if len(tau1) == 0 and len(wt1) > 0: 
+            m1 = genpart[int(wt1[0])].genPartIdxMother
+            m2 = genpart[m1].genPartIdxMother if m1 > 0 else m1
+            t1 = m1
+            higgs1.append(m2)
+
+        if len(tau2) == 0 and len(wt2) > 0: 
+            m1 = genpart[int(wt2[0])].genPartIdxMother
+            m2 = genpart[m1].genPartIdxMother if m1 > 0 else m1
+            t2 = m1
+            higgs2.append(m2)
+
+        if len(wt1) == 0:
+            h1 = genpart[genpart[wt2[0]].genPartIdxMother].genPartIdxMother
+
+        if len(higgs1) > 0 or len(higgs2) > 0: 
+            if len(higgs1) != 0: h = self.firstRealValue(0, higgs1)
+            elif len(higgs2) != 0: h = self.firstRealValue(0, higgs2)
+            if higgs1 == -1 and len(higgs2) != 0: h = self.firstRealValue(0, higgs2)
+
+        if self.debug: print("Index of (tau1, tau2, higgs) = ({0}, {1}, {2})".format(t1, t2, h))
+
+        return t1, t2, h
 
     def analyze(self, event):
         ## Getting objects
         svfit      = Collection(event, "SVFit")
         svfitmet   = Collection(event, "SVFitMET")
         genpart    = Collection(event, "GenPart")
-        genvistau  = Collection(event, "GenVisTau")
-        isotrk     = Collection(event, "IsoTrack")
         pfcand     = Collection(event, "PFCands")
-        fjtopfcand = Collection(event, "FatJetToPFCands")
 
         tau1Pt = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Pt), dtype=float)
         tau1Eta = np.fromiter(self.TTreeReaderArrayWrapper(event.SVFit_tau1Eta), dtype=float)
@@ -334,59 +355,28 @@ class HiggsJSONProducer(Module):
         higgs1Idx = []
         higgs2Idx = []
         for idx, (gD1, gD2, t1, t2) in enumerate(zip(whichTau1, whichTau2, tau1GenPartMatch, tau2GenPartMatch)):
-            idx1 = self.recursiveFindHiggs(gD1, 15, genpart) if t1 else -1
-            idx2 = self.recursiveFindHiggs(gD2, 15, genpart) if t2 else -1
-            if idx1 >= 0: tauIdx1.append(idx1)
-            if idx2 >= 0: tauIdx2.append(idx2)
+            idx1 = self.recursiveFindHiggs(int(gD1), genpart[int(gD1)].pdgId, genpart) if bool(t1) else -1
+            idx2 = self.recursiveFindHiggs(int(gD2), genpart[int(gD2)].pdgId, genpart) if bool(t2) else -1
             if idx1 >= 0:
+                tauIdx1.append(idx1)
                 higgs1Idx.append(genpart[idx1].genPartIdxMother)
                 if self.debug: print("Matched Higgs Index: {0} --> tau1: {1} pdgId: {2}".format(genpart[idx1].genPartIdxMother, idx1, genpart[idx1].pdgId))
-                break
-            elif idx2 >= 0:
+            if idx2 >= 0:
+                tauIdx2.append(idx2)
                 higgs2Idx.append(genpart[idx2].genPartIdxMother)
                 if self.debug: print("Matched Higgs Index: {0} --> tau2: {1} pdgId: {2}".format(genpart[idx2].genPartIdxMother, idx2, genpart[idx2].pdgId))
-                break
-#---
-#>         for idx, (gD1, gD2, t1, t2) in enumerate(zip(whichTau1, whichTau2, tau1GenPartMatch, tau2GenPartMatch)):
-#>             idx1 = self.recursiveFindHiggs(gD1, 15, genpart) if t1 else -1
-#>             idx2 = self.recursiveFindHiggs(gD2, 15, genpart) if t2 else -1
-#>             if idx1 >= 0: 
-#>                 if idx1 not in tauIdx1: tauIdx1.append(idx1)
-#>                 hIdx = genpart[idx1].genPartIdxMother
-#>                 if hIdx not in higgs1Idx: higgs1Idx.append(hIdx)
-#>             if idx2 >= 0: 
-#>                 if idx2 not in tauIdx2: tauIdx2.append(idx2)
-#>                 hIdx = genpart[idx2].genPartIdxMother
-#>                 if hIdx not in higgs2Idx: higgs2Idx.append(hIdx)
-#>             if self.debug: 
-#>                 print("Daughter IDs: {0} {1}, PDGIDs: {4} {5}, mother IDx: {2} {3}, PDGIDs: {6} {7}".format(gD1, gD2, idx1, idx2, genpart[gD1].pdgId, genpart[gD2].pdgId, genpart[idx1].pdgId if idx1 != -1 else -1, genpart[idx2].pdgId if idx2 != -1 else -1))
-#>                 if idx1 >= 0: print("Matched Higgs Index: {0} pdgId: {1} --> tau1: {2} pdgId: {3}".format(hIdx, genpart[hIdx].pdgId if hIdx != -1 else -1, idx1, genpart[idx1].pdgId))
-#>                 if idx2 >= 0: print("Matched Higgs Index: {0} pdgId: {1} --> tau2: {2} pdgId: {3}".format(hIdx, genpart[hIdx].pdgId if hIdx != -1 else -1, idx2, genpart[idx2].pdgId))
-        if len(tauIdx1) == 0 and len(whichTau1) > 0: 
-            tauIdx1.append(genpart[whichTau1[0]].genPartIdxMother)
-            higgs1Idx.append(genpart[genpart[whichTau1[0]].genPartIdxMother].genPartIdxMother)
-        if len(tauIdx2) == 0 and len(whichTau2) > 0: 
-            tauIdx2.append(genpart[whichTau2[0]].genPartIdxMother)
-            higgs2Idx.append(genpart[genpart[whichTau2[0]].genPartIdxMother].genPartIdxMother)
-
         if self.debug: print("Higgs Vec: {0} = {1}, tau1 Vec: {2}, tau2 Vec: {3}".format(higgs1Idx, higgs2Idx, tauIdx1, tauIdx2))
 
-
         j = []
-        if len(tauIdx1) > 0: 
-            #j = self.tau2json(svfit, tau1GenMatch, tau1GenPartMatch, svfitmet, genpart[tauIdx1[self.findwhichTau(tauIdx1, genpart)]], 'tau1')
-            j = self.tau2json(svfit, tau1GenMatch, tau1GenPartMatch, svfitmet, genpart[tauIdx1[0]], 'tau1')
+        t1, t2, h = self.findMothers(tauIdx1, tauIdx2, higgs1Idx, higgs2Idx, whichTau1, whichTau2, genpart)
+        if t1 >= 0: 
+            j = self.tau2json(svfit, tau1GenMatch, tau1GenPartMatch, svfitmet, genpart[t1], 'tau1')
             if len(j) > 2: self.fout.write((json.dumps(j, sort_keys=False)+'\n').encode('utf-8'))
-        if len(tauIdx2) > 0: 
-            #j = self.tau2json(svfit, tau2GenMatch, tau2GenPartMatch, svfitmet, genpart[tauIdx2[self.findwhichTau(tauIdx2, genpart)]], 'tau2')
-            j = self.tau2json(svfit, tau2GenMatch, tau2GenPartMatch, svfitmet, genpart[tauIdx2[0]], 'tau2')
+        if t2 >= 0: 
+            j = self.tau2json(svfit, tau2GenMatch, tau2GenPartMatch, svfitmet, genpart[2], 'tau2')
             if len(j) > 2: self.fout.write((json.dumps(j, sort_keys=False)+'\n').encode('utf-8'))
-        if len(higgs1Idx) > 0 or len(higgs2Idx) > 0: 
-            if len(higgs1Idx) != 0: higgs = higgs1Idx[0]
-            elif len(higgs2Idx) != 0: higgs = higgs2Idx[0]
-            if higgs == -1 and len(higgs2Idx) != 0: higgs = higgs2Idx[0]
-            if higgs == -1: return True
-            j = self.higg2json(svfit, tau1GenMatch, tau2GenMatch, tau1GenMatchPdgId, tau2GenMatchPdgId, svfitmet, genpart[higgs])
+        if h >= 0:
+            j = self.higg2json(svfit, tau1GenMatch, tau2GenMatch, tau1GenMatchPdgId, tau2GenMatchPdgId, svfitmet, genpart[h])
             if len(j) > 3: self.fgenout.write((json.dumps(j, sort_keys=False)+'\n').encode('utf-8'))
 
         return True
