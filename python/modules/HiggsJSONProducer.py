@@ -296,26 +296,26 @@ class HiggsJSONProducer(Module):
         if len(wt1) == 0 and len(wt2) == 0: return t1, t2, h        
         if self.debug: print("tau1: {0}, wt1: {4}, tau2: {1}, wt2: {5}, h1: {2}, h2: {3}".format(tau1, tau2, higgs1, higgs2, wt1, wt2))
 
-        if len(tau1) == 0 and len(wt1) > 0: 
+        
+        if len(tau1) > 0: t1 = tau1[0]
+        elif len(wt1) > 0: 
             m1 = genpart[int(wt1[0])].genPartIdxMother
             m2 = genpart[m1].genPartIdxMother
             t1 = m1
             higgs1.append(m2)
-        else: t1 = tau1[0]
 
-        if len(tau2) == 0 and len(wt2) > 0: 
+        if len(tau2) > 0: t2 = tau2[0]
+        elif len(wt2) > 0: 
             m1 = genpart[int(wt2[0])].genPartIdxMother
             m2 = genpart[m1].genPartIdxMother
             t2 = m1
             higgs2.append(m2)
-        else: t2 = tau2[0]
 
         #if len(wt1) == 0:
         #    h1 = genpart[genpart[wt2[0]].genPartIdxMother].genPartIdxMother
 
         if len(higgs1) > 0 or len(higgs2) > 0: 
             if len(higgs1) != 0: h = self.firstRealValue(0, higgs1)
-            elif len(higgs2) != 0: h = self.firstRealValue(0, higgs2)
             if higgs1 == -1 and len(higgs2) != 0: h = self.firstRealValue(0, higgs2)
 
         if self.debug: print("Index of (tau1, tau2, higgs) = ({0}, {1}, {2})".format(t1, t2, h))
