@@ -6,7 +6,7 @@ import numpy as np
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
-from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
+from PhysicsTools.NanoHiggsTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 
 class Stop0lBaselineProducer(Module):
     def __init__(self, era, isData = False, isFastSim=False, applyUncert=None):

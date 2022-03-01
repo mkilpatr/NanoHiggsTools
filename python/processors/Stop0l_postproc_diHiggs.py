@@ -6,14 +6,14 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 from importlib import import_module
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 
-from PhysicsTools.NanoSUSYTools.modules.eleMiniCutIDProducer import *
-from PhysicsTools.NanoSUSYTools.modules.TauMVAObjectsProducer import *
-from PhysicsTools.NanoSUSYTools.modules.updateEvtWeight import *
-from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
-from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
-from PhysicsTools.NanoSUSYTools.modules.HiggsJSONProducer import *
-from PhysicsTools.NanoSUSYTools.modules.HiggsLundVarsProducer import *
-from PhysicsTools.NanoSUSYTools.modules.CutProducer import *
+from PhysicsTools.NanoHiggsTools.modules.eleMiniCutIDProducer import *
+from PhysicsTools.NanoHiggsTools.modules.TauMVAObjectsProducer import *
+from PhysicsTools.NanoHiggsTools.modules.updateEvtWeight import *
+from PhysicsTools.NanoHiggsTools.modules.Stop0lObjectsProducer import *
+from PhysicsTools.NanoHiggsTools.modules.Stop0lBaselineProducer import *
+from PhysicsTools.NanoHiggsTools.modules.HiggsJSONProducer import *
+from PhysicsTools.NanoHiggsTools.modules.HiggsLundVarsProducer import *
+from PhysicsTools.NanoHiggsTools.modules.CutProducer import *
 
 def main(args):
     isdata = len(args.dataEra) > 0

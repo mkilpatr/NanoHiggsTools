@@ -7,7 +7,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaR
 
-from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
+from PhysicsTools.NanoHiggsTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 
 #2016 MC: https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
 #2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X

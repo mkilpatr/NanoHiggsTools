@@ -11,7 +11,7 @@ The instructions here assume you have followed the main [README](../../../README
 Use the following tag for postprocessing submissions 
 
 ```
-cd $CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/
+cd $CMSSW_BASE/src/PhysicsTools/NanoHiggsTools/
 git checkout postpro_v3.0
 scram b -j8
 ```

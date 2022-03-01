@@ -1,7 +1,7 @@
-# NanoSUSY-tools
+# NanoHiggs-tools
 Postprocessing script for Stop 0L analysis
 
-See the [readme](python/processors/Condor/README.md) in "NanoSUSYTools/python/processors/Condor" for specific instructions for condor submission.
+See the [readme](python/processors/Condor/README.md) in "NanoHiggsTools/python/processors/Condor" for specific instructions for condor submission.
 
 ### Set up CMSSW
 
@@ -13,7 +13,7 @@ cd CMSSW_10_2_9/src/
 cmsenv
 ```
 
-### Set up NanoSusyTools framework
+### Set up NanoHiggsTools framework
 ```tcsh
 cd $CMSSW_BASE/src
 cmsenv
@@ -58,9 +58,9 @@ python Stop0l_postproc.py -i file:[input file] -d [data period] -e [year]
     * Once Hui's study is finalized, we will store the bit and efficiency + systematic
 
 Smearing QCD Notes NANOAOD
-In PhysicsTools/NanoSUSYTools/python/processors/
+In PhysicsTools/NanoHiggsTools/python/processors/
 You need to create a QCD file with all of the qcd_orig files that you want to run over.
-An example of all of these files is located in my area: /uscms_data/d3/{USER}/CMSSW_10_2_9/src/PhysicsTools/NanoSUSYTools/python/processors
+An example of all of these files is located in my area: /uscms_data/d3/{USER}/CMSSW_10_2_9/src/PhysicsTools/NanoHiggsTools/python/processors
 
 > python Stop0l_postproc_QCD.py -p jetres
 

@@ -10,7 +10,7 @@ import gzip
 from array import array
 from importlib import import_module
 
-from PhysicsTools.NanoSUSYTools.modules.HelperFunctions import *
+from PhysicsTools.NanoHiggsTools.modules.HelperFunctions import *
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, closest
